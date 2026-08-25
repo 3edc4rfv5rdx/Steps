@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+## v0.1.20260825+29
 - The README says what the app now does: the three screens, the day taken apart, why the periods
   are calendar ones, and what a phone holding the app back costs.
 - A CSV import asks before it merges, the way a restore does: it cannot be undone either, and it
