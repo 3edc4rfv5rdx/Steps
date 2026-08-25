@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- The backup dialog and the restore confirmation were each being composed twice on the Settings
+  screen, one copy on top of the other; one of each is gone.
 - A Background work row in Settings says whether Android is holding the app back and leads straight
   to the exemption: a restricted app is woken to read the counter less often, and a walk then
   arrives in one lump at the hour the app was next opened.

@@ -227,35 +227,6 @@ fun SettingsScreen() {
         }
     }
 
-    if (showBackup) {
-        BackupDialog(
-            onDismiss = { showBackup = false },
-            onExportCsv = ::exportCsvNow,
-            onImportCsv = { pickCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
-            onExportZip = ::exportZipNow,
-            onImportZip = { pickZip.launch(arrayOf("application/zip", "application/octet-stream")) },
-        )
-    }
-
-    pendingRestore?.let { uri ->
-        ConfirmDialog(
-            title = stringResource(R.string.restore_confirm_title),
-            message = stringResource(R.string.restore_confirm_message),
-            onDismiss = { pendingRestore = null },
-            onConfirm = {
-                pendingRestore = null
-                scope.launch {
-                    val failure = importZip(context, uri, repository)
-                    banner = if (failure == null) {
-                        BannerMessage(BannerKind.SUCCESS, resources.getString(R.string.restore_done_message))
-                    } else {
-                        BannerMessage(BannerKind.ERROR, resources.getString(failure.messageRes()))
-                    }
-                }
-            },
-        )
-    }
-
     when (editing) {
         Editing.GOAL -> NumberDialog(
             title = stringResource(R.string.setting_goal),
