@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the launcher icon from znak.png, the pedestrian crossing sign.
+"""Builds the launcher icon from ADD/images/znak.png, the pedestrian crossing sign.
 
 The figure is taken from the sign itself rather than redrawn: the sign's black pixels are split
 into connected components, the zebra stripes are dropped, and what remains — torso, leading leg,
@@ -14,14 +14,13 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-SOURCE = Path("znak.png")
+SOURCE = Path("ADD/images/znak.png")
 RES = Path("app/src/main/res")
 
 # Adaptive icons are a 108dp canvas of which only the middle 66dp is guaranteed to survive the
 # launcher's mask. Everything drawn here stays inside that.
 CANVAS = 108
 SAFE_TOP = 21
-SAFE_BOTTOM = 87
 
 # Where the figure ends and the road begins, in canvas units.
 FIGURE_BOTTOM = 79
@@ -138,8 +137,6 @@ def build(source: Path) -> Image.Image:
         fill=255,
     )
 
-    foreground = Image.new("RGBA", (size, size), (255, 255, 255, 0))
-    foreground.putalpha(alpha)
     white = Image.new("RGBA", (size, size), (255, 255, 255, 255))
     white.putalpha(alpha)
     return white

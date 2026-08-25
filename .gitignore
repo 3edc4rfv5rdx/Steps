@@ -18,6 +18,3 @@ key.properties
 *.apkx
 /tmp
 /ADD
-# Icon source and its preview: inputs to tools/make_icon.py, not build artefacts
-znak.png
-icon_preview.png

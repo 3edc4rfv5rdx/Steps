@@ -43,7 +43,7 @@ Release-only workflow. The scripts in the repository root mirror the BikeTracker
 Release signing reads `~/.my-safe/key.properties`; the build number lives in `build_number.txt`.
 
 The launcher icon is generated, not hand-drawn: `python3 tools/make_icon.py` cuts the pedestrian
-out of the crossing sign in `znak.png` — dropping the zebra stripes — and writes
+out of the crossing sign in `ADD/images/znak.png` — dropping the zebra stripes — and writes
 `mipmap-*/ic_launcher_foreground.png` at every density. The blue behind it is
 `values/ic_launcher_background.xml`. The source image is git-ignored; the generated PNGs are
 committed, so a normal build needs no Python.
