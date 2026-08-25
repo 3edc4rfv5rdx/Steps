@@ -1,6 +1,7 @@
 package xx.steps.steps
 
 import android.content.Context
+import android.os.Build
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -15,6 +16,25 @@ import kotlin.random.Random
  * nothing here ever runs unless the user asks for it.
  */
 object DemoSteps {
+
+    /**
+     * True on an emulator. The demo exists to look at the interface where there is no step
+     * counter, which is exactly an emulator; on a real phone it would only be a way to wipe the
+     * history by accident, so it is not offered there at all.
+     *
+     * The checks are the usual fingerprint tells — Google's images report generic builds and the
+     * goldfish/ranchu virtual hardware.
+     */
+    val isEmulator: Boolean by lazy {
+        Build.FINGERPRINT.startsWith("generic") ||
+            Build.FINGERPRINT.contains("vbox") ||
+            Build.FINGERPRINT.contains("emulator", ignoreCase = true) ||
+            Build.MODEL.contains("Emulator", ignoreCase = true) ||
+            Build.MODEL.contains("Android SDK built for", ignoreCase = true) ||
+            Build.PRODUCT.startsWith("sdk") ||
+            Build.HARDWARE == "goldfish" ||
+            Build.HARDWARE == "ranchu"
+    }
 
     /** Where the fake counter starts, mimicking a phone that has been up for a while. */
     private const val DEMO_BASELINE = 20_000L

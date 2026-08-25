@@ -185,12 +185,15 @@ fun SettingsScreen() {
         )
         HorizontalDivider()
 
+        // Only on an emulator: see DemoSteps.isEmulator.
+        if (DemoSteps.isEmulator) {
         SwitchRow(
             label = stringResource(R.string.setting_demo),
             hint = stringResource(R.string.setting_demo_hint),
             checked = demo,
             onToggle = { confirmDemo = true },
         )
+        }
     }
 
         banner?.let { message ->

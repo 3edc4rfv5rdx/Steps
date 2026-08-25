@@ -142,8 +142,8 @@ private fun Actions(
         // Pausing lives on the circle itself; only the permission needs a button of its own.
         if (access == StepAccess.PERMISSION_MISSING) PermissionButton()
 
-        // How this interface gets looked at on an emulator or a phone with no counter.
-        if (demo || access == StepAccess.SENSOR_MISSING) {
+        // How this interface gets looked at on an emulator; never offered on a real phone.
+        if (DemoSteps.isEmulator && (demo || access == StepAccess.SENSOR_MISSING)) {
             DemoButton(demo = demo, goal = goal, repository = repository)
         }
     }

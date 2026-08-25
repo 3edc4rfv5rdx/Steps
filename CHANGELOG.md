@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- Demo mode is offered on an emulator only — on a real phone it could only wipe the history by
+  accident — and an install carried from one to the other switches it off by itself.
+- A localization pass across all three languages: the confirm button no longer says "wipe" in the
+  dialog that restores a backup, the four backup actions read as one set, and the wording is
+  tightened throughout.
 - A full backup as a ZIP holding the database, written to Documents/Steps, and a restore that
   pours it back into the live database — every screen updates on its own, with no restart. A
   restore replaces rather than merges, so it asks first, and a file that is not a backup is refused

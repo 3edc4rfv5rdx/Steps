@@ -21,8 +21,8 @@
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
     <string name="counting_paused">Counting paused</string>
-    <string name="demo_start">Show a demo</string>
-    <string name="demo_stop">Stop the demo</string>
+    <string name="demo_start">Show demo</string>
+    <string name="demo_stop">Stop demo</string>
     <!-- History -->
     <string name="total_week">Week</string>
     <string name="total_month">Month</string>
@@ -36,7 +36,7 @@
     <string name="setting_goal">Daily goal, steps</string>
     <string name="setting_step_length">Step length, cm</string>
     <string name="setting_theme">Theme</string>
-    <string name="setting_accent">Colour</string>
+    <string name="setting_accent">Color</string>
     <string name="setting_language">Language</string>
     <string name="setting_demo">Demo mode</string>
     <string name="setting_demo_hint">Simulated steps for looking at the app</string>
@@ -56,18 +56,18 @@
     <string name="about_build">Build</string>
     <string name="action_ok">OK</string>
     <!-- Export and import -->
-    <string name="setting_export_csv">Export to CSV</string>
-    <string name="setting_import_csv">Import from CSV</string>
+    <string name="setting_export_csv">Export CSV</string>
+    <string name="setting_import_csv">Import CSV</string>
     <string name="export_done_message">Documents/Steps/%2$s\nDays written %1$d</string>
     <string name="export_failed">Could not write the file</string>
     <string name="import_done_message">Read %1$d, written %2$d, skipped %3$d</string>
     <string name="setting_backup">Backup</string>
-    <string name="backup_export_zip">Export a full backup</string>
-    <string name="backup_import_zip">Restore from a backup</string>
+    <string name="backup_export_zip">Full backup</string>
+    <string name="backup_import_zip">Restore from backup</string>
     <string name="restore_confirm_title">Replace everything</string>
     <string name="restore_confirm_message">The backup replaces the whole history — what is recorded now will be gone</string>
     <string name="restore_done_message">The history has been replaced</string>
-    <string name="restore_failed_archive">This file is not a backup archive</string>
+    <string name="restore_failed_archive">This file does not look like a backup</string>
     <string name="restore_failed_content">The archive holds no step database</string>
     <string name="restore_failed_size">The archive is too large to be a backup</string>
     <string name="restore_failed_broken">The database inside is not readable</string>
