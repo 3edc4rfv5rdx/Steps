@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- The percentage inside the ring is set large, next in weight to the count itself, and it keeps
+  counting past the goal — 146% rather than nothing. "Goal reached" moved above the step count,
+  where it no longer takes the number's place.
 - A tap on any bar under the ring, or on any day in the history, takes that day apart: its steps
   hour by hour, half hour by half hour or quarter by quarter, as a chart ruled in amber at every
   sixth hour, with a pointer that follows the finger and names the stretch it stands on, and the

@@ -32,13 +32,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xx.steps.R
 import xx.steps.formatSteps
-import kotlin.math.roundToInt
+import xx.steps.percentOfGoal
 
 /** Thickness of both the track and the progress arc. */
 private val RING_STROKE = 18.dp
 
 /** Hairline circle drawn along the ring's inner edge, in the ring's own colour. */
 private val INNER_CIRCLE_STROKE = 1.5.dp
+
+/**
+ * The percentage inside the ring. Set well above body size: after the count itself it is the number
+ * the ring is read for, and at title size it was lost among the goal and the distance around it.
+ */
+private val PERCENT_SIZE = 28.sp
 
 /** The whole ring sweeps clockwise from twelve o'clock. */
 private const val RING_START_ANGLE = -90f
@@ -59,7 +65,7 @@ fun StepRing(
 ) {
     val fraction = if (goal > 0) (steps.toFloat() / goal).coerceIn(0f, 1f) else 0f
     val reached = goal > 0 && steps >= goal
-    val percent = if (goal > 0) (steps.toFloat() / goal * 100).roundToInt() else 0
+    val percent = percentOfGoal(steps, goal)
 
     // Animating the sweep makes a step landing while you watch read as motion, not as a jump.
     val sweep by animateFloatAsState(targetValue = fraction * 360f, label = "ringSweep")
@@ -132,6 +138,17 @@ private fun RingLabel(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        // The banner goes above the count rather than in the percentage's place: the number keeps
+        // climbing past the goal, and 146% is worth seeing.
+        if (reached) {
+            Text(
+                text = stringResource(R.string.goal_reached),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                color = arcColor,
+            )
+        }
         Text(
             text = formatSteps(steps),
             fontSize = 56.sp,
@@ -144,12 +161,10 @@ private fun RingLabel(
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-            text = if (reached) {
-                stringResource(R.string.goal_reached)
-            } else {
-                stringResource(R.string.percent_of_goal, percent)
-            },
-            style = MaterialTheme.typography.titleMedium,
+            text = stringResource(R.string.percent_of_goal, percent),
+            fontSize = PERCENT_SIZE,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
             color = arcColor,
         )
         Text(
