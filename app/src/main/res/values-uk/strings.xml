@@ -55,4 +55,12 @@
     <string name="about_version">Версія</string>
     <string name="about_build">Збірка</string>
     <string name="action_ok">OK</string>
+    <!-- Export and import -->
+    <string name="setting_export_csv">Експорт у CSV</string>
+    <string name="setting_import_csv">Імпорт із CSV</string>
+    <string name="export_done_title">Експортовано</string>
+    <string name="export_done_message">Documents/Steps/%2$s\nЗаписано днів %1$d</string>
+    <string name="export_failed">Не вдалося записати файл</string>
+    <string name="import_done_title">Імпортовано</string>
+    <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
 </resources>

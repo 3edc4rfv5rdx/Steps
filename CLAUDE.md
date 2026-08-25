@@ -110,7 +110,8 @@ Single `:app` module, package `xx.steps`.
 - One-sentence proactive observations are welcome (a data-integrity risk, a copy gap, the next
   step). Surface them; do not act on them unasked.
 - Never commit unless the user says so ("запиши", "коммит", "commit"). After committing, stop —
-  the user pushes.
+  the user pushes. But say when a feature is finished and offer to record it: one commit per
+  feature only works if the end of each one is announced rather than quietly piled onto the next.
 
 ## UI rules
 

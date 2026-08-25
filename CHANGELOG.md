@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- The history can be written out as CSV to Documents/Steps and read back from any file the system
+  picker reaches. One line per day, `date,steps,goal`, so it opens in a spreadsheet and can be
+  edited by hand. An import merges by date and keeps the fuller record of each day, which makes
+  importing the same file twice a no-op; malformed lines are skipped and counted rather than
+  costing the rest of the file, and a day already stored keeps the goal it was judged by.
 - The whole ring is the pause button now: tapping anywhere on it stops counting, and the amber
   circle it turns into resumes on the same tap. Each says which with an icon and a word inside the
   circle, so the separate button under it is gone.

@@ -1,5 +1,7 @@
 package xx.steps.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,12 +32,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import xx.steps.R
 import xx.steps.data.StepsRepository
+import xx.steps.data.exportCsv
+import xx.steps.data.importCsv
 import xx.steps.formatSteps
 import xx.steps.settings.AppSettings
 import xx.steps.settings.ThemeMode
@@ -49,6 +54,7 @@ import xx.steps.steps.DemoSteps
 fun SettingsScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val resources = LocalResources.current
     val repository = remember(context) { StepsRepository.get(context) }
 
     val goal by AppSettings.goal.collectAsState()
@@ -68,6 +74,28 @@ fun SettingsScreen() {
     // Saveable: changing the theme or the language recreates the activity under an open dialog.
     var editing by rememberSaveable { mutableStateOf(Editing.NONE) }
     var confirmDemo by rememberSaveable { mutableStateOf(false) }
+    var outcome by remember { mutableStateOf<DialogMessage?>(null) }
+
+    val exportFailed = stringResource(R.string.export_failed)
+    val exportTitle = stringResource(R.string.export_done_title)
+    val importTitle = stringResource(R.string.import_done_title)
+
+    // The system picker hands back a readable Uri; no storage permission is involved either way.
+    val pickCsv = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val result = importCsv(context, uri, repository, AppSettings.goal.value)
+            outcome = DialogMessage(
+                title = importTitle,
+                message = resources.getString(
+                    R.string.import_done_message,
+                    result.read,
+                    result.written,
+                    result.skipped,
+                ),
+            )
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -104,6 +132,36 @@ fun SettingsScreen() {
             label = stringResource(R.string.setting_language),
             value = languageLabel,
             onClick = { editing = Editing.LANGUAGE },
+        )
+        HorizontalDivider()
+
+        ActionRow(
+            label = stringResource(R.string.setting_export_csv),
+            onClick = {
+                scope.launch {
+                    val days = repository.allDays()
+                    val result = exportCsv(context, days)
+                    outcome = if (result == null) {
+                        DialogMessage(title = exportTitle, message = exportFailed)
+                    } else {
+                        DialogMessage(
+                            title = exportTitle,
+                            message = resources.getString(
+                                R.string.export_done_message,
+                                result.days,
+                                result.fileName,
+                            ),
+                        )
+                    }
+                }
+            },
+        )
+        HorizontalDivider()
+
+        ActionRow(
+            label = stringResource(R.string.setting_import_csv),
+            // Both MIME spellings: some file managers label a CSV as plain text.
+            onClick = { pickCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
         )
         HorizontalDivider()
 
@@ -166,6 +224,14 @@ fun SettingsScreen() {
         Editing.NONE -> Unit
     }
 
+    outcome?.let { message ->
+        MessageDialog(
+            title = message.title,
+            message = message.message,
+            onDismiss = { outcome = null },
+        )
+    }
+
     if (confirmDemo) {
         ConfirmDialog(
             title = stringResource(R.string.demo_wipe_title),
@@ -177,6 +243,24 @@ fun SettingsScreen() {
                     DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal)
                 }
             },
+        )
+    }
+}
+
+/** A finished export or import, waiting to be shown. */
+private data class DialogMessage(val title: String, val message: String)
+
+/** A settings row that just does something — no value to show, so none is shown. */
+@Composable
+private fun ActionRow(label: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

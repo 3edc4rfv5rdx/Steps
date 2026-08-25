@@ -158,3 +158,16 @@ fun AboutDialog(onDismiss: () -> Unit) {
         },
     )
 }
+
+/** States an outcome and closes — what an export or an import reports when it is done. */
+@Composable
+fun MessageDialog(title: String, message: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            DialogConfirmButton(stringResource(R.string.action_ok), onDismiss)
+        },
+    )
+}

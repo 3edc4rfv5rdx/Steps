@@ -55,4 +55,12 @@
     <string name="about_version">Версия</string>
     <string name="about_build">Сборка</string>
     <string name="action_ok">OK</string>
+    <!-- Export and import -->
+    <string name="setting_export_csv">Экспорт в CSV</string>
+    <string name="setting_import_csv">Импорт из CSV</string>
+    <string name="export_done_title">Экспортировано</string>
+    <string name="export_done_message">Documents/Steps/%2$s\nЗаписано дней %1$d</string>
+    <string name="export_failed">Не удалось записать файл</string>
+    <string name="import_done_title">Импортировано</string>
+    <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
 </resources>

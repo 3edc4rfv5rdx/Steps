@@ -31,6 +31,9 @@ interface StepsDao {
     @Query("SELECT * FROM day_steps WHERE date = :date")
     suspend fun dayRow(date: String): DaySteps?
 
+    @Query("SELECT * FROM day_steps ORDER BY date")
+    suspend fun allDays(): List<DaySteps>
+
     @Upsert
     suspend fun upsertDay(day: DaySteps)
 

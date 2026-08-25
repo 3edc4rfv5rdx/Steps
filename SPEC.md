@@ -69,9 +69,10 @@ app/src/main/java/xx/steps/
   data/StepsRepository.kt  folds a reading, writes the day and the baseline in one transaction;
                            pins the current goal when a day's row is created, and updates the goal
                            of today's row only when the goal changes
-  data/CsvIo.kt            exports date,steps,goal to Documents/Steps through MediaStore (the
-                           pattern in BikeTracker Backup.kt:104) and imports a chosen file: merge
-                           by date, the larger step count wins, malformed lines skipped and counted
+  data/CsvFormat.kt        formatCsv / parseCsv / mergeDays — the format and the merge rule, free
+                           of Android and covered by JVM tests
+  data/CsvIo.kt            writes to Documents/Steps through MediaStore, reads a Uri from the
+                           system picker, and folds the result into the database
   data/Backup.kt           ZIP holding the database file, plus restore; a port of BikeTracker's
                            Backup.kt and DatabaseRestoreCoordinator, cut down to one table
   settings/AppSettings.kt  object with StateFlows: goal, step length, paused, demo, themeMode,

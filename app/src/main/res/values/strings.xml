@@ -55,4 +55,12 @@
     <string name="about_version">Version</string>
     <string name="about_build">Build</string>
     <string name="action_ok">OK</string>
+    <!-- Export and import -->
+    <string name="setting_export_csv">Export to CSV</string>
+    <string name="setting_import_csv">Import from CSV</string>
+    <string name="export_done_title">Exported</string>
+    <string name="export_done_message">Documents/Steps/%2$s\nDays written %1$d</string>
+    <string name="export_failed">Could not write the file</string>
+    <string name="import_done_title">Imported</string>
+    <string name="import_done_message">Read %1$d, written %2$d, skipped %3$d</string>
 </resources>

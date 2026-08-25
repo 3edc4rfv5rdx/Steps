@@ -19,6 +19,9 @@ class StepsRepository(private val database: AppDatabase) {
 
     fun observeDay(date: LocalDate): Flow<DaySteps?> = dao.observeDay(date.toIso())
 
+    /** Every recorded day, read once — for the export and for merging an import against. */
+    suspend fun allDays(): List<DaySteps> = dao.allDays()
+
     /**
      * The [days] days starting at [first], oldest first. Days with no steps have no row, so the
      * result is sparse — callers fill the gaps with zeroes rather than expecting one entry per day.
@@ -84,6 +87,11 @@ class StepsRepository(private val database: AppDatabase) {
      */
     suspend fun setDay(date: LocalDate, steps: Int, goal: Int) {
         dao.upsertDay(DaySteps(date = date.toIso(), steps = steps, goal = goal))
+    }
+
+    /** Writes a batch of days in one transaction, as an import does. */
+    suspend fun setDays(days: List<DaySteps>) = database.withTransaction {
+        days.forEach { dao.upsertDay(it) }
     }
 
     /** Wipes every recorded day and the counter baseline — the demo's way out, and a reset. */
