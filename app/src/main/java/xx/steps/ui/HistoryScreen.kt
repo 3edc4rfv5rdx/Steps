@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -247,9 +248,9 @@ private fun StepsAndDistance(
     style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.titleMedium,
     onBand: Boolean = false,
 ) {
-    // On the inverted band everything reverses to white; the green "goal met" tint would not read
-    // against the accent anyway.
-    val plain = if (onBand) Color.White else MaterialTheme.colorScheme.onSurface
+    // On the inverted band the text takes the surface colour it is standing on top of; the green
+    // "goal met" tint would not read against it.
+    val plain = if (onBand) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -305,9 +306,13 @@ private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            // Today is inverted rather than tinted: a solid accent band with its text reversed
-            // out of it, so the day being added to right now is found without looking for it.
-            .background(if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent)
+            // Today is inverted: the row's own two colours swap places, so it reads as the same
+            // row turned inside out — dark on light becomes light on dark, and the other way in
+            // the dark theme.
+            .background(
+                color = if (isToday) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                shape = RoundedCornerShape(6.dp),
+            )
             .padding(start = 46.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -315,7 +320,7 @@ private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean) {
             text = formatDayLabel(day.date),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (isToday) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (isToday) Color.White else MaterialTheme.colorScheme.onSurface,
+            color = if (isToday) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
         StepsAndDistance(

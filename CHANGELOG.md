@@ -1,8 +1,8 @@
 # Changelog
 
 ## Unreleased
-- Today's row in the history is inverted — a solid accent band with its text reversed out of it —
-  rather than faintly tinted.
+- Today's row in the history is inverted: its two colours swap places, dark on light becoming light
+  on dark, with slightly rounded corners.
 - The Backup row carries a chevron, saying it leads somewhere, and the accent palette moved out of
   the settings list into a dialog of its own, leaving a single swatch on the row.
 - Dialog buttons no longer wrap onto two lines, the long backup action is centred on one line, and
