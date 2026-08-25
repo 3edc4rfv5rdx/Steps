@@ -84,6 +84,7 @@ fun SettingsScreen() {
     var banner by remember { mutableStateOf<BannerMessage?>(null) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
+    var pendingImport by remember { mutableStateOf<Uri?>(null) }
 
     // Read once and again on the way back from the system screen, which is the only place it can
     // change while this screen is up.
@@ -95,9 +96,14 @@ fun SettingsScreen() {
     }
 
     // The system picker hands back a readable Uri; no storage permission is involved either way.
+    // Like a restore, the file is chosen first and confirmed after: a merge cannot be undone either.
     val pickCsv = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         showBackup = false
+        pendingImport = uri
+    }
+
+    fun importCsvNow(uri: Uri) {
         scope.launch {
             val result = importCsv(context, uri, repository, AppSettings.goal.value)
             val summary = resources.getString(
@@ -292,6 +298,18 @@ fun SettingsScreen() {
             onImportCsv = { pickCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
             onExportZip = ::exportZipNow,
             onImportZip = { pickZip.launch(arrayOf("application/zip", "application/octet-stream")) },
+        )
+    }
+
+    pendingImport?.let { uri ->
+        ConfirmDialog(
+            title = stringResource(R.string.import_confirm_title),
+            message = stringResource(R.string.import_confirm_message),
+            onDismiss = { pendingImport = null },
+            onConfirm = {
+                pendingImport = null
+                importCsvNow(uri)
+            },
         )
     }
 

@@ -59,6 +59,8 @@
 Записано днів: %1$d</string>
     <string name="export_failed">Не вдалося записати файл</string>
     <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
+    <string name="import_confirm_title">Злити файл</string>
+    <string name="import_confirm_message">Дні зливаються за датою, перемагає повніший запис, а змінений день втрачає погодинну розкладку</string>
     <string name="import_breakdown_dropped">Погодинну розкладку скинуто</string>
     <string name="setting_backup">Резервні копії</string>
     <string name="backup_export_zip">Повна копія</string>

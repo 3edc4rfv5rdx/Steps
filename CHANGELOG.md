@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- A CSV import asks before it merges, the way a restore does: it cannot be undone either, and it
+  costs the breakdown of every day it changes.
 - The demo has one control now, a flask in the top bar of the Today tab: lit while it runs, dimmed
   while it does not, and present on an emulator only. The button under the ring and the row in
   Settings are both gone, and the confirmation before the wipe came with it.

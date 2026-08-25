@@ -59,6 +59,8 @@
 Записано дней: %1$d</string>
     <string name="export_failed">Не удалось записать файл</string>
     <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
+    <string name="import_confirm_title">Слить файл</string>
+    <string name="import_confirm_message">Дни сливаются по дате, побеждает более полная запись, а изменённый день теряет почасовую раскладку</string>
     <string name="import_breakdown_dropped">Почасовая раскладка сброшена</string>
     <string name="setting_backup">Резервные копии</string>
     <string name="backup_export_zip">Полная копия</string>
