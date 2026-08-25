@@ -27,6 +27,8 @@ projects:
   `./06-Test.sh --tests 'xx.steps.StepSyncTest'`.
 - `02-DebugWiFiConn.sh` — adb connect over Wi-Fi. `99-CopyToAPKX.sh` — symlink the newest APK.
 - `20-MakeTag.sh` / `21-PushTag.sh` — release tag and its push.
+- `tools/make_icon.py` — regenerates the launcher icon from `znak.png` (git-ignored). Its output,
+  `mipmap-*/ic_launcher_foreground.png`, is committed, so the build itself never runs Python.
 
 Conventions:
 

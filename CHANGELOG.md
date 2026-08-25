@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- The launcher icon is the pedestrian from the crossing sign, cut out of the sign itself by
+  tools/make_icon.py rather than redrawn: the zebra stripes are dropped and replaced by one solid
+  bar for the road, and the blue behind it matches the sibling EasySend icon.
 - Demo mode is offered on an emulator only — on a real phone it could only wipe the history by
   accident — and an install carried from one to the other switches it off by itself.
 - A localization pass across all three languages: the confirm button no longer says "wipe" in the
