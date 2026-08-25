@@ -118,7 +118,6 @@ fun StepRing(
             steps = steps,
             goal = goal,
             percent = percent,
-            reached = reached,
             arcColor = arcColor,
             stepLengthCm = stepLengthCm,
         )
@@ -130,7 +129,6 @@ private fun RingLabel(
     steps: Int,
     goal: Int,
     percent: Int,
-    reached: Boolean,
     arcColor: Color,
     stepLengthCm: Int,
 ) {
@@ -138,17 +136,6 @@ private fun RingLabel(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // The banner goes above the count rather than in the percentage's place: the number keeps
-        // climbing past the goal, and 146% is worth seeing.
-        if (reached) {
-            Text(
-                text = stringResource(R.string.goal_reached),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                color = arcColor,
-            )
-        }
         Text(
             text = formatSteps(steps),
             fontSize = 56.sp,

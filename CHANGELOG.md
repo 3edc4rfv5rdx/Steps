@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- No "goal reached" line in the ring any more: the closed green arc and the green percentage say it
+  between them, and the circle keeps the same five lines all day.
 - The Background work row says so when the phone has no such system screen, instead of a tap that
   visibly does nothing.
 - A CSV import says how many days lost their hourly breakdown to it, and the banner goes amber for

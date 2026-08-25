@@ -10,7 +10,6 @@
     <!-- Today screen -->
     <string name="goal_label">Цель</string>
     <string name="percent_of_goal">%1$d %%</string>
-    <string name="goal_reached">Цель взята</string>
 
     <!-- Why counting is impossible -->
     <string name="no_sensor">В этом телефоне нет датчика шагов</string>

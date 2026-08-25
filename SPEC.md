@@ -126,8 +126,8 @@ android:required="false">`, `allowBackup="false"` — data moves through the app
 **Today.** A header with the date. A progress ring: grey track, with an arc from twelve o'clock
 clockwise in proportion to the goal; once the goal is passed the ring closes and changes color.
 Inside it the step count in large type, below it the goal and the percentage of it, set large and
-counting on past the goal; once the goal is met "goal reached" appears above the count, in the
-ring's own green. Under the ring, seven
+counting on past the goal. Nothing announces the goal in words: the arc closes and both it and the
+percentage turn green, which says it without a line of text. Under the ring, seven
 bars for the past seven days, each scaled against the best day of that week, today highlighted, with
 a dashed goal line across them and day labels underneath. The number grows live while the screen is
 open. A tap on any bar opens that day's breakdown.
