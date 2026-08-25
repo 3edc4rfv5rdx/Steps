@@ -35,8 +35,19 @@ private fun exportFileName(now: Long = System.currentTimeMillis()): String =
 /** What an export produced: the display name written, for telling the user where it went. */
 data class ExportResult(val fileName: String, val days: Int)
 
-/** What an import found and did. [written] counts days actually changed, not lines read. */
-data class ImportResult(val written: Int, val skipped: Int, val read: Int)
+/**
+ * What an import found and did. [written] counts days actually changed, not lines read.
+ *
+ * [breakdownsDropped] counts the days that lost their hour-by-hour breakdown to it: a file carries
+ * day totals and nothing else, so a day whose total the import raises can keep no breakdown of the
+ * old one. It is worth telling the user about — it is the one thing an import destroys.
+ */
+data class ImportResult(
+    val written: Int,
+    val skipped: Int,
+    val read: Int,
+    val breakdownsDropped: Int = 0,
+)
 
 /**
  * Writes every recorded day to `Documents/Steps`. Returns null only if MediaStore refuses to
@@ -75,7 +86,8 @@ suspend fun exportCsv(context: Context, days: List<DaySteps>): ExportResult? =
 
 /**
  * Reads a chosen file and folds it into the database. Days already fuller in the database are left
- * alone, so importing the same file twice changes nothing the second time.
+ * alone, so importing the same file twice changes nothing the second time — and a day left alone
+ * keeps its breakdown, which only the days actually overwritten lose.
  */
 suspend fun importCsv(
     context: Context,
@@ -91,7 +103,12 @@ suspend fun importCsv(
     val existing = repository.allDays()
     val toWrite = mergeDays(existing = existing, imported = parsed.days, fallbackGoal = fallbackGoal)
 
-    repository.setDays(toWrite)
+    val breakdownsDropped = repository.setDays(toWrite)
 
-    ImportResult(written = toWrite.size, skipped = parsed.skipped, read = parsed.days.size)
+    ImportResult(
+        written = toWrite.size,
+        skipped = parsed.skipped,
+        read = parsed.days.size,
+        breakdownsDropped = breakdownsDropped,
+    )
 }

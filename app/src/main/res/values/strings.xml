@@ -61,6 +61,7 @@
     <string name="export_done_message">Documents/Steps/%2$s\nDays written %1$d</string>
     <string name="export_failed">Could not write the file</string>
     <string name="import_done_message">Read %1$d, written %2$d, skipped %3$d</string>
+    <string name="import_breakdown_dropped">Hourly breakdown dropped</string>
     <string name="setting_backup">Backup</string>
     <string name="backup_export_zip">Full backup</string>
     <string name="backup_import_zip">Restore from backup</string>

@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- A CSV import says how many days lost their hourly breakdown to it, and the banner goes amber for
+  it. A file carries day totals and nothing else, so a day whose total it raises cannot keep the
+  breakdown of the old one; days left alone keep theirs.
 - A day chart built at a bar width that does not divide the day folds the remainder into the last
   bar instead of indexing past it.
 - Restoring a full backup brings the breakdown back with the days. The archive always held it —

@@ -133,15 +133,21 @@ class StepsRepository(private val database: AppDatabase) {
     }
 
     /**
-     * Writes a batch of days in one transaction, as an import does. A day's breakdown goes with it:
-     * a file carries day totals only, and slots left over from before would no longer add up to the
-     * number they sit under.
+     * Writes a batch of days in one transaction, as an import does, and answers how many of them
+     * lost a breakdown to it.
+     *
+     * A day's breakdown goes with its total: a file carries day totals only, and slots left over
+     * from before would no longer add up to the number they sit under. That is a real loss, and
+     * the count is returned rather than swallowed so the import can say it out loud.
      */
-    suspend fun setDays(days: List<DaySteps>) = database.withTransaction {
+    suspend fun setDays(days: List<DaySteps>): Int = database.withTransaction {
+        var breakdownsDropped = 0
         days.forEach {
             dao.upsertDay(it)
+            if (dao.slotCount(it.date) > 0) breakdownsDropped++
             dao.deleteSlotsOf(it.date)
         }
+        breakdownsDropped
     }
 
     /**

@@ -62,6 +62,7 @@
 Записано дней: %1$d</string>
     <string name="export_failed">Не удалось записать файл</string>
     <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
+    <string name="import_breakdown_dropped">Почасовая раскладка сброшена</string>
     <string name="setting_backup">Резервные копии</string>
     <string name="backup_export_zip">Полная копия</string>
     <string name="backup_import_zip">Восстановление из копии</string>

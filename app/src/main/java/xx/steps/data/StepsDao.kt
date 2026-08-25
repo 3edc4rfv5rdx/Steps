@@ -56,6 +56,10 @@ interface StepsDao {
     @Query("SELECT * FROM day_slots WHERE date = :date")
     suspend fun slotsOf(date: String): List<DaySlot>
 
+    /** How many slots a day has — asked before an import overwrites the day and drops them. */
+    @Query("SELECT COUNT(*) FROM day_slots WHERE date = :date")
+    suspend fun slotCount(date: String): Int
+
     @Upsert
     suspend fun upsertSlots(slots: List<DaySlot>)
 

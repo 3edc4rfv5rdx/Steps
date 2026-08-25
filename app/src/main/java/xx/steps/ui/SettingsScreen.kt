@@ -104,15 +104,22 @@ fun SettingsScreen() {
         showBackup = false
         scope.launch {
             val result = importCsv(context, uri, repository, AppSettings.goal.value)
+            val summary = resources.getString(
+                R.string.import_done_message,
+                result.read,
+                result.written,
+                result.skipped,
+            )
+            // Skipped lines mean the file was not entirely understood; a dropped breakdown means
+            // something was destroyed to make room for it. Either one worked, but not cleanly.
+            val lost = result.breakdownsDropped
             banner = BannerMessage(
-                // Skipped lines mean the file was not entirely understood: worked, but not fully.
-                kind = if (result.skipped > 0) BannerKind.WARNING else BannerKind.SUCCESS,
-                text = resources.getString(
-                    R.string.import_done_message,
-                    result.read,
-                    result.written,
-                    result.skipped,
-                ),
+                kind = if (result.skipped > 0 || lost > 0) BannerKind.WARNING else BannerKind.SUCCESS,
+                text = if (lost == 0) {
+                    summary
+                } else {
+                    summary + "\n" + resources.getString(R.string.import_breakdown_dropped) + ": " + lost
+                },
             )
         }
     }
