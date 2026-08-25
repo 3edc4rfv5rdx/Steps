@@ -135,7 +135,9 @@ open. A tap on any bar opens that day's breakdown.
 Special states take the ring's exact footprint as an amber circle with black text, so the screen
 never reads as a genuine zero and nothing below it shifts: no sensor; permission not granted (with a
 button that asks for it, turning into "open settings" once Android stops showing the dialog);
-counting paused.
+counting paused. Granting the permission leads straight into the battery exemption dialog, unless
+the app is exempt already: both questions are asked in one go rather than leaving the second one
+to a system screen nobody opens unprompted.
 
 **Pause.** A button under the ring stops counting for a bus ride and resumes it after. While paused
 the app still consumes readings and moves the baseline without crediting anything — the hardware

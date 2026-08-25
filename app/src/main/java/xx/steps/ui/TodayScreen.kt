@@ -45,6 +45,8 @@ import xx.steps.startOfWeek
 import xx.steps.data.StepsRepository
 import xx.steps.formatDayLabel
 import xx.steps.settings.AppSettings
+import xx.steps.settings.batteryExemptionIntent
+import xx.steps.settings.isIgnoringBatteryOptimizations
 import xx.steps.steps.StepAccess
 import xx.steps.steps.StepAccessState
 import java.time.LocalDate
@@ -143,6 +145,11 @@ private fun Actions(access: StepAccess) {
 /**
  * Asks for the permission, or sends the user to system settings once Android stops showing the
  * dialog — a second tap that visibly does nothing is worse than no button at all.
+ *
+ * A granted permission is followed straight away by the battery exemption, while the user is
+ * already answering questions about this app. Both are asked at once on purpose: the exemption
+ * lives on a system screen nobody opens unprompted, and without it Android defers the
+ * quarter-hourly read, so a walk arrives in one lump at the hour the app was next opened.
  */
 @Composable
 private fun PermissionButton() {
@@ -150,11 +157,23 @@ private fun PermissionButton() {
     val activity = LocalActivity.current
     var deniedForGood by rememberSaveable { mutableStateOf(false) }
 
+    // Nothing to do with the answer: the exemption is read again wherever it is shown, and the
+    // system dialog is the whole of the asking.
+    val batterySettings = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {}
+
     val request = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         StepAccessState.refresh(context)
-        if (!granted && activity != null) {
+        if (granted) {
+            // Already exempt, there is nothing to ask; a phone with no such screen is left alone
+            // rather than crashed on an intent it cannot resolve.
+            if (!isIgnoringBatteryOptimizations(context)) {
+                runCatching { batterySettings.launch(batteryExemptionIntent(context)) }
+            }
+        } else if (activity != null) {
             deniedForGood = !ActivityCompat.shouldShowRequestPermissionRationale(
                 activity,
                 Manifest.permission.ACTIVITY_RECOGNITION,

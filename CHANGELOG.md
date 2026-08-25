@@ -3,6 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F Granting the activity permission leads straight into the battery exemption dialog, so both
+  questions are asked in one go instead of the second one waiting on a system screen nobody
+  opens by themselves. A phone already exempt, or with no such screen, is not asked.
 - I `02-DebugWiFiConn.sh` is gone: it held one hardcoded address, and its number now belongs to
   the icons.
 - I `00-MakeAll.sh` does a whole release in one run — icons, build, both installs, the `OUT/`
