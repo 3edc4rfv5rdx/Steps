@@ -1,0 +1,61 @@
+package xx.steps.ui
+
+import androidx.compose.ui.graphics.Color
+
+/**
+ * Named colors for the app theme. Window backgrounds are a distinct tone from the container
+ * roles (cards, dialogs) so overlays stand out against the screen behind them.
+ */
+
+/**
+ * Fill of the notice circle that replaces the ring when the app cannot count. Light enough that
+ * black text sits on it at full contrast, warm enough to read as "attention", not as an error.
+ */
+val NoticeAmber = Color(0xFFFFCC80)
+
+/** Text inside the notice circle: plain black on amber, the same in both themes. */
+val NoticeText = Color(0xFF000000)
+
+/**
+ * The ring and the bars turn this green once a day's goal is met — one glance says "done" without
+ * reading the number. Dark enough to hold its own against a white card, light enough on black.
+ */
+val GoalReachedGreen = Color(0xFF2E9E5B)
+
+/**
+ * Accent choices for the ring, the bars and the buttons. Every one is a mid-tone that holds
+ * contrast against both the near-white and the near-black window, and white text stays legible on
+ * all of them as a button fill. Green is deliberately absent: it is the "goal met" signal, and an
+ * accent that close would make a met goal indistinguishable from an ordinary day.
+ */
+val AccentPalette = listOf(
+    Color(0xFF00897B), // teal
+    Color(0xFF1E88E5), // blue
+    Color(0xFF5C6BC0), // indigo
+    Color(0xFF8E24AA), // purple
+    Color(0xFFEF6C00), // orange
+    Color(0xFFE53935), // red
+)
+
+/** Index into [AccentPalette] used until the user picks another — the teal. */
+const val DEFAULT_ACCENT_INDEX = 0
+
+fun accentAt(index: Int): Color = AccentPalette[index.coerceIn(AccentPalette.indices)]
+
+// Light theme: a faint grey window with pure-white containers.
+val WindowLight = Color(0xFFF1F2F4)
+val ContainerLight = Color.White
+
+/**
+ * Tonal button fill in the dark theme: the stock tonal container all but disappears against the
+ * near-black window, so dismiss buttons get a clearly lighter grey.
+ */
+val TonalButtonDark = Color(0xFF4A4A4A)
+
+// Dark theme: near-black window with progressively lighter elevated containers.
+val WindowDark = Color(0xFF121212)
+val ContainerDarkLowest = Color(0xFF1A1A1A)
+val ContainerDarkLow = Color(0xFF1F1F1F)
+val ContainerDark = Color(0xFF242424)
+val ContainerDarkHigh = Color(0xFF2A2A2A)
+val ContainerDarkHighest = Color(0xFF303030)

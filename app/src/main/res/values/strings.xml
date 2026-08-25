@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Steps</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_today">Today</string>
+    <string name="tab_history">History</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Today screen -->
+    <string name="goal_label">Goal</string>
+    <string name="percent_of_goal">%1$d%%</string>
+    <string name="goal_reached">Goal reached</string>
+
+    <!-- Why counting is impossible -->
+    <string name="no_sensor">This phone has no step counter</string>
+    <string name="permission_needed">Counting needs your permission</string>
+    <string name="allow">Allow</string>
+    <string name="open_settings">Open settings</string>
+    <!-- Pause and demo -->
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="counting_paused">Counting paused</string>
+    <string name="demo_start">Show a demo</string>
+    <string name="demo_stop">Stop the demo</string>
+    <!-- History -->
+    <string name="total_week">Week</string>
+    <string name="total_month">Month</string>
+    <string name="total_year">Year</string>
+    <string name="total_all">All time</string>
+    <string name="history_empty">Nothing recorded yet</string>
+    <!-- Distance -->
+    <string name="unit_km">km</string>
+    <string name="unit_m">m</string>
+    <!-- Settings -->
+    <string name="setting_goal">Daily goal, steps</string>
+    <string name="setting_step_length">Step length, cm</string>
+    <string name="setting_theme">Theme</string>
+    <string name="setting_accent">Colour</string>
+    <string name="setting_language">Language</string>
+    <string name="setting_demo">Demo mode</string>
+    <string name="setting_demo_hint">Simulated steps for looking at the app</string>
+    <string name="demo_wipe_title">Wipe and switch</string>
+    <string name="demo_wipe_message">Every recorded day will be deleted, so demo days and real ones never mix</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="language_system">System</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+    <string name="action_today">Today</string>
+    <string name="action_collapse">Collapse all</string>
+    <string name="about_title">About</string>
+    <string name="about_version">Version</string>
+    <string name="about_build">Build</string>
+    <string name="action_ok">OK</string>
+</resources>

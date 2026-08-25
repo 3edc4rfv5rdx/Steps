@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Кроки</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_today">Сьогодні</string>
+    <string name="tab_history">Історія</string>
+    <string name="tab_settings">Налаштування</string>
+
+    <!-- Today screen -->
+    <string name="goal_label">Ціль</string>
+    <string name="percent_of_goal">%1$d %%</string>
+    <string name="goal_reached">Ціль досягнута</string>
+
+    <!-- Why counting is impossible -->
+    <string name="no_sensor">У цьому телефоні немає датчика кроків</string>
+    <string name="permission_needed">Для підрахунку потрібен дозвіл</string>
+    <string name="allow">Дозволити</string>
+    <string name="open_settings">Відкрити налаштування</string>
+    <!-- Pause and demo -->
+    <string name="pause">Пауза</string>
+    <string name="resume">Продовжити</string>
+    <string name="counting_paused">Підрахунок на паузі</string>
+    <string name="demo_start">Показати демо</string>
+    <string name="demo_stop">Зупинити демо</string>
+    <!-- History -->
+    <string name="total_week">Тиждень</string>
+    <string name="total_month">Місяць</string>
+    <string name="total_year">Рік</string>
+    <string name="total_all">Усього</string>
+    <string name="history_empty">Поки нічого не записано</string>
+    <!-- Distance -->
+    <string name="unit_km">км</string>
+    <string name="unit_m">м</string>
+    <!-- Settings -->
+    <string name="setting_goal">Денна ціль, кроків</string>
+    <string name="setting_step_length">Довжина кроку, см</string>
+    <string name="setting_theme">Тема</string>
+    <string name="setting_accent">Колір</string>
+    <string name="setting_language">Мова</string>
+    <string name="setting_demo">Демо-режим</string>
+    <string name="setting_demo_hint">Симульовані кроки для перегляду застосунку</string>
+    <string name="demo_wipe_title">Стерти й перемкнути</string>
+    <string name="demo_wipe_message">Усі записані дні буде видалено, щоб демо не змішалося зі справжніми даними</string>
+    <string name="theme_system">Системна</string>
+    <string name="theme_light">Світла</string>
+    <string name="theme_dark">Темна</string>
+    <string name="language_system">Системна</string>
+    <string name="save">Зберегти</string>
+    <string name="cancel">Скасувати</string>
+    <string name="confirm">Стерти</string>
+    <string name="action_today">Сьогодні</string>
+    <string name="action_collapse">Згорнути все</string>
+    <string name="about_title">Про програму</string>
+    <string name="about_version">Версія</string>
+    <string name="about_build">Збірка</string>
+    <string name="action_ok">OK</string>
+</resources>

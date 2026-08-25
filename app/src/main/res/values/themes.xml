@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base window theme only; real colors come from Compose MaterialTheme, which the Surface paints over. -->
+    <style name="Theme.Steps" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

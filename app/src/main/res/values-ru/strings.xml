@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Шаги</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_today">Сегодня</string>
+    <string name="tab_history">История</string>
+    <string name="tab_settings">Настройки</string>
+
+    <!-- Today screen -->
+    <string name="goal_label">Цель</string>
+    <string name="percent_of_goal">%1$d %%</string>
+    <string name="goal_reached">Цель взята</string>
+
+    <!-- Why counting is impossible -->
+    <string name="no_sensor">В этом телефоне нет датчика шагов</string>
+    <string name="permission_needed">Для подсчёта нужно разрешение</string>
+    <string name="allow">Разрешить</string>
+    <string name="open_settings">Открыть настройки</string>
+    <!-- Pause and demo -->
+    <string name="pause">Пауза</string>
+    <string name="resume">Продолжить</string>
+    <string name="counting_paused">Подсчёт на паузе</string>
+    <string name="demo_start">Показать демо</string>
+    <string name="demo_stop">Остановить демо</string>
+    <!-- History -->
+    <string name="total_week">Неделя</string>
+    <string name="total_month">Месяц</string>
+    <string name="total_year">Год</string>
+    <string name="total_all">Всего</string>
+    <string name="history_empty">Пока ничего не записано</string>
+    <!-- Distance -->
+    <string name="unit_km">км</string>
+    <string name="unit_m">м</string>
+    <!-- Settings -->
+    <string name="setting_goal">Дневная цель, шагов</string>
+    <string name="setting_step_length">Длина шага, см</string>
+    <string name="setting_theme">Тема</string>
+    <string name="setting_accent">Цвет</string>
+    <string name="setting_language">Язык</string>
+    <string name="setting_demo">Демо-режим</string>
+    <string name="setting_demo_hint">Симулированные шаги для просмотра приложения</string>
+    <string name="demo_wipe_title">Стереть и переключить</string>
+    <string name="demo_wipe_message">Все записанные дни будут удалены, чтобы демо не смешалось с реальными данными</string>
+    <string name="theme_system">Системная</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="language_system">Системный</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="confirm">Стереть</string>
+    <string name="action_today">Сегодня</string>
+    <string name="action_collapse">Свернуть все</string>
+    <string name="about_title">О программе</string>
+    <string name="about_version">Версия</string>
+    <string name="about_build">Сборка</string>
+    <string name="action_ok">OK</string>
+</resources>
