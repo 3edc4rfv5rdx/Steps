@@ -33,6 +33,13 @@ val NoticeText = Color(0xFF000000)
 val GoalReachedGreen = Color(0xFF2E9E5B)
 
 /**
+ * The day chart's hour rules, every six hours. Amber rather than a grey hairline: they are the only
+ * thing telling one part of the day from another, and they have to carry through a wall of bars in
+ * both themes without being mistaken for one.
+ */
+val ChartGridAmber = Color(0xFFFFB300)
+
+/**
  * Accent choices for the ring, the bars and the buttons. Every one is a mid-tone that holds
  * contrast against both the near-white and the near-black window, and white text stays legible on
  * all of them as a button fill. Green is deliberately absent: it is the "goal met" signal, and an

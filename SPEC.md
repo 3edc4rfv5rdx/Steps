@@ -13,7 +13,7 @@ history tree, MediaStore export, the theme.
 | Question | Decision |
 |---|---|
 | Step source | hardware `TYPE_STEP_COUNTER` |
-| Storage | Room, one table of day → steps |
+| Storage | Room: one table of day → steps, one of day → quarter hour → steps |
 | Background | no foreground service: a WorkManager job every 15 minutes, plus live reading while the screen is open |
 | Screens | Today / History / Settings (three tabs) |
 | Metrics | steps, the goal, and distance from a step length set in Settings — no calories |
@@ -42,6 +42,26 @@ history tree, MediaStore export, the theme.
 - The whole delta is credited to the day the reading happens on. The sensor gives no timing
   breakdown; syncing every 15 minutes keeps the midnight error window short.
 
+### The intra-day breakdown
+
+Every reading also writes where in the day its steps fell, in slots of `SLOT_MINUTES` (15 minutes,
+`SLOTS_PER_DAY` = 96 of them), which is the finest resolution a quarter-hourly sync can honestly
+carry.
+
+- `spreadOverSlots(steps, fromMinute, toMinute)` lays the credited steps across the slots the
+  interval between the two readings covered, in proportion to the time in each. The sensor gives no
+  timing breakdown, so an even spread is the only claim the data supports — and it bounds the damage
+  when Android defers the periodic work: an hour-late reading paints an even hour instead of a spike
+  at the moment it happened.
+- `fromMinute` is clipped to the start of the day, so a reading whose interval reaches back over
+  midnight keeps everything on the day it is credited to. The breakdown of a day therefore always
+  adds up to that day's total, and both are written in the same transaction.
+- Rounding is cumulative rather than per slot, so the shares add up to exactly the steps credited.
+- No foreground service is involved: the hardware counter accumulates while nothing runs, and the
+  slots are reconstructed from the interval, not from the app being awake.
+- Days walked before this table existed simply have no breakdown; a CSV import, which carries day
+  totals only, drops the breakdown of any day whose total it changes.
+
 Accepted losses, documented in the README: steps between the last reading and a reboot; up to
 15 minutes of evening steps landing on the next day.
 
@@ -60,6 +80,8 @@ app/src/main/java/xx/steps/
                            and the live reading both watch; refreshed by the activity on start and
                            after a permission answer
   data/DaySteps.kt         @Entity day_steps: date TEXT PK (ISO), steps, goal INTEGER;
+                           @Entity day_slots: (date, slot) PK, steps — the intra-day breakdown, a
+                           row per quarter hour that has any;
                            @Entity sync_state: the one-row counter baseline (id, lastRaw,
                            bootTimeMillis) — in the database, not in preferences, so it is written
                            in the same transaction as the steps it accounts for
@@ -83,6 +105,11 @@ app/src/main/java/xx/steps/
   ui/TodayScreen.kt        progress ring and the seven bars of the past week
   ui/HistoryScreen.kt      year → month → day tree with period totals
   ui/SettingsScreen.kt     goal, step length, theme, accent, language, demo, CSV and ZIP later
+  ui/DayModel.kt           buildDayBuckets() and dayStats(): the chart's bars and its figures,
+                           free of Compose and covered by JVM tests
+  ui/DayChart.kt           one day as bars from midnight to midnight, with the pointer that reads it
+  ui/DayDetailDialog.kt    the day taken apart: hour or half-hour bars, the pointer readout, and the
+                           day's figures
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app
   ui/NoticeCircle.kt       amber circle with black text, standing in for the ring
   ui/Distance.kt           distanceLabel(): the one place a distance string is built
@@ -101,7 +128,7 @@ clockwise in proportion to the goal; once the goal is passed the ring closes and
 Inside it the step count in large type, below it "of N" and the percentage. Under the ring, seven
 bars for the past seven days, each scaled against the best day of that week, today highlighted, with
 a dashed goal line across them and day labels underneath. The number grows live while the screen is
-open.
+open. A tap on any bar opens that day's breakdown.
 
 Special states take the ring's exact footprint as an amber circle with black text, so the screen
 never reads as a genuine zero and nothing below it shifts: no sensor; permission not granted (with a
@@ -125,7 +152,17 @@ rotation and Back collapses one level — the mechanics of `history/HistoryScree
 BikeTracker (`groupByDate`, `orderedItemKeys`, `expanded`), one level shorter. Year and month rows
 carry the total and the average per day, counted over days that have rows. A totals card sits on
 top: week / month / year / all time. Days that met their goal are marked by the color of the
-number — against the goal stored in that day's row.
+number — against the goal stored in that day's row. A tap on a day opens its breakdown.
+
+**A day's breakdown.** A dialog over either screen: the day from midnight to midnight as bars, an
+hour, half an hour or a quarter of one by three buttons — half an hour to begin with — built out of
+the stored quarter hours, and ruled in amber every six hours. A pointer
+reads it — the line follows the finger while its dot snaps to the top of the bar underneath, a tap
+puts it where it landed, and it stays there to be read; above the chart it names the stretch of the
+day and what was walked in it. It starts on the current hour for today and on the busiest stretch
+for a past day. Under the chart: the day's total with its distance, the goal and the percentage of
+it, the busiest stretch, and the hours between the first steps and the last. A day recorded before
+the breakdown existed shows its total and says it has none.
 
 **Settings.** Daily goal (a row plus an input dialog, 500–100 000); step length in centimetres,
 70 by default, 30–120, which is the only input the distance readout has; demo mode; theme system/light/dark; accent

@@ -48,8 +48,29 @@ interface StepsDao {
     @Upsert
     suspend fun upsertSyncState(state: SyncStateRow)
 
+    /** One day's intra-day breakdown, oldest slot first — what the day chart draws. */
+    @Query("SELECT * FROM day_slots WHERE date = :date ORDER BY slot")
+    fun observeSlots(date: String): Flow<List<DaySlot>>
+
+    /** The same rows read once, to add today's new steps onto the slots that already hold some. */
+    @Query("SELECT * FROM day_slots WHERE date = :date")
+    suspend fun slotsOf(date: String): List<DaySlot>
+
+    @Upsert
+    suspend fun upsertSlots(slots: List<DaySlot>)
+
+    /**
+     * Drops a day's breakdown. An import that overwrites the day's total has none to offer, and a
+     * breakdown left behind from before would no longer add up to the number above it.
+     */
+    @Query("DELETE FROM day_slots WHERE date = :date")
+    suspend fun deleteSlotsOf(date: String)
+
     @Query("DELETE FROM day_steps")
     suspend fun deleteAllDays()
+
+    @Query("DELETE FROM day_slots")
+    suspend fun deleteAllSlots()
 
     @Query("DELETE FROM sync_state")
     suspend fun deleteSyncState()

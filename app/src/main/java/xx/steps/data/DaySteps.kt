@@ -2,6 +2,7 @@ package xx.steps.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import xx.steps.SLOT_MINUTES
 import xx.steps.SYNC_STATE_ID
 
 /**
@@ -30,4 +31,19 @@ data class SyncStateRow(
     @PrimaryKey val id: Int = SYNC_STATE_ID,
     val lastRaw: Long,
     val lastUptimeMillis: Long,
+)
+
+/**
+ * One [SLOT_MINUTES] slice of a day and the steps that fell in it — the intra-day breakdown behind
+ * the day chart. [date] is the same ISO date as in `day_steps`, [slot] the index of the slice,
+ * 0 for midnight through `SLOTS_PER_DAY - 1`.
+ *
+ * A slice with no steps has no row. The rows of one day always add up to that day's total: they
+ * are written in the same transaction, out of the same credited number.
+ */
+@Entity(tableName = "day_slots", primaryKeys = ["date", "slot"])
+data class DaySlot(
+    val date: String,
+    val slot: Int,
+    val steps: Int,
 )

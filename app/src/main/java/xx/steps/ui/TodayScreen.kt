@@ -78,6 +78,9 @@ fun TodayScreen() {
     val bars = remember(week, weekStart, goal) { buildWeekBars(week, weekStart, WEEK_DAYS, goal) }
     val todaySteps = bars.firstOrNull { it.date == today }?.steps ?: 0
 
+    // The day whose hour-by-hour breakdown is open over the screen, if any.
+    var opened by remember { mutableStateOf<LocalDate?>(null) }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -120,7 +123,11 @@ fun TodayScreen() {
         Actions(access = access, demo = demo, goal = goal, repository = repository)
 
         Spacer(modifier = Modifier.height(20.dp))
-        WeekBars(days = bars, goalLine = goal)
+        WeekBars(days = bars, goalLine = goal, onDayClick = { opened = it.date })
+    }
+
+    opened?.let { date ->
+        DayDetailDialog(date = date, onDismiss = { opened = null })
     }
 }
 

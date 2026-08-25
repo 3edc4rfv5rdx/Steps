@@ -5,6 +5,9 @@ import android.os.Build
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import xx.steps.MINUTES_PER_HOUR
+import xx.steps.SLOTS_PER_DAY
+import xx.steps.SLOT_MINUTES
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import java.time.LocalDate
@@ -53,6 +56,22 @@ object DemoSteps {
     private const val SEED_MAX_STEPS = 15_500
 
     /**
+     * Shape of a made-up day, one weight per hour: asleep until six, out to work, a walk at lunch,
+     * the way home, and an evening that tails off. The seeded days need a breakdown of their own —
+     * without one the day chart would be empty on the very machine the demo exists to be looked at.
+     */
+    private val DEMO_HOUR_WEIGHTS = intArrayOf(
+        0, 0, 0, 0, 0, 1,
+        4, 10, 15, 8, 6, 7,
+        10, 7, 5, 6, 9, 13,
+        14, 10, 6, 4, 2, 1,
+    )
+
+    /** How far a single quarter hour strays from its hour's weight, as a multiplier range. */
+    private const val DEMO_JITTER_MIN = 2
+    private const val DEMO_JITTER_MAX = 10
+
+    /**
      * A walking phone: the counter climbs by a handful of steps every second and a half, exactly
      * like the real one, so everything downstream — folding, capping, the ring — is the real path.
      */
@@ -64,6 +83,19 @@ object DemoSteps {
             raw += Random.nextInt(DEMO_MIN_STEPS, DEMO_MAX_STEPS)
             emit(raw)
         }
+    }
+
+    /**
+     * Spreads a made-up day's [steps] over its quarter hours along [DEMO_HOUR_WEIGHTS], jittered so
+     * no two demo days look alike. The shares add up to [steps] exactly — the same distribution
+     * the real breakdown is written with.
+     */
+    private fun demoSlots(steps: Int): List<SlotShare> {
+        val weights = IntArray(SLOTS_PER_DAY) { slot ->
+            val hourly = DEMO_HOUR_WEIGHTS[slot * SLOT_MINUTES / MINUTES_PER_HOUR]
+            if (hourly == 0) 0 else hourly * Random.nextInt(DEMO_JITTER_MIN, DEMO_JITTER_MAX)
+        }
+        return distributeOverSlots(steps, weights)
     }
 
     /**
@@ -91,7 +123,7 @@ object DemoSteps {
             } else {
                 Random.nextInt(goal, SEED_MAX_STEPS)
             }
-            repository.setDay(date = date, steps = steps, goal = goal)
+            repository.setDay(date = date, steps = steps, goal = goal, slots = demoSlots(steps))
         }
     }
 }

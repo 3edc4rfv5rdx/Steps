@@ -27,14 +27,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -66,6 +69,9 @@ fun HistoryScreen() {
 
     // Which nodes are open, by the tree's own stable keys, so rotation does not close the tree.
     val expanded = rememberSaveable(saver = stringListSaver) { mutableListOf<String>().toMutableStateList() }
+
+    // The day whose hour-by-hour breakdown is open over the tree, if any.
+    var opened by remember { mutableStateOf<LocalDate?>(null) }
     val listState = rememberLazyListState()
     val currentYears by rememberUpdatedState(years)
 
@@ -157,12 +163,17 @@ fun HistoryScreen() {
                                 day = day,
                                 stepLengthCm = stepLength,
                                 isToday = day.date == LocalDate.now(),
+                                onClick = { opened = day.date },
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    opened?.let { date ->
+        DayDetailDialog(date = date, onDismiss = { opened = null })
     }
 }
 
@@ -300,19 +311,22 @@ private fun TreeRow(
     }
 }
 
-/** A single day. Its number goes green when that day met the goal it was walked against. */
+/**
+ * A single day. Its number goes green when that day met the goal it was walked against, and a tap
+ * takes the day apart hour by hour.
+ */
 @Composable
-private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean) {
+private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Clipped before it is filled, so the tap ripple keeps to the same rounded shape.
+            .clip(RoundedCornerShape(6.dp))
             // Today is inverted: the row's own two colours swap places, so it reads as the same
             // row turned inside out — dark on light becomes light on dark, and the other way in
             // the dark theme.
-            .background(
-                color = if (isToday) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                shape = RoundedCornerShape(6.dp),
-            )
+            .background(color = if (isToday) MaterialTheme.colorScheme.onSurface else Color.Transparent)
+            .clickable(onClick = onClick)
             .padding(start = 46.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

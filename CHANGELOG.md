@@ -1,6 +1,12 @@
 # Changelog
 
 ## Unreleased
+- A tap on any bar under the ring, or on any day in the history, takes that day apart: its steps
+  hour by hour, half hour by half hour or quarter by quarter, as a chart ruled in amber at every
+  sixth hour, with a pointer that follows the finger and names the stretch it stands on, and the
+  day's figures under it. The breakdown is recorded in
+  quarter hours as the readings land, each reading spread over the stretch of time it covers, so it
+  always adds up to the day's total; days walked before this version have none.
 - The Today tab wears the same pedestrian as the launcher icon, cut from the sign by
   tools/make_icon.py — without the road, which at 24dp is only a smudge.
 - The bottom bar sits above the on-screen back and home buttons on phones that have them: the app

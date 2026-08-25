@@ -6,6 +6,7 @@ import java.time.YearMonth
 import java.time.temporal.WeekFields
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /** Shared constants and helpers. Everything used by more than one screen or layer lives here. */
 
@@ -25,6 +26,13 @@ const val MAX_GOAL = 100_000
 /** Keeps a goal inside those bounds wherever one enters: the editor, prefs, an imported file. */
 fun clampGoal(steps: Int): Int = steps.coerceIn(MIN_GOAL, MAX_GOAL)
 
+/**
+ * Percentage of the goal a day's steps come to, rounded to the nearest whole percent. A goal of
+ * zero can only come from a hand-edited file; it reads as nothing walked rather than dividing by it.
+ */
+fun percentOfGoal(steps: Int, goal: Int): Int =
+    if (goal > 0) (steps.toFloat() / goal * 100).roundToInt() else 0
+
 /** Days in a week — the bars under the ring show the current one, Monday through Sunday. */
 const val WEEK_DAYS = 7
 
@@ -35,6 +43,34 @@ const val WEEK_DAYS = 7
  */
 fun startOfWeek(date: LocalDate): LocalDate =
     date.with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1)
+
+/** Time arithmetic, named where a bare 60 would not say which unit is being converted. */
+const val SECONDS_PER_MINUTE = 60
+const val MINUTES_PER_HOUR = 60
+const val MILLIS_PER_MINUTE = 60_000L
+
+/** Minutes in a day — the width of the intra-day chart, and the bound on any minute-of-day. */
+const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
+
+/**
+ * Resolution the intra-day breakdown is stored at. A quarter hour is the sync interval, so it is
+ * also the finest slot a reading can honestly fill: nothing is known about where inside the
+ * interval the steps fell. The chart builds its coarser bars out of these.
+ */
+const val SLOT_MINUTES = 15
+const val SLOTS_PER_DAY = MINUTES_PER_DAY / SLOT_MINUTES
+
+/**
+ * Bar widths the day chart can be read at, in minutes, coarsest first. The finest is [SLOT_MINUTES]
+ * itself — nothing below it is recorded, so nothing below it can be drawn.
+ */
+val CHART_BUCKET_MINUTES = listOf(60, DEFAULT_CHART_BUCKET_MINUTES, SLOT_MINUTES)
+
+/**
+ * Bar width the day chart opens at. Half an hour shows the shape of a day — when it started, where
+ * the walks were — without thinning the bars to the point where a quiet stretch is unreadable.
+ */
+const val DEFAULT_CHART_BUCKET_MINUTES = 30
 
 /** Step length in centimetres until the user measures their own — an average adult stride. */
 const val DEFAULT_STEP_LENGTH_CM = 70
@@ -83,6 +119,13 @@ fun uptimeMillis(): Long = SystemClock.elapsedRealtime()
 
 /** Thousands-separated step count, e.g. 8 342 — the only number formatting the UI needs. */
 fun formatSteps(steps: Int): String = String.format(Locale.getDefault(), "%,d", steps)
+
+/**
+ * A time of day as minutes past midnight, on the 24-hour clock the day chart is drawn on. The end
+ * of the last bar is 1440, and it reads as 24:00 rather than wrapping round to midnight.
+ */
+fun formatMinuteOfDay(minute: Int): String =
+    String.format(Locale.getDefault(), "%02d:%02d", minute / MINUTES_PER_HOUR, minute % MINUTES_PER_HOUR)
 
 /**
  * Distance as a bare number, without a unit: metres below a kilometre, kilometres with one decimal

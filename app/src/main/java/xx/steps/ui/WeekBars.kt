@@ -1,6 +1,7 @@
 package xx.steps.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import xx.steps.data.DaySteps
@@ -60,9 +62,17 @@ private const val BAR_WIDTH_SHARE = 0.55f
  * Bars are scaled against the taller of the best day and the goal, so the goal line stays on the
  * chart even in a week where it was never met — otherwise it would sit off the top edge and the
  * week would look complete.
+ *
+ * A tap anywhere in a day's column opens that day, [onDayClick]: the columns divide the chart
+ * between them, so there is nowhere in it that belongs to no day.
  */
 @Composable
-fun WeekBars(days: List<DayBar>, goalLine: Int, modifier: Modifier = Modifier) {
+fun WeekBars(
+    days: List<DayBar>,
+    goalLine: Int,
+    onDayClick: (DayBar) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     if (days.isEmpty()) return
 
     val scale = maxOf(days.maxOf { it.steps }, goalLine, 1)
@@ -73,7 +83,17 @@ fun WeekBars(days: List<DayBar>, goalLine: Int, modifier: Modifier = Modifier) {
     val today = LocalDate.now()
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Canvas(modifier = Modifier.fillMaxWidth().height(BARS_HEIGHT)) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(BARS_HEIGHT)
+                .pointerInput(days) {
+                    detectTapGestures { position ->
+                        val index = (position.x / (size.width.toFloat() / days.size)).toInt()
+                        onDayClick(days[index.coerceIn(0, days.lastIndex)])
+                    }
+                },
+        ) {
             val slot = size.width / days.size
             val barWidth = slot * BAR_WIDTH_SHARE
             val corner = CornerRadius(BAR_CORNER.toPx())

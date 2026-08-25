@@ -74,4 +74,12 @@
     <string name="backup_done_message">Documents/Steps/%1$s</string>
     <string name="backup_failed">Could not write the backup</string>
     <string name="close">Close</string>
+    <!-- Day breakdown -->
+    <string name="chart_hour">1 h</string>
+    <string name="chart_half_hour">30 min</string>
+    <string name="chart_quarter_hour">15 min</string>
+    <string name="stat_total">Total</string>
+    <string name="stat_peak">Busiest</string>
+    <string name="stat_active">Walking</string>
+    <string name="day_no_breakdown">No breakdown</string>
 </resources>

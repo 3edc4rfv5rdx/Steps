@@ -75,4 +75,12 @@
     <string name="backup_done_message">Documents/Steps/%1$s</string>
     <string name="backup_failed">Не удалось записать копию</string>
     <string name="close">Закрыть</string>
+    <!-- Day breakdown -->
+    <string name="chart_hour">1 ч</string>
+    <string name="chart_half_hour">30 мин</string>
+    <string name="chart_quarter_hour">15 мин</string>
+    <string name="stat_total">Всего</string>
+    <string name="stat_peak">Пик</string>
+    <string name="stat_active">В движении</string>
+    <string name="day_no_breakdown">Нет раскладки</string>
 </resources>
