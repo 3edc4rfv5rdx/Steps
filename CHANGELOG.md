@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Restoring a full backup brings the breakdown back with the days. The archive always held it —
+  it is a copy of the database file — but the restore was reading only the day totals out of it.
 - The backup dialog and the restore confirmation were each being composed twice on the Settings
   screen, one copy on top of the other; one of each is gone.
 - A Background work row in Settings says whether Android is holding the app back and leads straight

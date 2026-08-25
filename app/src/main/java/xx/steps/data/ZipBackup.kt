@@ -106,27 +106,35 @@ suspend fun importZip(context: Context, source: Uri, repository: StepsRepository
             }
             if (extractionFailure != null) return@withContext extractionFailure
 
-            val days = readDays(staged) ?: return@withContext RestoreFailure.NOT_A_DATABASE
+            val snapshot = readSnapshot(staged) ?: return@withContext RestoreFailure.NOT_A_DATABASE
 
-            // The days are poured into the live database rather than the file being swapped
+            // The rows are poured into the live database rather than the file being swapped
             // underneath it: the open connection keeps serving, every screen updates on its own,
             // and there is no window where the app holds a database that no longer exists.
             //
             // The counter baseline is not restored, only cleared: it describes where *this* phone's
             // sensor stood, and a figure from another phone (or another install) would credit or
             // swallow a chunk of steps on the next reading.
-            repository.clearAll()
-            repository.setDays(days)
+            repository.restoreAll(days = snapshot.days, slots = snapshot.slots)
             null
         } finally {
             staged.delete()
         }
     }
 
-/** Reads the day rows out of a staged database file, or null if it is not one of ours. */
-private fun readDays(file: File): List<DaySteps>? = runCatching {
+/** Everything a restore carries over: the days and, where the archive has them, their breakdown. */
+private class BackupSnapshot(val days: List<DaySteps>, val slots: List<DaySlot>)
+
+/**
+ * Reads the rows out of a staged database file, or null if it is not one of ours.
+ *
+ * Both tables are read through one connection. An archive written before the breakdown existed has
+ * no `day_slots` table at all: that is a backup without a breakdown, not a broken backup, so the
+ * query for it is allowed to fail on its own while the days still come through.
+ */
+private fun readSnapshot(file: File): BackupSnapshot? = runCatching {
     SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
-        db.rawQuery("SELECT date, steps, goal FROM day_steps", null).use { cursor ->
+        val days = db.rawQuery("SELECT date, steps, goal FROM day_steps", null).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
                     add(
@@ -139,6 +147,24 @@ private fun readDays(file: File): List<DaySteps>? = runCatching {
                 }
             }
         }
+
+        val slots = runCatching {
+            db.rawQuery("SELECT date, slot, steps FROM day_slots", null).use { cursor ->
+                buildList {
+                    while (cursor.moveToNext()) {
+                        add(
+                            DaySlot(
+                                date = cursor.getString(0),
+                                slot = cursor.getInt(1),
+                                steps = cursor.getInt(2),
+                            ),
+                        )
+                    }
+                }
+            }
+        }.getOrDefault(emptyList())
+
+        BackupSnapshot(days = days, slots = slots)
     }
 }.getOrNull()
 

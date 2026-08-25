@@ -46,7 +46,9 @@ class StepsRepository(private val database: AppDatabase) {
      *
      * [uptimeMillis] must come from the same clock as the stored baseline — see `uptimeMillis()`;
      * the parameter exists so tests can drive reboots and time windows. [now] is the wall-clock
-     * time of the reading, which is what the intra-day breakdown is measured back from.
+     * time of the reading, which is what the intra-day breakdown is measured back from. The two
+     * defaults are read a moment apart and can land either side of midnight; the day and its slots
+     * are then both stamped with the earlier day, so the breakdown still adds up to it.
      *
      * With [credit] false the baseline still moves but nothing is recorded: that is what counting
      * paused means. The hardware keeps counting through a bus ride whatever the app does, so the
@@ -140,6 +142,21 @@ class StepsRepository(private val database: AppDatabase) {
             dao.upsertDay(it)
             dao.deleteSlotsOf(it.date)
         }
+    }
+
+    /**
+     * Puts a whole backup in place of what is stored: every day and every slot of the breakdown,
+     * in one transaction, so no screen ever sees half a restore.
+     *
+     * The counter baseline is dropped rather than restored — it describes where this phone's sensor
+     * stood, and a figure from another phone would credit or swallow steps on the next reading.
+     */
+    suspend fun restoreAll(days: List<DaySteps>, slots: List<DaySlot>) = database.withTransaction {
+        dao.deleteAllDays()
+        dao.deleteAllSlots()
+        dao.deleteSyncState()
+        days.forEach { dao.upsertDay(it) }
+        dao.upsertSlots(slots)
     }
 
     /** Wipes every recorded day and the counter baseline — the demo's way out, and a reset. */

@@ -19,6 +19,7 @@ import xx.steps.data.DaySteps
 import xx.steps.data.RestoreFailure
 import xx.steps.data.StepsRepository
 import xx.steps.data.importZip
+import xx.steps.steps.SlotShare
 import java.io.File
 import java.time.LocalDate
 import java.util.zip.ZipEntry
@@ -50,9 +51,13 @@ class ZipBackupTest {
         scratch.deleteRecursively()
     }
 
-    /** Builds an archive holding a database with [days] in it, as an export would. */
-    private suspend fun archiveOf(days: List<DaySteps>): Uri {
+    /** Builds an archive holding a database with [days] and [slots] in it, as an export would. */
+    private suspend fun archiveOf(days: List<DaySteps>, slots: List<SlotShare> = emptyList()): Uri {
         repository.setDays(days)
+        if (slots.isNotEmpty()) {
+            val day = days.first()
+            repository.setDay(isoToDate(day.date), day.steps, day.goal, slots)
+        }
         AppDatabase.get(context).openHelper.writableDatabase
             .query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
 
@@ -63,6 +68,22 @@ class ZipBackupTest {
             out.closeEntry()
         }
         return zip.toUri()
+    }
+
+    @Test
+    fun aBackupRestoresTheBreakdownWithIt() = runBlocking {
+        val day = DaySteps(today.toIso(), 900, 8_000)
+        val slots = listOf(SlotShare(32, 400), SlotShare(72, 500))
+        val archive = archiveOf(listOf(day), slots)
+
+        repository.clearAll()
+        assertNull(importZip(context, archive, repository))
+
+        // A full backup is the whole record, not just the day totals above the charts.
+        val restored = repository.observeSlots(today).first()
+        assertEquals(slots.map { it.slot }, restored.map { it.slot })
+        assertEquals(slots.map { it.steps }, restored.map { it.steps })
+        assertEquals(900, repository.allDays().single().steps)
     }
 
     @Test
