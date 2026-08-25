@@ -3,7 +3,7 @@
 
 The figure is taken from the sign itself rather than redrawn: the sign's black pixels are split
 into connected components, the zebra stripes are dropped, and what remains — torso, leading leg,
-head, trailing arm — is the pedestrian. It is scaled into the adaptive icon's 66dp safe zone with
+head, trailing arm — is the pedestrian. It is scaled to sit inside the adaptive icon's 66dp safe zone with
 a solid bar for the road under it, standing in for the stripes, which turn to noise at icon size.
 
 Run from the project root:  python3 tools/make_icon.py
@@ -22,7 +22,10 @@ RES = Path("app/src/main/res")
 CANVAS = 108
 SAFE_TOP = 21
 
-# Where the figure ends and the road begins, in canvas units.
+# Where the figure starts and ends, and where the road goes, in canvas units. The figure keeps a
+# little air inside the safe zone rather than filling it to the brim: level with the top of the
+# zone it read as too big for the launcher's circle, and stood taller than the icons beside it.
+FIGURE_TOP = 27
 FIGURE_BOTTOM = 79
 ROAD_Y = 84
 ROAD_HALF_WIDTH = 28
@@ -126,13 +129,13 @@ def build(source: Path) -> Image.Image:
 
     # Fit by height: the figure is much taller than it is wide.
     scale = DENSITIES["xxxhdpi"] / CANVAS
-    target_height = (FIGURE_BOTTOM - SAFE_TOP) * scale
+    target_height = (FIGURE_BOTTOM - FIGURE_TOP) * scale
     target_width = cut.width * (target_height / cut.height)
     figure = cut.resize((round(target_width), round(target_height)), Image.LANCZOS)
 
     size = DENSITIES["xxxhdpi"]
     alpha = Image.new("L", (size, size), 0)
-    alpha.paste(figure, (round(size / 2 - figure.width / 2), round(SAFE_TOP * scale)))
+    alpha.paste(figure, (round(size / 2 - figure.width / 2), round(FIGURE_TOP * scale)))
 
     draw = ImageDraw.Draw(alpha)
     half = ROAD_THICKNESS * scale / 2

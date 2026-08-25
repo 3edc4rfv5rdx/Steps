@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- The pedestrian in the launcher icon is a little smaller, with air above it inside the circle.
 - The percentage inside the ring is set large, next in weight to the count itself, and it keeps
   counting past the goal — 146% rather than nothing. "Goal reached" moved above the step count,
   where it no longer takes the number's place.
