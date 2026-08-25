@@ -3,6 +3,8 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I `02-DebugWiFiConn.sh` is gone: it held one hardcoded address, and its number now belongs to
+  the icons.
 - I `00-MakeAll.sh` does a whole release in one run — icons, build, both installs, the `OUT/`
   link — and `19-LinkOut.sh` hard-links the newest arm64 APK into `OUT/` under its own name,
   sweeping what was there before. `bash 02-MakeIcons.sh` redraws the icons only when the

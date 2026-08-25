@@ -25,7 +25,7 @@ projects:
 - `05-Lint.sh` — Android Lint on the debug variant, findings printed as plain text.
 - `06-Test.sh` — JVM unit tests with a per-class summary. One class:
   `./06-Test.sh --tests 'xx.steps.StepSyncTest'`.
-- `02-DebugWiFiConn.sh` — adb connect over Wi-Fi. `99-CopyToAPKX.sh` — symlink the newest APK.
+- `99-CopyToAPKX.sh` — symlink the newest APK.
 - `00-MakeAll.sh` — the whole run: icons, release, both installs, the `OUT/` link. A step that
   had no device to work on exits 3 and is reported as skipped rather than failed.
 - `bash 02-MakeIcons.sh` — runs `tools/make_icon.py`, but only when `ADD/images/znak.png` is
