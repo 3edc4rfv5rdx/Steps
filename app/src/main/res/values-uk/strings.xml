@@ -37,8 +37,6 @@
     <string name="setting_theme">Тема</string>
     <string name="setting_accent">Колір</string>
     <string name="setting_language">Мова</string>
-    <string name="setting_demo">Демо-режим</string>
-    <string name="setting_demo_hint">Симульовані кроки для перегляду</string>
     <string name="demo_wipe_title">Стерти й перемкнути</string>
     <string name="demo_wipe_message">Усі записані дні буде видалено, щоб демо не змішалося зі справжніми даними</string>
     <string name="theme_system">Системна</string>

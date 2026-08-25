@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.UnfoldLess
@@ -29,10 +30,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
@@ -50,6 +54,7 @@ import xx.steps.steps.StepAccess
 import xx.steps.steps.StepAccessState
 import xx.steps.steps.StepSensor
 import xx.steps.ui.AboutDialog
+import xx.steps.ui.ConfirmDialog
 import xx.steps.ui.HistoryCommands
 import xx.steps.ui.HistoryScreen
 import xx.steps.ui.NavLabelStyle
@@ -63,7 +68,7 @@ import xx.steps.ui.TodayScreen
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AppTopBar(tab: Tab, onAbout: () -> Unit) {
+private fun AppTopBar(tab: Tab, demo: Boolean, onDemo: () -> Unit, onAbout: () -> Unit) {
     TopAppBar(
         title = { Text(stringResource(tab.labelRes)) },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -72,6 +77,20 @@ private fun AppTopBar(tab: Tab, onAbout: () -> Unit) {
             actionIconContentColor = Color.White,
         ),
         actions = {
+            // The demo is offered on an emulator only — on a real phone it could do nothing but
+            // wipe the history by accident. Lit while it runs, dimmed while it does not, so the
+            // one button both starts it and says whether it is on.
+            if (tab == Tab.TODAY && DemoSteps.isEmulator) {
+                IconButton(onClick = onDemo) {
+                    Icon(
+                        imageVector = Icons.Filled.Science,
+                        contentDescription = stringResource(
+                            if (demo) R.string.demo_stop else R.string.demo_start,
+                        ),
+                        tint = Color.White.copy(alpha = if (demo) 1f else DIMMED_ACTION_ALPHA),
+                    )
+                }
+            }
             if (tab == Tab.SETTINGS) {
                 IconButton(onClick = onAbout) {
                     Icon(
@@ -97,6 +116,9 @@ private fun AppTopBar(tab: Tab, onAbout: () -> Unit) {
         },
     )
 }
+
+/** How far down a top-bar action is turned when it stands for something that is off. */
+private const val DIMMED_ACTION_ALPHA = 0.45f
 
 /** The three tabs, in bottom-bar order. */
 private enum class Tab(val labelRes: Int) {
@@ -184,11 +206,25 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun MainScreen() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val repository = remember(context) { StepsRepository.get(context) }
+    val demo by AppSettings.demoMode.collectAsState()
+    val goal by AppSettings.goal.collectAsState()
+
     var current by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
+    var confirmDemo by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { AppTopBar(tab = current, onAbout = { showAbout = true }) },
+        topBar = {
+            AppTopBar(
+                tab = current,
+                demo = demo,
+                onDemo = { confirmDemo = true },
+                onAbout = { showAbout = true },
+            )
+        },
         bottomBar = {
             // On a phone with on-screen back/home buttons the bar sits under them unless it is
             // given that inset; with gesture navigation the same inset is a thin strip.
@@ -215,5 +251,18 @@ private fun MainScreen() {
 
     if (showAbout) {
         AboutDialog(onDismiss = { showAbout = false })
+    }
+
+    // Either direction wipes the database, so either direction asks first.
+    if (confirmDemo) {
+        ConfirmDialog(
+            title = stringResource(R.string.demo_wipe_title),
+            message = stringResource(R.string.demo_wipe_message),
+            onDismiss = { confirmDemo = false },
+            onConfirm = {
+                confirmDemo = false
+                scope.launch { DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal) }
+            },
+        )
     }
 }

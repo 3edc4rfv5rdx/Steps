@@ -21,7 +21,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -29,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,14 +39,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import xx.steps.R
 import xx.steps.WEEK_DAYS
 import xx.steps.startOfWeek
 import xx.steps.data.StepsRepository
 import xx.steps.formatDayLabel
 import xx.steps.settings.AppSettings
-import xx.steps.steps.DemoSteps
 import xx.steps.steps.StepAccess
 import xx.steps.steps.StepAccessState
 import java.time.LocalDate
@@ -65,7 +61,6 @@ fun TodayScreen() {
     val today by rememberCurrentDate()
     val goal by AppSettings.goal.collectAsState()
     val paused by AppSettings.paused.collectAsState()
-    val demo by AppSettings.demoMode.collectAsState()
     val stepLength by AppSettings.stepLengthCm.collectAsState()
     val access by StepAccessState.access.collectAsState()
 
@@ -120,7 +115,7 @@ fun TodayScreen() {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-        Actions(access = access, demo = demo, goal = goal, repository = repository)
+        Actions(access = access)
 
         Spacer(modifier = Modifier.height(20.dp))
         WeekBars(days = bars, goalLine = goal, onDayClick = { opened = it.date })
@@ -132,27 +127,16 @@ fun TodayScreen() {
 }
 
 /**
- * What the user can do from here: grant the permission, pause and resume counting, or run the
- * demo. Pausing makes no sense while nothing is being counted, so it is offered only when it is.
+ * What the user can do from here. Pausing lives on the circle itself and the demo on the top bar,
+ * which leaves the permission as the only thing needing a button of its own.
  */
 @Composable
-private fun Actions(
-    access: StepAccess,
-    demo: Boolean,
-    goal: Int,
-    repository: StepsRepository,
-) {
+private fun Actions(access: StepAccess) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        // Pausing lives on the circle itself; only the permission needs a button of its own.
         if (access == StepAccess.PERMISSION_MISSING) PermissionButton()
-
-        // How this interface gets looked at on an emulator; never offered on a real phone.
-        if (DemoSteps.isEmulator && (demo || access == StepAccess.SENSOR_MISSING)) {
-            DemoButton(demo = demo, goal = goal, repository = repository)
-        }
     }
 }
 
@@ -188,25 +172,6 @@ private fun PermissionButton() {
         },
     ) {
         Text(stringResource(if (deniedForGood) R.string.open_settings else R.string.allow))
-    }
-}
-
-/**
- * Runs the demo: seeds a couple of months of plausible days and feeds the app a simulated counter.
- * Both starting and stopping wipe the database first — a demo run and real history must never end
- * up mixed together, and on a phone that can actually count there is nothing to lose here anyway.
- */
-@Composable
-private fun DemoButton(demo: Boolean, goal: Int, repository: StepsRepository) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    FilledTonalButton(
-        onClick = {
-            scope.launch { DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal) }
-        },
-    ) {
-        Text(stringResource(if (demo) R.string.demo_stop else R.string.demo_start))
     }
 }
 

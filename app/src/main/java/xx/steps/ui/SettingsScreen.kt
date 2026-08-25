@@ -20,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -58,7 +57,6 @@ import xx.steps.settings.ThemeMode
 import xx.steps.settings.currentLanguageTag
 import xx.steps.settings.setLanguageTag
 import xx.steps.settings.supportedLanguages
-import xx.steps.steps.DemoSteps
 
 /** Daily goal, step length, theme, accent colour, language, and the demo switch. */
 @Composable
@@ -72,7 +70,6 @@ fun SettingsScreen() {
     val stepLength by AppSettings.stepLengthCm.collectAsState()
     val themeMode by AppSettings.themeMode.collectAsState()
     val accentIndex by AppSettings.accentIndex.collectAsState()
-    val demo by AppSettings.demoMode.collectAsState()
 
     // Both come from the platform: the shipped locales from locales_config.xml, the current one
     // from the per-app locale. Re-read whenever this screen is built, since choosing a language
@@ -84,7 +81,6 @@ fun SettingsScreen() {
 
     // Saveable: changing the theme or the language recreates the activity under an open dialog.
     var editing by rememberSaveable { mutableStateOf(Editing.NONE) }
-    var confirmDemo by rememberSaveable { mutableStateOf(false) }
     var banner by remember { mutableStateOf<BannerMessage?>(null) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
@@ -218,17 +214,6 @@ fun SettingsScreen() {
             label = stringResource(R.string.setting_backup),
             onClick = { showBackup = true },
         )
-        HorizontalDivider()
-
-        // Only on an emulator: see DemoSteps.isEmulator.
-        if (DemoSteps.isEmulator) {
-        SwitchRow(
-            label = stringResource(R.string.setting_demo),
-            hint = stringResource(R.string.setting_demo_hint),
-            checked = demo,
-            onToggle = { confirmDemo = true },
-        )
-        }
     }
 
         banner?.let { message ->
@@ -328,20 +313,6 @@ fun SettingsScreen() {
             },
         )
     }
-
-    if (confirmDemo) {
-        ConfirmDialog(
-            title = stringResource(R.string.demo_wipe_title),
-            message = stringResource(R.string.demo_wipe_message),
-            onDismiss = { confirmDemo = false },
-            onConfirm = {
-                confirmDemo = false
-                scope.launch {
-                    DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal)
-                }
-            },
-        )
-    }
 }
 
 
@@ -403,28 +374,6 @@ private fun SettingRow(label: String, value: String, hint: String? = null, onCli
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
         )
-    }
-}
-
-@Composable
-private fun SwitchRow(label: String, hint: String, checked: Boolean, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = hint,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        Switch(checked = checked, onCheckedChange = { onToggle() })
     }
 }
 

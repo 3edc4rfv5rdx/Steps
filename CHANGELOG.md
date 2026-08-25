@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- The demo has one control now, a flask in the top bar of the Today tab: lit while it runs, dimmed
+  while it does not, and present on an emulator only. The button under the ring and the row in
+  Settings are both gone, and the confirmation before the wipe came with it.
 - The Background work row carries a line saying what it is about: battery optimisation delaying the
   counter read, set smaller than the row above it so it reads as a note rather than a setting.
 - No "goal reached" line in the ring any more: the closed green arc and the green percentage say it

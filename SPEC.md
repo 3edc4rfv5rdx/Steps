@@ -104,7 +104,7 @@ app/src/main/java/xx/steps/
   ui/Theme.kt Color.kt Type.kt   ported from BikeTracker, plus the accent palette
   ui/TodayScreen.kt        progress ring and the seven bars of the past week
   ui/HistoryScreen.kt      year → month → day tree with period totals
-  ui/SettingsScreen.kt     goal, step length, theme, accent, language, demo, CSV and ZIP later
+  ui/SettingsScreen.kt     goal, step length, background work, theme, accent, language, CSV and ZIP
   ui/DayModel.kt           buildDayBuckets() and dayStats(): the chart's bars and its figures,
                            free of Compose and covered by JVM tests
   ui/DayChart.kt           one day as bars from midnight to midnight, with the pointer that reads it
@@ -144,10 +144,10 @@ lump at the end. The state persists across restarts.
 
 **Demo mode.** For looking at the interface on an emulator or a phone with no counter: it seeds
 `DEMO_HISTORY_DAYS` of plausible days and feeds the app a simulated counter that climbs by a few
-steps every second and a half, through the same folding path as the real one. Offered on the Today
-screen when there is no sensor, and switchable from Settings. Starting or stopping it wipes the
-database — a demo run and real history must never mix. The background worker stands down while it
-runs, since the fake counter exists only while a screen is open.
+steps every second and a half, through the same folding path as the real one. Its one control is a
+flask in the top bar of the Today tab, lit while the demo runs and dimmed while it does not, and
+present on an emulator only. Starting or stopping it wipes the database — a demo run and real
+history must never mix. The background worker stands down while it runs, since the fake counter exists only while a screen is open.
 
 **History.** An expandable year → month → day tree (a day is a leaf). Expansion state survives
 rotation and Back collapses one level — the mechanics of `history/HistoryScreen.kt:398` in
@@ -170,7 +170,7 @@ the breakdown existed shows its total and says it has none.
 whether the app is exempt from battery optimisation and leading to the system dialog that grants it
 or the list that takes it back — a restricted app is woken to read the counter less often, which
 costs the day its shape rather than its steps; step length in centimetres,
-70 by default, 30–120, which is the only input the distance readout has; demo mode; theme system/light/dark; accent
+70 by default, 30–120, which is the only input the distance readout has; theme system/light/dark; accent
 color from a palette of 6–8 swatches (check each for contrast in both themes); language
 system/English/Russian/Ukrainian through the framework `LocaleManager` (API 33+); CSV export and
 import; ZIP export and import of the database. Either import asks for confirmation first: CSV merges
