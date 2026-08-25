@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- The README says what the app now does: the three screens, the day taken apart, why the periods
+  are calendar ones, and what a phone holding the app back costs.
 - A CSV import asks before it merges, the way a restore does: it cannot be undone either, and it
   costs the breakdown of every day it changes.
 - The demo has one control now, a flask in the top bar of the Today tab: lit while it runs, dimmed
