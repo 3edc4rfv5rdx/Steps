@@ -26,6 +26,12 @@ projects:
 - `06-Test.sh` — JVM unit tests with a per-class summary. One class:
   `./06-Test.sh --tests 'xx.steps.StepSyncTest'`.
 - `02-DebugWiFiConn.sh` — adb connect over Wi-Fi. `99-CopyToAPKX.sh` — symlink the newest APK.
+- `00-MakeAll.sh` — the whole run: icons, release, both installs, the `OUT/` link. A step that
+  had no device to work on exits 3 and is reported as skipped rather than failed.
+- `bash 02-MakeIcons.sh` — runs `tools/make_icon.py`, but only when `ADD/images/znak.png` is
+  newer than the generated PNGs. No execute bit, so a build can never pull it in.
+- `19-LinkOut.sh` — hard-links the newest arm64 APK into `OUT/` under its own name and sweeps
+  the rest of that folder, so there is one path to copy a build from.
 - `20-MakeTag.sh` / `21-PushTag.sh` — release tag and its push. `22-RelUpload.sh` — creates the
   GitHub Release for the newest tag out of its `CHANGELOG.md` section and uploads the arm64 and
   universal APKs to it (the x86_64 split is emulator-only and stays local).

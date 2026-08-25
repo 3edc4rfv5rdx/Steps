@@ -66,11 +66,14 @@ Release-only workflow, driven by the scripts in the repository root:
 
 | Script | What it does |
 |---|---|
+| `./00-MakeAll.sh` | icons, release, both installs and the OUT link in one run |
+| `bash 02-MakeIcons.sh` | redraw the icons when `ADD/images/znak.png` is newer |
 | `./10-MakeRelease.sh` | signed release with ABI splits, bumping the build number |
 | `./12-SamsRELEASE.sh` | install on the connected phone |
 | `./11-EmulRELEASE.sh` | install on the emulator |
 | `./05-Lint.sh` | Android Lint, findings as plain text |
 | `./06-Test.sh` | JVM unit tests with a per-class summary |
+| `./19-LinkOut.sh` | hard-link the newest arm64 APK into `OUT/` |
 | `./20-MakeTag.sh`, `./21-PushTag.sh` | release tag and its push |
 | `./22-RelUpload.sh` | GitHub Release for the newest tag, with the arm64 and universal APKs |
 

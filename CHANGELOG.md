@@ -3,6 +3,11 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I `00-MakeAll.sh` does a whole release in one run — icons, build, both installs, the `OUT/`
+  link — and `19-LinkOut.sh` hard-links the newest arm64 APK into `OUT/` under its own name,
+  sweeping what was there before. `bash 02-MakeIcons.sh` redraws the icons only when the
+  drawing is newer than them. A missing emulator or phone now exits 3, so a full run counts it
+  as skipped rather than failed.
 - I `22-RelUpload.sh`, taken from BikeTracker: it creates the GitHub Release for the newest tag out
   of that tag's `CHANGELOG.md` section and uploads the arm64 and universal APKs to it.
 ## v0.1.20260825+29
