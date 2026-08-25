@@ -19,7 +19,8 @@ data class DayBucket(val startMinute: Int, val minutes: Int, val steps: Int) {
  * Every bar of the day at [bucketMinutes] resolution, midnight first, gaps filled with zeroes: the
  * chart spans a whole day whatever was walked in it, so the shape of one day compares with another.
  *
- * [bucketMinutes] must be a whole number of stored slots ([SLOT_MINUTES]) and divide the day.
+ * [bucketMinutes] is meant to be a whole number of stored slots ([SLOT_MINUTES]) that divides the
+ * day; one that does not still returns a whole chart, with the remainder folded into the last bar.
  */
 fun buildDayBuckets(slots: List<DaySlot>, bucketMinutes: Int): List<DayBucket> {
     val width = bucketMinutes.coerceIn(SLOT_MINUTES, MINUTES_PER_DAY)
@@ -27,9 +28,10 @@ fun buildDayBuckets(slots: List<DaySlot>, bucketMinutes: Int): List<DayBucket> {
 
     slots.forEach { slot ->
         // A slot number out of range can only come from a hand-edited database; drop it rather
-        // than let it decide the size of the chart.
+        // than let it decide the size of the chart. A width that does not divide the day leaves a
+        // remainder with no bar of its own, which the last bar takes rather than the array end.
         if (slot.slot in 0 until SLOTS_PER_DAY) {
-            steps[slot.slot * SLOT_MINUTES / width] += slot.steps
+            steps[(slot.slot * SLOT_MINUTES / width).coerceAtMost(steps.lastIndex)] += slot.steps
         }
     }
 

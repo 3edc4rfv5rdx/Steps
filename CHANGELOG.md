@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- A day chart built at a bar width that does not divide the day folds the remainder into the last
+  bar instead of indexing past it.
 - Restoring a full backup brings the breakdown back with the days. The archive always held it —
   it is a copy of the database file — but the restore was reading only the day totals out of it.
 - The backup dialog and the restore confirmation were each being composed twice on the Settings

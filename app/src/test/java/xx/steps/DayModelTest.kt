@@ -48,6 +48,18 @@ class DayModelTest {
     }
 
     @Test
+    fun `a bar width that does not divide the day still yields a whole chart`() {
+        val buckets = buildDayBuckets(
+            listOf(slot(0, 10), slot(23 * 60 + 45, 20)),
+            bucketMinutes = 50,
+        )
+
+        assertEquals(MINUTES_PER_DAY / 50, buckets.size)
+        assertEquals(30, buckets.sumOf { it.steps })
+        assertEquals(20, buckets.last().steps)
+    }
+
+    @Test
     fun `the statistics describe the bars being looked at`() {
         val slots = listOf(slot(7 * 60 + 30, 400), slot(18 * 60, 900), slot(18 * 60 + 30, 100))
         val stats = dayStats(buildDayBuckets(slots, bucketMinutes = 60))
