@@ -78,7 +78,10 @@ app/src/main/java/xx/steps/
                            worker; isAvailable for phones without the sensor; hasStepPermission()
   steps/StepAccess.kt      READY / PERMISSION_MISSING / SENSOR_MISSING as a StateFlow the screens
                            and the live reading both watch; refreshed by the activity on start and
-                           after a permission answer
+                           after a permission answer. The permission is decided before the sensor
+                           is looked for: Android hides the step counter from an app without
+                           ACTIVITY_RECOGNITION, so "no counter" cannot be told from "not allowed
+                           yet" until the permission is granted
   data/DaySteps.kt         @Entity day_steps: date TEXT PK (ISO), steps, goal INTEGER;
                            @Entity day_slots: (date, slot) PK, steps — the intra-day breakdown, a
                            row per quarter hour that has any;

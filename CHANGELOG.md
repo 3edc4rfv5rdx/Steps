@@ -3,6 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E A fresh install asks for the permission instead of claiming the phone has no step counter.
+  Android hides the counter from an app that has not been allowed activity data, so the app was
+  reading its own missing permission as missing hardware and offering nothing to fix it.
 - F Granting the activity permission leads straight into the battery exemption dialog, so both
   questions are asked in one go instead of the second one waiting on a system screen nobody
   opens by themselves. A phone already exempt, or with no such screen, is not asked.
