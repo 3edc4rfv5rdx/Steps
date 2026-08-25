@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+- The Today tab wears the same pedestrian as the launcher icon, cut from the sign by
+  tools/make_icon.py — without the road, which at 24dp is only a smudge.
+- The bottom bar sits above the on-screen back and home buttons on phones that have them: the app
+  now declares edge-to-edge itself rather than being put into it by Android 15, and the bar takes
+  the navigation inset.
 - Today's row in the history is inverted: its two colours swap places, dark on light becoming light
   on dark, with slightly rounded corners.
 - The Backup row carries a chevron, saying it leads somewhere, and the accent palette moved out of

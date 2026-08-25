@@ -28,6 +28,16 @@ ROAD_Y = 84
 ROAD_HALF_WIDTH = 28
 ROAD_THICKNESS = 4.5
 
+# The tab icon is the same figure at 24dp, without the road: a bar under a 24dp glyph is a smudge.
+TAB_DP = 24
+TAB_DENSITIES = {
+    "mdpi": 24,
+    "hdpi": 36,
+    "xhdpi": 48,
+    "xxhdpi": 72,
+    "xxxhdpi": 96,
+}
+
 # One PNG per density: the launcher picks the one it needs. 108dp at each scale factor.
 DENSITIES = {
     "mdpi": 108,
@@ -142,6 +152,35 @@ def build(source: Path) -> Image.Image:
     return white
 
 
+def build_tab_icon(source: Path) -> Image.Image:
+    """The figure alone, filling a square glyph — tinted by the theme wherever it is drawn."""
+    image = Image.open(source).convert("RGB")
+    pixels = figure_pixels(image)
+
+    x0 = min(p[0] for p in pixels)
+    x1 = max(p[0] for p in pixels)
+    y0 = min(p[1] for p in pixels)
+    y1 = max(p[1] for p in pixels)
+
+    cut = Image.new("L", (x1 - x0 + 1, y1 - y0 + 1), 0)
+    cut_px = cut.load()
+    for x, y in pixels:
+        cut_px[x - x0, y - y0] = 255
+
+    size = TAB_DENSITIES["xxxhdpi"]
+    # A hair of margin so the glyph does not touch its own bounds.
+    height = round(size * 0.92)
+    width = round(cut.width * (height / cut.height))
+    figure = cut.resize((width, height), Image.LANCZOS)
+
+    alpha = Image.new("L", (size, size), 0)
+    alpha.paste(figure, (round(size / 2 - width / 2), round(size / 2 - height / 2)))
+
+    glyph = Image.new("RGBA", (size, size), (255, 255, 255, 255))
+    glyph.putalpha(alpha)
+    return glyph
+
+
 def main():
     if not SOURCE.exists():
         raise SystemExit(f"{SOURCE} not found — run this from the project root")
@@ -152,6 +191,13 @@ def main():
         out_dir.mkdir(parents=True, exist_ok=True)
         master.resize((size, size), Image.LANCZOS).save(out_dir / "ic_launcher_foreground.png")
         print(f"mipmap-{density}/ic_launcher_foreground.png  {size}x{size}")
+
+    tab = build_tab_icon(SOURCE)
+    for density, size in TAB_DENSITIES.items():
+        out_dir = RES / f"drawable-{density}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        tab.resize((size, size), Image.LANCZOS).save(out_dir / "ic_walker.png")
+        print(f"drawable-{density}/ic_walker.png  {size}x{size}")
 
 
 if __name__ == "__main__":

@@ -3,12 +3,12 @@ package xx.steps
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Today
@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -32,7 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -98,10 +99,26 @@ private fun AppTopBar(tab: Tab, onAbout: () -> Unit) {
 }
 
 /** The three tabs, in bottom-bar order. */
-private enum class Tab(val labelRes: Int, val icon: ImageVector) {
-    TODAY(R.string.tab_today, Icons.AutoMirrored.Filled.DirectionsWalk),
-    HISTORY(R.string.tab_history, Icons.Filled.CalendarMonth),
-    SETTINGS(R.string.tab_settings, Icons.Filled.Settings),
+private enum class Tab(val labelRes: Int) {
+    TODAY(R.string.tab_today),
+    HISTORY(R.string.tab_history),
+    SETTINGS(R.string.tab_settings),
+}
+
+/**
+ * Today wears the pedestrian cut from the crossing sign — the same figure as the launcher icon, so
+ * the tab and the app read as one thing. The other two keep Material glyphs.
+ */
+@Composable
+private fun TabIcon(tab: Tab) {
+    when (tab) {
+        Tab.TODAY -> Icon(
+            painter = painterResource(R.drawable.ic_walker),
+            contentDescription = null,
+        )
+        Tab.HISTORY -> Icon(Icons.Filled.CalendarMonth, contentDescription = null)
+        Tab.SETTINGS -> Icon(Icons.Filled.Settings, contentDescription = null)
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -109,6 +126,10 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Android 15 draws every app edge to edge whether it asks or not; saying so explicitly
+        // means the same layout on 13 and 14, where the system bars would otherwise take their own
+        // space and the two would differ.
+        enableEdgeToEdge()
         StepAccessState.refresh(this)
 
         // The permission is asked for from the Today screen, next to the sentence explaining what
@@ -169,12 +190,14 @@ private fun MainScreen() {
     Scaffold(
         topBar = { AppTopBar(tab = current, onAbout = { showAbout = true }) },
         bottomBar = {
-            NavigationBar {
+            // On a phone with on-screen back/home buttons the bar sits under them unless it is
+            // given that inset; with gesture navigation the same inset is a thin strip.
+            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
                 Tab.entries.forEach { tab ->
                     NavigationBarItem(
                         selected = tab == current,
                         onClick = { current = tab },
-                        icon = { Icon(tab.icon, contentDescription = null) },
+                        icon = { TabIcon(tab) },
                         label = { Text(stringResource(tab.labelRes), style = NavLabelStyle) },
                     )
                 }
