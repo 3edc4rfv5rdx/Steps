@@ -26,7 +26,9 @@ projects:
 - `06-Test.sh` — JVM unit tests with a per-class summary. One class:
   `./06-Test.sh --tests 'xx.steps.StepSyncTest'`.
 - `02-DebugWiFiConn.sh` — adb connect over Wi-Fi. `99-CopyToAPKX.sh` — symlink the newest APK.
-- `20-MakeTag.sh` / `21-PushTag.sh` — release tag and its push.
+- `20-MakeTag.sh` / `21-PushTag.sh` — release tag and its push. `22-RelUpload.sh` — creates the
+  GitHub Release for the newest tag out of its `CHANGELOG.md` section and uploads the arm64 and
+  universal APKs to it (the x86_64 split is emulator-only and stays local).
 - `tools/make_icon.py` — regenerates the launcher icon from `ADD/images/znak.png` (that whole folder is git-ignored). Its output,
   `mipmap-*/ic_launcher_foreground.png`, is committed, so the build itself never runs Python.
 

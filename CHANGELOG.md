@@ -1,6 +1,10 @@
 # Changelog
 
+> N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
+
 ## Unreleased
+- I `22-RelUpload.sh`, taken from BikeTracker: it creates the GitHub Release for the newest tag out
+  of that tag's `CHANGELOG.md` section and uploads the arm64 and universal APKs to it.
 ## v0.1.20260825+29
 - The README says what the app now does: the three screens, the day taken apart, why the periods
   are calendar ones, and what a phone holding the app back costs.

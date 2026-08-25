@@ -72,6 +72,7 @@ Release-only workflow, driven by the scripts in the repository root:
 | `./05-Lint.sh` | Android Lint, findings as plain text |
 | `./06-Test.sh` | JVM unit tests with a per-class summary |
 | `./20-MakeTag.sh`, `./21-PushTag.sh` | release tag and its push |
+| `./22-RelUpload.sh` | GitHub Release for the newest tag, with the arm64 and universal APKs |
 
 Release signing reads `~/.my-safe/key.properties`; the build number lives in `build_number.txt`.
 
