@@ -21,6 +21,7 @@ abstract class AppDatabase : RoomDatabase() {
                 instance ?: build(context).also { instance = it }
             }
 
+
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(
                 context.applicationContext,

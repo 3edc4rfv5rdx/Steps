@@ -8,7 +8,9 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -159,15 +161,38 @@ fun AboutDialog(onDismiss: () -> Unit) {
     )
 }
 
-/** States an outcome and closes — what an export or an import reports when it is done. */
+
+/**
+ * The four ways data leaves or enters the app, in one place: CSV is readable and merges, a ZIP is
+ * an exact snapshot that replaces.
+ */
 @Composable
-fun MessageDialog(title: String, message: String, onDismiss: () -> Unit) {
+fun BackupDialog(
+    onDismiss: () -> Unit,
+    onExportCsv: () -> Unit,
+    onImportCsv: () -> Unit,
+    onExportZip: () -> Unit,
+    onImportZip: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { Text(message) },
+        title = { Text(stringResource(R.string.setting_backup)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                BackupAction(stringResource(R.string.setting_export_csv), onExportCsv)
+                BackupAction(stringResource(R.string.setting_import_csv), onImportCsv)
+                BackupAction(stringResource(R.string.backup_export_zip), onExportZip)
+                BackupAction(stringResource(R.string.backup_import_zip), onImportZip)
+            }
+        },
         confirmButton = {
-            DialogConfirmButton(stringResource(R.string.action_ok), onDismiss)
+            DialogDismissButton(stringResource(R.string.close), onDismiss)
         },
     )
+}
+
+/** One full-width action inside the backup dialog; filled, like every button in this app. */
+@Composable
+fun BackupAction(label: String, onClick: () -> Unit) {
+    FilledTonalButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) { Text(label) }
 }

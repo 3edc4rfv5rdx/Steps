@@ -58,9 +58,20 @@
     <!-- Export and import -->
     <string name="setting_export_csv">Export to CSV</string>
     <string name="setting_import_csv">Import from CSV</string>
-    <string name="export_done_title">Exported</string>
     <string name="export_done_message">Documents/Steps/%2$s\nDays written %1$d</string>
     <string name="export_failed">Could not write the file</string>
-    <string name="import_done_title">Imported</string>
     <string name="import_done_message">Read %1$d, written %2$d, skipped %3$d</string>
+    <string name="setting_backup">Backup</string>
+    <string name="backup_export_zip">Export a full backup</string>
+    <string name="backup_import_zip">Restore from a backup</string>
+    <string name="restore_confirm_title">Replace everything</string>
+    <string name="restore_confirm_message">The backup replaces the whole history — what is recorded now will be gone</string>
+    <string name="restore_done_message">The history has been replaced</string>
+    <string name="restore_failed_archive">This file is not a backup archive</string>
+    <string name="restore_failed_content">The archive holds no step database</string>
+    <string name="restore_failed_size">The archive is too large to be a backup</string>
+    <string name="restore_failed_broken">The database inside is not readable</string>
+    <string name="backup_done_message">Documents/Steps/%1$s</string>
+    <string name="backup_failed">Could not write the backup</string>
+    <string name="close">Close</string>
 </resources>

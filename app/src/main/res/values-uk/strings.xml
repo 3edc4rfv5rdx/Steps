@@ -58,9 +58,20 @@
     <!-- Export and import -->
     <string name="setting_export_csv">Експорт у CSV</string>
     <string name="setting_import_csv">Імпорт із CSV</string>
-    <string name="export_done_title">Експортовано</string>
     <string name="export_done_message">Documents/Steps/%2$s\nЗаписано днів %1$d</string>
     <string name="export_failed">Не вдалося записати файл</string>
-    <string name="import_done_title">Імпортовано</string>
     <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
+    <string name="setting_backup">Резервні копії</string>
+    <string name="backup_export_zip">Повна копія</string>
+    <string name="backup_import_zip">Відновити з копії</string>
+    <string name="restore_confirm_title">Замінити все</string>
+    <string name="restore_confirm_message">Копія замінить усю історію — записане зараз буде втрачено</string>
+    <string name="restore_done_message">Історію замінено</string>
+    <string name="restore_failed_archive">Цей файл не архів копії</string>
+    <string name="restore_failed_content">В архіві немає бази кроків</string>
+    <string name="restore_failed_size">Архів завеликий для копії</string>
+    <string name="restore_failed_broken">База всередині не читається</string>
+    <string name="backup_done_message">Documents/Steps/%1$s</string>
+    <string name="backup_failed">Не вдалося записати копію</string>
+    <string name="close">Закрити</string>
 </resources>

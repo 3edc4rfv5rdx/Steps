@@ -1,5 +1,6 @@
 package xx.steps.ui
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -38,9 +40,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import xx.steps.R
+import xx.steps.data.AppDatabase
+import xx.steps.data.RestoreFailure
 import xx.steps.data.StepsRepository
 import xx.steps.data.exportCsv
+import xx.steps.data.exportZip
 import xx.steps.data.importCsv
+import xx.steps.data.importZip
 import xx.steps.formatSteps
 import xx.steps.settings.AppSettings
 import xx.steps.settings.ThemeMode
@@ -74,20 +80,20 @@ fun SettingsScreen() {
     // Saveable: changing the theme or the language recreates the activity under an open dialog.
     var editing by rememberSaveable { mutableStateOf(Editing.NONE) }
     var confirmDemo by rememberSaveable { mutableStateOf(false) }
-    var outcome by remember { mutableStateOf<DialogMessage?>(null) }
-
-    val exportFailed = stringResource(R.string.export_failed)
-    val exportTitle = stringResource(R.string.export_done_title)
-    val importTitle = stringResource(R.string.import_done_title)
+    var banner by remember { mutableStateOf<BannerMessage?>(null) }
+    var showBackup by rememberSaveable { mutableStateOf(false) }
+    var pendingRestore by remember { mutableStateOf<Uri?>(null) }
 
     // The system picker hands back a readable Uri; no storage permission is involved either way.
     val pickCsv = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        showBackup = false
         scope.launch {
             val result = importCsv(context, uri, repository, AppSettings.goal.value)
-            outcome = DialogMessage(
-                title = importTitle,
-                message = resources.getString(
+            banner = BannerMessage(
+                // Skipped lines mean the file was not entirely understood: worked, but not fully.
+                kind = if (result.skipped > 0) BannerKind.WARNING else BannerKind.SUCCESS,
+                text = resources.getString(
                     R.string.import_done_message,
                     result.read,
                     result.written,
@@ -97,6 +103,44 @@ fun SettingsScreen() {
         }
     }
 
+    // A restore replaces everything, so the file is chosen first and confirmed after.
+    val pickZip = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        showBackup = false
+        pendingRestore = uri
+    }
+
+    fun exportCsvNow() {
+        showBackup = false
+        scope.launch {
+            val result = runCatching { exportCsv(context, repository.allDays()) }.getOrNull()
+            banner = if (result == null) {
+                BannerMessage(BannerKind.ERROR, resources.getString(R.string.export_failed))
+            } else {
+                BannerMessage(
+                    BannerKind.SUCCESS,
+                    resources.getString(R.string.export_done_message, result.days, result.fileName),
+                )
+            }
+        }
+    }
+
+    fun exportZipNow() {
+        showBackup = false
+        scope.launch {
+            val result = runCatching { exportZip(context, AppDatabase.get(context)) }.getOrNull()
+            banner = if (result == null) {
+                BannerMessage(BannerKind.ERROR, resources.getString(R.string.backup_failed))
+            } else {
+                BannerMessage(
+                    BannerKind.SUCCESS,
+                    resources.getString(R.string.backup_done_message, result.fileName),
+                )
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -136,32 +180,8 @@ fun SettingsScreen() {
         HorizontalDivider()
 
         ActionRow(
-            label = stringResource(R.string.setting_export_csv),
-            onClick = {
-                scope.launch {
-                    val days = repository.allDays()
-                    val result = exportCsv(context, days)
-                    outcome = if (result == null) {
-                        DialogMessage(title = exportTitle, message = exportFailed)
-                    } else {
-                        DialogMessage(
-                            title = exportTitle,
-                            message = resources.getString(
-                                R.string.export_done_message,
-                                result.days,
-                                result.fileName,
-                            ),
-                        )
-                    }
-                }
-            },
-        )
-        HorizontalDivider()
-
-        ActionRow(
-            label = stringResource(R.string.setting_import_csv),
-            // Both MIME spellings: some file managers label a CSV as plain text.
-            onClick = { pickCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
+            label = stringResource(R.string.setting_backup),
+            onClick = { showBackup = true },
         )
         HorizontalDivider()
 
@@ -170,6 +190,44 @@ fun SettingsScreen() {
             hint = stringResource(R.string.setting_demo_hint),
             checked = demo,
             onToggle = { confirmDemo = true },
+        )
+    }
+
+        banner?.let { message ->
+            StatusBanner(
+                message = message,
+                onDismiss = { banner = null },
+                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
+            )
+        }
+    }
+
+    if (showBackup) {
+        BackupDialog(
+            onDismiss = { showBackup = false },
+            onExportCsv = ::exportCsvNow,
+            onImportCsv = { pickCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
+            onExportZip = ::exportZipNow,
+            onImportZip = { pickZip.launch(arrayOf("application/zip", "application/octet-stream")) },
+        )
+    }
+
+    pendingRestore?.let { uri ->
+        ConfirmDialog(
+            title = stringResource(R.string.restore_confirm_title),
+            message = stringResource(R.string.restore_confirm_message),
+            onDismiss = { pendingRestore = null },
+            onConfirm = {
+                pendingRestore = null
+                scope.launch {
+                    val failure = importZip(context, uri, repository)
+                    banner = if (failure == null) {
+                        BannerMessage(BannerKind.SUCCESS, resources.getString(R.string.restore_done_message))
+                    } else {
+                        BannerMessage(BannerKind.ERROR, resources.getString(failure.messageRes()))
+                    }
+                }
+            },
         )
     }
 
@@ -224,11 +282,32 @@ fun SettingsScreen() {
         Editing.NONE -> Unit
     }
 
-    outcome?.let { message ->
-        MessageDialog(
-            title = message.title,
-            message = message.message,
-            onDismiss = { outcome = null },
+    if (showBackup) {
+        BackupDialog(
+            onDismiss = { showBackup = false },
+            onExportCsv = ::exportCsvNow,
+            onImportCsv = { pickCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain")) },
+            onExportZip = ::exportZipNow,
+            onImportZip = { pickZip.launch(arrayOf("application/zip", "application/octet-stream")) },
+        )
+    }
+
+    pendingRestore?.let { uri ->
+        ConfirmDialog(
+            title = stringResource(R.string.restore_confirm_title),
+            message = stringResource(R.string.restore_confirm_message),
+            onDismiss = { pendingRestore = null },
+            onConfirm = {
+                pendingRestore = null
+                scope.launch {
+                    val failure = importZip(context, uri, repository)
+                    banner = if (failure == null) {
+                        BannerMessage(BannerKind.SUCCESS, resources.getString(R.string.restore_done_message))
+                    } else {
+                        BannerMessage(BannerKind.ERROR, resources.getString(failure.messageRes()))
+                    }
+                }
+            },
         )
     }
 
@@ -247,8 +326,13 @@ fun SettingsScreen() {
     }
 }
 
-/** A finished export or import, waiting to be shown. */
-private data class DialogMessage(val title: String, val message: String)
+
+private fun RestoreFailure.messageRes(): Int = when (this) {
+    RestoreFailure.NOT_AN_ARCHIVE -> R.string.restore_failed_archive
+    RestoreFailure.NO_DATABASE_INSIDE -> R.string.restore_failed_content
+    RestoreFailure.TOO_LARGE -> R.string.restore_failed_size
+    RestoreFailure.NOT_A_DATABASE -> R.string.restore_failed_broken
+}
 
 /** A settings row that just does something — no value to show, so none is shown. */
 @Composable

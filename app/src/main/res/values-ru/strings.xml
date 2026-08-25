@@ -58,9 +58,20 @@
     <!-- Export and import -->
     <string name="setting_export_csv">Экспорт в CSV</string>
     <string name="setting_import_csv">Импорт из CSV</string>
-    <string name="export_done_title">Экспортировано</string>
     <string name="export_done_message">Documents/Steps/%2$s\nЗаписано дней %1$d</string>
     <string name="export_failed">Не удалось записать файл</string>
-    <string name="import_done_title">Импортировано</string>
     <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
+    <string name="setting_backup">Резервные копии</string>
+    <string name="backup_export_zip">Полная копия</string>
+    <string name="backup_import_zip">Восстановить из копии</string>
+    <string name="restore_confirm_title">Заменить всё</string>
+    <string name="restore_confirm_message">Копия заменит всю историю — записанное сейчас будет потеряно</string>
+    <string name="restore_done_message">История заменена</string>
+    <string name="restore_failed_archive">Этот файл не архив копии</string>
+    <string name="restore_failed_content">В архиве нет базы шагов</string>
+    <string name="restore_failed_size">Архив слишком велик для копии</string>
+    <string name="restore_failed_broken">База внутри не читается</string>
+    <string name="backup_done_message">Documents/Steps/%1$s</string>
+    <string name="backup_failed">Не удалось записать копию</string>
+    <string name="close">Закрыть</string>
 </resources>

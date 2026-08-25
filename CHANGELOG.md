@@ -1,6 +1,14 @@
 # Changelog
 
 ## Unreleased
+- A full backup as a ZIP holding the database, written to Documents/Steps, and a restore that
+  pours it back into the live database — every screen updates on its own, with no restart. A
+  restore replaces rather than merges, so it asks first, and a file that is not a backup is refused
+  by name before anything is touched. The counter baseline is never restored: it describes where
+  this phone's sensor stood, and a figure from another phone would swallow or invent steps.
+- Export and import moved behind one Backup row in Settings, holding all four actions.
+- Outcomes are announced by a banner instead of a dialog: green when it worked, amber when it
+  worked only partly (an import that skipped lines), red when it did not.
 - The history can be written out as CSV to Documents/Steps and read back from any file the system
   picker reaches. One line per day, `date,steps,goal`, so it opens in a spreadsheet and can be
   edited by hand. An import merges by date and keeps the fuller record of each day, which makes
