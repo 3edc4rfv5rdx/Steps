@@ -49,6 +49,8 @@ import xx.steps.data.importCsv
 import xx.steps.data.importZip
 import xx.steps.formatSteps
 import xx.steps.settings.AppSettings
+import xx.steps.settings.batteryExemptionIntent
+import xx.steps.settings.isIgnoringBatteryOptimizations
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
@@ -86,6 +88,15 @@ fun SettingsScreen() {
     var banner by remember { mutableStateOf<BannerMessage?>(null) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
+
+    // Read once and again on the way back from the system screen, which is the only place it can
+    // change while this screen is up.
+    var unrestricted by remember { mutableStateOf(isIgnoringBatteryOptimizations(context)) }
+    val batterySettings = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        unrestricted = isIgnoringBatteryOptimizations(context)
+    }
 
     // The system picker hands back a readable Uri; no storage permission is involved either way.
     val pickCsv = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -159,6 +170,17 @@ fun SettingsScreen() {
             label = stringResource(R.string.setting_step_length),
             value = stepLength.toString(),
             onClick = { editing = Editing.STEP_LENGTH },
+        )
+        HorizontalDivider()
+
+        SettingRow(
+            label = stringResource(R.string.setting_battery),
+            value = stringResource(
+                if (unrestricted) R.string.battery_unrestricted else R.string.battery_restricted,
+            ),
+            // A phone with neither screen simply has nothing to offer here; better a row that does
+            // nothing on such a phone than no row at all on every other one.
+            onClick = { runCatching { batterySettings.launch(batteryExemptionIntent(context)) } },
         )
         HorizontalDivider()
 

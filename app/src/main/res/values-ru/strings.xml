@@ -83,4 +83,8 @@
     <string name="stat_peak">Пик</string>
     <string name="stat_active">В движении</string>
     <string name="day_no_breakdown">Нет раскладки</string>
+    <!-- Background work -->
+    <string name="setting_battery">Работа в фоне</string>
+    <string name="battery_unrestricted">Без ограничений</string>
+    <string name="battery_restricted">Ограничена</string>
 </resources>

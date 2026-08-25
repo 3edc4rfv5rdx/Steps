@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+- A Background work row in Settings says whether Android is holding the app back and leads straight
+  to the exemption: a restricted app is woken to read the counter less often, and a walk then
+  arrives in one lump at the hour the app was next opened.
 - The pedestrian in the launcher icon is a little smaller, with air above it inside the circle.
 - The percentage inside the ring is set large, next in weight to the count itself, and it keeps
   counting past the goal — 146% rather than nothing. "Goal reached" moved above the step count,

@@ -82,4 +82,8 @@
     <string name="stat_peak">Busiest</string>
     <string name="stat_active">Walking</string>
     <string name="day_no_breakdown">No breakdown</string>
+    <!-- Background work -->
+    <string name="setting_battery">Background work</string>
+    <string name="battery_unrestricted">Unrestricted</string>
+    <string name="battery_restricted">Restricted</string>
 </resources>

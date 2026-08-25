@@ -4,6 +4,8 @@
 
     <!-- Reading the hardware step counter is activity data, so it is permission-guarded. -->
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <!-- Asked for from Settings, so the quarter-hourly counter read is not deferred away. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- The app is useless without the counter, but it must still install on devices that lack
          it: the UI says so instead of the store hiding the app. -->

@@ -166,7 +166,10 @@ for a past day. Under the chart: the day's total with its distance, the goal and
 it, the busiest stretch, and the hours between the first steps and the last. A day recorded before
 the breakdown existed shows its total and says it has none.
 
-**Settings.** Daily goal (a row plus an input dialog, 500–100 000); step length in centimetres,
+**Settings.** Daily goal (a row plus an input dialog, 500–100 000); background work, a row showing
+whether the app is exempt from battery optimisation and leading to the system dialog that grants it
+or the list that takes it back — a restricted app is woken to read the counter less often, which
+costs the day its shape rather than its steps; step length in centimetres,
 70 by default, 30–120, which is the only input the distance readout has; demo mode; theme system/light/dark; accent
 color from a palette of 6–8 swatches (check each for contrast in both themes); language
 system/English/Russian/Ukrainian through the framework `LocaleManager` (API 33+); CSV export and
