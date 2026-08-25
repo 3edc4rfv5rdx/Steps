@@ -87,4 +87,5 @@
     <string name="setting_battery">Background work</string>
     <string name="battery_unrestricted">Unrestricted</string>
     <string name="battery_restricted">Restricted</string>
+    <string name="battery_no_screen">This phone has no battery settings screen</string>
 </resources>

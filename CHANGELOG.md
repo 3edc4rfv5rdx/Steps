@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- The Background work row says so when the phone has no such system screen, instead of a tap that
+  visibly does nothing.
 - A CSV import says how many days lost their hourly breakdown to it, and the banner goes amber for
   it. A file carries day totals and nothing else, so a day whose total it raises cannot keep the
   breakdown of the old one; days left alone keep theirs.

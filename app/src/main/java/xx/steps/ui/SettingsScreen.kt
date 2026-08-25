@@ -185,9 +185,14 @@ fun SettingsScreen() {
             value = stringResource(
                 if (unrestricted) R.string.battery_unrestricted else R.string.battery_restricted,
             ),
-            // A phone with neither screen simply has nothing to offer here; better a row that does
-            // nothing on such a phone than no row at all on every other one.
-            onClick = { runCatching { batterySettings.launch(batteryExemptionIntent(context)) } },
+            // A phone with neither screen has nothing to offer here — rare, but a row that does
+            // nothing and says nothing is worse than one that admits it.
+            onClick = {
+                val opened = runCatching { batterySettings.launch(batteryExemptionIntent(context)) }
+                if (opened.isFailure) {
+                    banner = BannerMessage(BannerKind.ERROR, resources.getString(R.string.battery_no_screen))
+                }
+            },
         )
         HorizontalDivider()
 
