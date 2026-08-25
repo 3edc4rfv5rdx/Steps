@@ -19,6 +19,16 @@ val NavLabelStyle = TextStyle(
     fontWeight = FontWeight.Medium,
 )
 
+/**
+ * The second line of a settings row, explaining what the row is about. The second deliberate
+ * exception to the 18sp floor, after the nav labels: it is a footnote to the line above it, and at
+ * body size it reads as another setting rather than as a note on one.
+ */
+val RowHintStyle = TextStyle(
+    fontSize = 15.sp,
+    lineHeight = 20.sp,
+)
+
 /** Line height applied when a style is bumped up to [MinTextSize]. */
 private val MinLineHeight = 25.sp
 

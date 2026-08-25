@@ -185,6 +185,7 @@ fun SettingsScreen() {
             value = stringResource(
                 if (unrestricted) R.string.battery_unrestricted else R.string.battery_restricted,
             ),
+            hint = stringResource(R.string.setting_battery_hint),
             // A phone with neither screen has nothing to offer here — rare, but a row that does
             // nothing and says nothing is worse than one that admits it.
             onClick = {
@@ -375,18 +376,27 @@ private fun ActionRow(label: String, onClick: () -> Unit) {
 /** Which editor is open; only one can be at a time, so one value says it. */
 private enum class Editing { NONE, GOAL, STEP_LENGTH, THEME, ACCENT, LANGUAGE }
 
+/** [hint] is for a row whose label cannot say the whole thing on its own; most rows need none. */
 @Composable
-private fun SettingRow(label: String, value: String, onClick: () -> Unit) {
+private fun SettingRow(label: String, value: String, hint: String? = null, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f),
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            hint?.let {
+                Text(
+                    text = it,
+                    style = RowHintStyle,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,

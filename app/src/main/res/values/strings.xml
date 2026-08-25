@@ -84,6 +84,7 @@
     <string name="day_no_breakdown">No breakdown</string>
     <!-- Background work -->
     <string name="setting_battery">Background work</string>
+    <string name="setting_battery_hint">Battery optimisation delays the counter read</string>
     <string name="battery_unrestricted">Unrestricted</string>
     <string name="battery_restricted">Restricted</string>
     <string name="battery_no_screen">This phone has no battery settings screen</string>

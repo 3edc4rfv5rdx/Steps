@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- The Background work row carries a line saying what it is about: battery optimisation delaying the
+  counter read, set smaller than the row above it so it reads as a note rather than a setting.
 - No "goal reached" line in the ring any more: the closed green arc and the green percentage say it
   between them, and the circle keeps the same five lines all day.
 - The Background work row says so when the phone has no such system screen, instead of a tap that
