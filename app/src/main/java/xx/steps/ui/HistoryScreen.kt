@@ -245,18 +245,23 @@ private fun StepsAndDistance(
     stepLengthCm: Int,
     emphasis: Boolean = false,
     style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.titleMedium,
+    onBand: Boolean = false,
 ) {
+    // On the inverted band everything reverses to white; the green "goal met" tint would not read
+    // against the accent anyway.
+    val plain = if (onBand) Color.White else MaterialTheme.colorScheme.onSurface
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = formatSteps(steps),
             style = style,
             fontWeight = if (emphasis) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (emphasis) GoalReachedGreen else MaterialTheme.colorScheme.onSurface,
+            color = if (emphasis && !onBand) GoalReachedGreen else plain,
         )
         Text(
             text = " / " + distanceLabel(steps, stepLengthCm, decimals = 0),
             style = style,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = plain,
         )
     }
 }
@@ -300,10 +305,9 @@ private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            // Today gets a tinted band, so the day being added to right now is found at a glance.
-            .background(
-                if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) else Color.Transparent,
-            )
+            // Today is inverted rather than tinted: a solid accent band with its text reversed
+            // out of it, so the day being added to right now is found without looking for it.
+            .background(if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent)
             .padding(start = 46.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -311,7 +315,7 @@ private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean) {
             text = formatDayLabel(day.date),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (isToday) FontWeight.SemiBold else FontWeight.Normal,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = if (isToday) Color.White else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
         StepsAndDistance(
@@ -319,6 +323,7 @@ private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean) {
             stepLengthCm = stepLengthCm,
             emphasis = day.reached,
             style = MaterialTheme.typography.bodyLarge,
+            onBand = isToday,
         )
     }
 }

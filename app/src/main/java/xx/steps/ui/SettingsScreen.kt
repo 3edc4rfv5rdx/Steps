@@ -49,6 +49,9 @@ import xx.steps.data.importCsv
 import xx.steps.data.importZip
 import xx.steps.formatSteps
 import xx.steps.settings.AppSettings
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Icon
 import xx.steps.settings.ThemeMode
 import xx.steps.settings.currentLanguageTag
 import xx.steps.settings.setLanguageTag
@@ -166,10 +169,7 @@ fun SettingsScreen() {
         )
         HorizontalDivider()
 
-        AccentRow(
-            selected = accentIndex,
-            onPick = { AppSettings.setAccentIndex(context, it) },
-        )
+        AccentRow(selected = accentIndex, onClick = { editing = Editing.ACCENT })
         HorizontalDivider()
 
         SettingRow(
@@ -269,6 +269,15 @@ fun SettingsScreen() {
             },
         )
 
+        Editing.ACCENT -> AccentDialog(
+            selected = accentIndex,
+            onPick = { picked ->
+                AppSettings.setAccentIndex(context, picked)
+                editing = Editing.NONE
+            },
+            onDismiss = { editing = Editing.NONE },
+        )
+
         Editing.LANGUAGE -> ChoiceDialog(
             title = stringResource(R.string.setting_language),
             options = languages,
@@ -337,7 +346,7 @@ private fun RestoreFailure.messageRes(): Int = when (this) {
     RestoreFailure.NOT_A_DATABASE -> R.string.restore_failed_broken
 }
 
-/** A settings row that just does something — no value to show, so none is shown. */
+/** A settings row that opens something: the chevron says the row leads somewhere. */
 @Composable
 private fun ActionRow(label: String, onClick: () -> Unit) {
     Row(
@@ -348,12 +357,18 @@ private fun ActionRow(label: String, onClick: () -> Unit) {
             text = label,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
 
 /** Which editor is open; only one can be at a time, so one value says it. */
-private enum class Editing { NONE, GOAL, STEP_LENGTH, THEME, LANGUAGE }
+private enum class Editing { NONE, GOAL, STEP_LENGTH, THEME, ACCENT, LANGUAGE }
 
 @Composable
 private fun SettingRow(label: String, value: String, onClick: () -> Unit) {
@@ -398,43 +413,21 @@ private fun SwitchRow(label: String, hint: String, checked: Boolean, onToggle: (
     }
 }
 
-/** The accent choice is made in place: six swatches, the current one ringed. */
+/** The row shows which colour is in force; the palette itself lives in a dialog. */
 @Composable
-private fun AccentRow(selected: Int, onPick: (Int) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp)) {
+private fun AccentRow(selected: Int, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
             text = stringResource(R.string.setting_accent),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
         )
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            AccentPalette.forEachIndexed { index, color ->
-                AccentSwatch(
-                    color = color,
-                    selected = index == selected,
-                    onClick = { onPick(index) },
-                )
-            }
-        }
+        AccentSwatch(color = accentAt(selected), selected = false, onClick = onClick)
     }
-}
-
-@Composable
-private fun AccentSwatch(color: Color, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .background(color = color, shape = CircleShape)
-            .border(
-                width = if (selected) 3.dp else 0.dp,
-                color = if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                shape = CircleShape,
-            )
-            .clickable(onClick = onClick),
-    )
 }
 
 private fun ThemeMode.labelRes(): Int = when (this) {

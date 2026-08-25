@@ -53,7 +53,7 @@ fun NoticeCircle(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 28.dp),
             )
-            action?.let { CircleAction(icon = it.icon, text = it.text, tint = NoticeText) }
+            action?.let { CircleAction(icon = it.icon, text = it.text, tint = NoticeText, large = true) }
         }
     }
 }

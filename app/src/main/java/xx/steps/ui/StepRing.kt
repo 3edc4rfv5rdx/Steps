@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -160,20 +161,28 @@ private fun RingLabel(
     }
 }
 
-/** The icon-and-word line at the bottom of the circle, saying what tapping it does. */
+/**
+ * The icon-and-word line at the bottom of the circle, saying what tapping it does. [large] is for
+ * the paused state, where this line is the only thing to act on and carries the whole circle.
+ */
 @Composable
-fun CircleAction(icon: ImageVector, text: String, tint: Color) {
+fun CircleAction(icon: ImageVector, text: String, tint: Color, large: Boolean = false) {
     Row(
-        modifier = Modifier.padding(top = 10.dp),
+        modifier = Modifier.padding(top = if (large) 16.dp else 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = tint)
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(if (large) 34.dp else 24.dp),
+        )
         Text(
             text = text,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = if (large) 26.sp else 18.sp,
+            fontWeight = if (large) FontWeight.Bold else FontWeight.SemiBold,
             color = tint,
-            modifier = Modifier.padding(start = 6.dp),
+            modifier = Modifier.padding(start = 8.dp),
         )
     }
 }

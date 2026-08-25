@@ -1,6 +1,16 @@
 package xx.steps.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 /**
  * Named colors for the app theme. Window backgrounds are a distinct tone from the container
@@ -59,3 +69,19 @@ val ContainerDarkLow = Color(0xFF1F1F1F)
 val ContainerDark = Color(0xFF242424)
 val ContainerDarkHigh = Color(0xFF2A2A2A)
 val ContainerDarkHighest = Color(0xFF303030)
+
+/** One colour of the palette, ringed when it is the one in force. Shared by the row and the dialog. */
+@Composable
+fun AccentSwatch(color: Color, selected: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .background(color = color, shape = CircleShape)
+            .border(
+                width = if (selected) 3.dp else 0.dp,
+                color = if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                shape = CircleShape,
+            )
+            .clickable(onClick = onClick),
+    )
+}
