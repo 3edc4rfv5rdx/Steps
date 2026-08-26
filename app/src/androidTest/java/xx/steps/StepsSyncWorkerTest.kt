@@ -16,6 +16,7 @@ import org.junit.runner.RunWith
 import xx.steps.steps.StepAccess
 import xx.steps.steps.StepAccessState
 import xx.steps.steps.StepSensor
+import xx.steps.steps.hasStepPermission
 import xx.steps.work.StepsSyncWorker
 
 /**
@@ -46,12 +47,19 @@ class StepsSyncWorkerTest {
     }
 
     @Test
-    fun missingHardwareOutranksTheMissingPermission() = runBlocking {
-        if (StepSensor(context).isAvailable) return@runBlocking
+    fun theMissingPermissionOutranksTheMissingHardware() = runBlocking {
+        // This is the state a fresh install is in, and the emulator's default.
+        if (hasStepPermission(context)) return@runBlocking
 
         StepAccessState.refresh(context)
 
-        // A phone with no counter must say so, not ask for a permission that would change nothing.
-        assertEquals(StepAccess.SENSOR_MISSING, StepAccessState.access.first())
+        // Android hides the counter from an app that has not been allowed activity data, so a
+        // phone that has one is indistinguishable from a phone that has none. Answered the other
+        // way round, a fresh install would claim the hardware was missing and offer nothing to fix
+        // it — which is what this test used to assert.
+        //
+        // The other two answers of the rule are pinned by StepAccessRuleTest, on the JVM, where the
+        // facts can be stated instead of depending on how this device happens to be set up.
+        assertEquals(StepAccess.PERMISSION_MISSING, StepAccessState.access.first())
     }
 }
