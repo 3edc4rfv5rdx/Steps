@@ -13,7 +13,7 @@ history tree, MediaStore export, the theme.
 | Question | Decision |
 |---|---|
 | Step source | hardware `TYPE_STEP_COUNTER` |
-| Storage | Room: one table of day → steps, one of day → quarter hour → steps |
+| Storage | Room: a table of day → steps, one of day → quarter hour → steps, and a one-row sync state holding the counter baseline |
 | Background | a foreground service holds the app active so sensor delivery continues with the screen off; its notification is today's count. A WorkManager job every 15 minutes restarts what the system killed |
 | Screens | Today / History / Settings (three tabs) |
 | Metrics | steps, the goal, and distance from a step length set in Settings — no calories |
@@ -118,7 +118,8 @@ app/src/main/java/xx/steps/
                            @Entity day_slots: (date, slot) PK, steps — the intra-day breakdown, a
                            row per quarter hour that has any;
                            @Entity sync_state: the one-row counter baseline (id, lastRaw,
-                           bootTimeMillis) — in the database, not in preferences, so it is written
+                           lastUptimeMillis, from SystemClock.elapsedRealtime() and never from the
+                           wall clock) — in the database, not in preferences, so it is written
                            in the same transaction as the steps it accounts for
   data/StepsDao.kt         observeAll(), observeDay(date), dayRow(date), upsertDay(),
                            updateGoal(date, goal), syncState(), upsertSyncState()
@@ -130,10 +131,11 @@ app/src/main/java/xx/steps/
                            of Android and covered by JVM tests
   data/CsvIo.kt            writes to Documents/Steps through MediaStore, reads a Uri from the
                            system picker, and folds the result into the database
-  data/Backup.kt           ZIP holding the database file, plus restore; a port of BikeTracker's
-                           Backup.kt and DatabaseRestoreCoordinator, cut down to one table
+  data/ZipBackup.kt        ZIP holding the database file, plus restore; a port of BikeTracker's
+                           Backup.kt and DatabaseRestoreCoordinator. Restores the days and their
+                           breakdown, keeping only the rows usableRows() can prove are readable
   settings/AppSettings.kt  object with StateFlows: goal, step length, paused, demo, themeMode,
-                           accentIndex
+                           accentIndex, journalEnabled
   settings/AppTheme.kt     ThemeMode and AppLanguage, plus the LocaleManager read/write (API 33+)
   work/StepsSyncWorker.kt  CoroutineWorker: refreshes StepAccessState and stands down on whatever
                            it says, then readOnce → repository.fold; periodic, 15 minutes
@@ -173,9 +175,11 @@ clockwise in proportion to the goal; once the goal is passed the ring closes and
 Inside it the step count in large type, below it the goal and the percentage of it, set large and
 counting on past the goal. Nothing announces the goal in words: the arc closes and both it and the
 percentage turn green, which says it without a line of text. Under the ring, seven
-bars for the past seven days, each scaled against the best day of that week, today's bar in the
-accent colour and its label in bold, with a dashed goal line across them and day labels underneath. The number grows live while the screen is
-open. A tap on any bar opens that day's breakdown.
+bars for the current calendar week — it starts on the locale's first day, not seven days ago —
+each scaled against the taller of that week's best day and the goal, so the goal line cannot sit off
+the top edge and leave the week looking complete. Today's bar is in the accent colour and its label
+is in bold, with a dashed goal line across them and day labels underneath. The number grows live
+while the screen is open. A tap on any bar opens that day's breakdown.
 
 Special states take the ring's exact footprint as an amber circle with black text, so the screen
 never reads as a genuine zero and nothing below it shifts: no sensor; permission not granted (with a
@@ -187,7 +191,9 @@ while the user is already answering for this app, rather than left to a system s
 unprompted or to the next launch. The chain is held by the activity, not by the button that starts
 it — that button is gone the moment the permission is granted.
 
-**Pause.** A button under the ring stops counting for a bus ride and resumes it after. While paused
+**Pause.** The ring itself is the pause control — a target that size needs no aiming, and the glyph
+and word inside it say what a tap does. It stops counting for a bus ride, and the amber circle that
+replaces it resumes. While paused
 the app still consumes readings and moves the baseline without crediting anything — the hardware
 counts through the ride regardless, so discarding is the only way to not receive those steps in one
 lump at the end. The state persists across restarts.
