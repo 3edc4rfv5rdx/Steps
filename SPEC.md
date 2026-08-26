@@ -100,7 +100,9 @@ app/src/main/java/xx/steps/
                            ACTIVITY_RECOGNITION, so "no counter" cannot be told from "not allowed
                            yet" until the permission is granted. nextPermissionAsk() is the order
                            the remaining questions go in, kept pure so a JVM test pins it
-  data/DaySteps.kt         @Entity day_steps: date TEXT PK (ISO), steps, goal INTEGER;
+  data/DaySteps.kt         usableRows(): what a restore may take out of an untrusted database,
+                           free of Android and covered by JVM tests;
+                           @Entity day_steps: date TEXT PK (ISO), steps, goal INTEGER;
                            @Entity day_slots: (date, slot) PK, steps — the intra-day breakdown, a
                            row per quarter hour that has any;
                            @Entity sync_state: the one-row counter baseline (id, lastRaw,
@@ -205,7 +207,10 @@ costs the day its shape rather than its steps; step length in centimetres,
 color from a palette of 6–8 swatches (check each for contrast in both themes); language
 system/English/Russian/Ukrainian through the framework `LocaleManager` (API 33+); CSV export and
 import; ZIP export and import of the database. Either import asks for confirmation first: CSV merges
-by date, ZIP replaces the database wholesale.
+by date, ZIP replaces the database wholesale. A restore keeps only the rows it can read back — every
+reader of a stored date parses it, so a date that will not parse is dropped rather than stored and
+crashed on afterwards — and says how many days it dropped. An archive in which no day survives is
+refused, and the stored history is left as it was.
 
 ## Order of work (one feature per commit)
 

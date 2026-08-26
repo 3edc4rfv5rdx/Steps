@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E Restoring a backup from elsewhere no longer breaks the History tab, and says how many days it could not read.
 - E Counting starts the moment the permission is allowed, and the notification is asked for right after the battery screen.
 - E Demo mode seeds its history at any daily goal instead of wiping the history and stopping.
 - I `10-MakeRelease.sh` raises the `major.minor` line by itself when a feature is waiting: an `N`
