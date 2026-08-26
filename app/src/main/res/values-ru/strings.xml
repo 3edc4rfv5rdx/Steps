@@ -89,6 +89,11 @@
     <string name="setting_journal">Журнал подсчёта</string>
     <string name="setting_journal_hint">Каждое чтение пишется в Documents/Steps</string>
     <string name="notification_channel">Подсчёт шагов</string>
+    <string name="chart_controls">Управление графиком</string>
+    <string name="chart_zoom_in">Приблизить</string>
+    <string name="chart_zoom_out">Отдалить</string>
+    <string name="chart_earlier">Раньше</string>
+    <string name="chart_later">Позже</string>
     <string name="battery_unrestricted">Без ограничений</string>
     <string name="battery_restricted">Ограничена</string>
     <string name="battery_no_screen">На этом телефоне нет такого системного экрана</string>

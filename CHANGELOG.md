@@ -3,6 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- N The day chart can be driven without pinching: a ⋮ button on the dialog's date line unfolds
+  zoom and step-along controls beside it. Holding a finger still on the chart hands it over to
+  dragging the window, with a tap of haptic feedback to say so.
 - E A batch of journal lines whose write fails is kept for the next attempt rather than dropped.
   Deleting the day's file used to take the lines in flight with it.
 - E Counting starts again by itself after a restart or an app update. Both leave the app installed

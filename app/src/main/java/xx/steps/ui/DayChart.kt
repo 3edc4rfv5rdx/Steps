@@ -8,16 +8,23 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
@@ -25,6 +32,7 @@ import xx.steps.HOURS_PER_DAY
 import xx.steps.MINUTES_PER_DAY
 import xx.steps.MINUTES_PER_HOUR
 import xx.steps.formatMinuteOfDay
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 
 /** Height of the bars themselves, and the band under them the hour labels are written in. */
@@ -74,6 +82,7 @@ fun DayChart(
     // The gesture below outlives the composition that started it, so it reads these rather than
     // the values captured when it was set up — otherwise a pinch would keep zooming from where the
     // window stood when the finger landed.
+    val haptic = LocalHapticFeedback.current
     val currentView by rememberUpdatedState(view)
     val onViewNow by rememberUpdatedState(onView)
     val onPointerNow by rememberUpdatedState(onPointer)
@@ -104,11 +113,47 @@ fun DayChart(
                     val down = awaitFirstDown(requireUnconsumed = false)
                     val slop = viewConfiguration.touchSlop
                     var mode = ChartGesture.UNDECIDED
+                    var last = down.position
 
                     /** Screen x to a fraction of the day, through whatever window is showing. */
                     fun dayAt(x: Float): Float =
                         (currentView.start + (x / size.width) * currentView.width).coerceIn(0f, 1f)
 
+                    // Which gesture this is has to be settled before the long-press timeout,
+                    // because running out of time is itself one of the answers: a finger that
+                    // neither moved nor was joined by a second one is asking to drag the window.
+                    val settled = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                        while (mode == ChartGesture.UNDECIDED) {
+                            val event = awaitPointerEvent()
+                            val pressed = event.changes.filter { it.pressed }
+                            when {
+                                pressed.size >= 2 -> mode = ChartGesture.PINCH
+                                // Lifted already: a tap, placed after the loop.
+                                pressed.isEmpty() -> return@withTimeoutOrNull Unit
+                                else -> {
+                                    val change = pressed.first()
+                                    last = change.position
+                                    if (abs(change.position.x - down.position.x) > slop) {
+                                        mode = ChartGesture.SCRUB
+                                        onPointerNow(dayAt(change.position.x))
+                                        change.consume()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (settled == null) {
+                        // Held still: hand the finger over to the window, and say so by touch,
+                        // since nothing on screen has moved yet to show what changed.
+                        mode = ChartGesture.PAN
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
+                    if (mode == ChartGesture.UNDECIDED) {
+                        onPointerNow(dayAt(last.x))
+                        return@awaitEachGesture
+                    }
+
+                    var panFrom = last.x
                     while (true) {
                         val event = awaitPointerEvent()
                         val pressed = event.changes.filter { it.pressed }
@@ -136,21 +181,29 @@ fun DayChart(
                                 }
                             }
 
-                            // Still deciding: a finger that has not moved far enough yet may still
-                            // become a tap, so nothing is placed and nothing is consumed.
-                            ChartGesture.UNDECIDED -> {
+                            // Dragging the window itself: the chart follows the finger, so
+                            // pushing right walks back towards the start of the day.
+                            ChartGesture.PAN -> {
                                 val change = pressed.first()
-                                if (abs(change.position.x - down.position.x) > slop) {
-                                    mode = ChartGesture.SCRUB
-                                    onPointerNow(dayAt(change.position.x))
+                                if (change.positionChanged()) {
+                                    val dx = change.position.x - panFrom
+                                    panFrom = change.position.x
+                                    onViewNow(
+                                        zoomedView(
+                                            currentView,
+                                            zoom = 1f,
+                                            focus = 0.5f,
+                                            pan = dx / size.width,
+                                        ),
+                                    )
                                     change.consume()
                                 }
                             }
+
+                            // Settled above; nothing reaches here undecided.
+                            ChartGesture.UNDECIDED -> Unit
                         }
                     }
-
-                    // Lifted without ever deciding: that was a tap, and it lands where it touched.
-                    if (mode == ChartGesture.UNDECIDED) onPointerNow(dayAt(down.position.x))
                 }
             },
     ) {
@@ -218,5 +271,55 @@ fun DayChart(
 private fun hourLabel(hour: Int): String =
     formatMinuteOfDay(hour * MINUTES_PER_HOUR).substringBefore(':')
 
-/** Which reading of a touch on the chart won: place the pointer, scrub along the day, or zoom it. */
-private enum class ChartGesture { UNDECIDED, SCRUB, PINCH }
+/**
+ * Which reading of a touch on the chart won: place the pointer, scrub along the day, drag the
+ * window along it, or pinch it open.
+ */
+private enum class ChartGesture { UNDECIDED, SCRUB, PINCH, PAN }
+
+/**
+ * How much one tap of + or - stretches the axis. Gentler than a pinch on purpose: the buttons are
+ * for arriving somewhere exactly, which takes more than one step whatever the size of it.
+ */
+const val BUTTON_ZOOM_STEP = 1.5f
+
+/**
+ * How far one tap of the arrows walks the window, as a share of what is on screen. Half a window
+ * keeps a landmark from the previous view in sight, which is what says where the step landed.
+ */
+const val BUTTON_PAN_STEP = 0.5f
+
+/**
+ * One control from the strip the ⋮ button unfolds. Filled, like every other button in the app —
+ * an outlined one on a dialog's surface is the grey-on-grey this app does not use.
+ */
+@Composable
+fun ChartMenuButton(
+    icon: ImageVector,
+    label: String,
+    active: Boolean = false,
+    onClick: () -> Unit,
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(MENU_BUTTON_SIZE),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = if (active) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.secondaryContainer
+            },
+            contentColor = if (active) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSecondaryContainer
+            },
+        ),
+    ) {
+        Icon(icon, contentDescription = label, modifier = Modifier.size(MENU_ICON_SIZE))
+    }
+}
+
+/** Small enough to sit on the title line beside the date, large enough to hit. */
+private val MENU_BUTTON_SIZE = 36.dp
+private val MENU_ICON_SIZE = 20.dp

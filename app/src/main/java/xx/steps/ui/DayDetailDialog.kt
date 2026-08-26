@@ -5,8 +5,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -70,6 +78,20 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
     // rememberSaveable without a Saver of its own.
     var viewStart by rememberSaveable { mutableFloatStateOf(ChartView.WholeDay.start) }
     var viewWidth by rememberSaveable { mutableFloatStateOf(ChartView.WholeDay.width) }
+    var controlsOpen by rememberSaveable { mutableStateOf(false) }
+
+    fun moveView(zoom: Float, pan: Float) {
+        // Zooming is anchored on the pointer, so the moment being read stays put as the axis
+        // stretches; panning has no such anchor and takes the middle.
+        val focus = if (zoom == 1f) {
+            0.5f
+        } else {
+            ((pointer.coerceAtLeast(0f) - viewStart) / viewWidth).coerceIn(0f, 1f)
+        }
+        val next = zoomedView(ChartView(viewStart, viewWidth), zoom, focus, pan)
+        viewStart = next.start
+        viewWidth = next.width
+    }
 
     val buckets = remember(slots, bucketMinutes) { buildDayBuckets(slots, bucketMinutes) }
     val stats = remember(buckets) { dayStats(buckets) }
@@ -91,7 +113,43 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(formatDayLabel(date)) },
+        title = {
+            // The controls unfold along this line, to the left of the button that opens them: the
+            // dialog is short, and a strip of its own would push the chart further down it.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = formatDayLabel(date), modifier = Modifier.weight(1f))
+                if (controlsOpen) {
+                    ChartMenuButton(
+                        icon = Icons.Filled.Add,
+                        label = stringResource(R.string.chart_zoom_in),
+                    ) { moveView(zoom = BUTTON_ZOOM_STEP, pan = 0f) }
+                    Spacer(modifier = Modifier.width(CONTROL_GAP))
+                    ChartMenuButton(
+                        icon = Icons.Filled.Remove,
+                        label = stringResource(R.string.chart_zoom_out),
+                    ) { moveView(zoom = 1f / BUTTON_ZOOM_STEP, pan = 0f) }
+                    Spacer(modifier = Modifier.width(CONTROL_GAP))
+                    ChartMenuButton(
+                        icon = Icons.AutoMirrored.Filled.ArrowBack,
+                        label = stringResource(R.string.chart_earlier),
+                    ) { moveView(zoom = 1f, pan = BUTTON_PAN_STEP) }
+                    Spacer(modifier = Modifier.width(CONTROL_GAP))
+                    ChartMenuButton(
+                        icon = Icons.AutoMirrored.Filled.ArrowForward,
+                        label = stringResource(R.string.chart_later),
+                    ) { moveView(zoom = 1f, pan = -BUTTON_PAN_STEP) }
+                    Spacer(modifier = Modifier.width(CONTROL_GAP))
+                }
+                ChartMenuButton(
+                    icon = Icons.Filled.MoreVert,
+                    label = stringResource(R.string.chart_controls),
+                    // Always in the accent colour, open or shut: it is the only hint that the chart
+                    // has controls at all, and a dim button on a title line is not one. Whether the
+                    // strip is open is said by the strip being there.
+                    active = true,
+                ) { controlsOpen = !controlsOpen }
+            }
+        },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 BucketChoice(selected = bucketMinutes, onSelect = { bucketMinutes = it })
@@ -216,3 +274,6 @@ private fun StatRow(label: String, value: String) {
 /** "07:00 – 08:00" — the en dash and its spaces are punctuation, so they belong in code. */
 private fun timeRange(fromMinute: Int, toMinute: Int): String =
     formatMinuteOfDay(fromMinute) + " – " + formatMinuteOfDay(toMinute)
+
+/** Gap between the fold-out controls on the title line. */
+private val CONTROL_GAP = 6.dp

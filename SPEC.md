@@ -128,8 +128,9 @@ app/src/main/java/xx/steps/
                            buildDayBuckets() and dayStats(): the chart's bars and its figures,
                            free of Compose and covered by JVM tests
   ui/DayChart.kt           one day as bars from midnight to midnight, with the pointer that reads
-                           it. Two fingers stretch the X axis; one gesture handler decides between
-                           tap, scrub and pinch
+                           it. Two fingers stretch the X axis, holding one finger still hands it
+                           over to dragging the window, and one gesture handler decides between
+                           tap, scrub, pan and pinch. ChartMenuButton is the fold-out control
   ui/DayDetailDialog.kt    the day taken apart: hour or half-hour bars, the pointer readout, and the
                            day's figures
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app

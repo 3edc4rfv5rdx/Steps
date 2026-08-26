@@ -88,6 +88,11 @@
     <string name="setting_journal">Counting journal</string>
     <string name="setting_journal_hint">Every reading written to Documents/Steps</string>
     <string name="notification_channel">Step counting</string>
+    <string name="chart_controls">Chart controls</string>
+    <string name="chart_zoom_in">Zoom in</string>
+    <string name="chart_zoom_out">Zoom out</string>
+    <string name="chart_earlier">Earlier</string>
+    <string name="chart_later">Later</string>
     <string name="battery_unrestricted">Unrestricted</string>
     <string name="battery_restricted">Restricted</string>
     <string name="battery_no_screen">This phone has no battery settings screen</string>
