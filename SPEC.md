@@ -171,8 +171,8 @@ clockwise in proportion to the goal; once the goal is passed the ring closes and
 Inside it the step count in large type, below it the goal and the percentage of it, set large and
 counting on past the goal. Nothing announces the goal in words: the arc closes and both it and the
 percentage turn green, which says it without a line of text. Under the ring, seven
-bars for the past seven days, each scaled against the best day of that week, today highlighted, with
-a dashed goal line across them and day labels underneath. The number grows live while the screen is
+bars for the past seven days, each scaled against the best day of that week, today's bar in the
+accent colour and its label in bold, with a dashed goal line across them and day labels underneath. The number grows live while the screen is
 open. A tap on any bar opens that day's breakdown.
 
 Special states take the ring's exact footprint as an amber circle with black text, so the screen

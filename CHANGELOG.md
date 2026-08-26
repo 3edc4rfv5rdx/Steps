@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F Today's day label under the week bars is set in bold, so the highlighted bar is not the only thing saying which day it is.
 - I The instrumentation test for the counting state checks the rule the app follows, not the one it replaced.
 - E The counting journal names the real reason a background run did not count, instead of blaming a missing sensor.
 - E An import or backup finishes even if you leave the Settings tab, and tells you what it did when you come back.
