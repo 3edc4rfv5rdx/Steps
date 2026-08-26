@@ -31,6 +31,9 @@ database. A WorkManager job does this every 15 minutes; while the screen is open
 the sensor directly, so the number grows as you walk. Nothing runs in the background while you
 walk — the hardware counter accumulates on its own, so there is no foreground service.
 
+With a screen open the count is written as each reading arrives, so it grows as you walk; with none
+it is written once a minute, which loses nothing — the counter is cumulative.
+
 Each reading is also spread over the quarter hours its own interval covered, which is what the day
 chart is built from. The sensor gives no timing breakdown, so an even spread is the only claim
 the data supports — and a reading Android delayed paints an even hour rather than a spike at the

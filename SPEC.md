@@ -41,6 +41,12 @@ history tree, MediaStore export, the theme.
 - The first reading (install, cleared data) only sets the baseline and credits nothing.
 - The whole delta is credited to the day the reading happens on. The sensor gives no timing
   breakdown; syncing every 15 minutes keeps the midnight error window short.
+- `shouldFold()` decides how often a reading is written. With a screen in front of the user, every
+  one of them: the count on it has to grow as they walk. With none, once a minute — the counter is
+  cumulative, so a reading held back loses nothing, and the quarter-hourly worker closes the day
+  whatever happens. A pause is the exception and writes every reading whatever is on screen: it
+  throws steps away rather than postponing them, and where the baseline stands when it ends decides
+  which ones. The cost of the cadence is the reboot window, up to a minute wide instead of seconds.
 
 ### The intra-day breakdown
 
@@ -90,9 +96,11 @@ app/src/main/java/xx/steps/
   work/StepsService.kt     foreground service: keeps the UID active so sensor delivery continues,
                            and shows today's steps and distance in its notification. Does not read
                            the sensor itself
-  steps/StepCounting.kt    holds the sensor registration for the life of the process and folds
-                           every reading in; started by StepsApp, not by a screen, because the
-                           hardware counter stands still while nobody is registered on it
+  steps/StepCounting.kt    holds the sensor registration for the life of the process and folds the
+                           readings in at the cadence shouldFold() sets; started by StepsApp, not by
+                           a screen, because the hardware counter stands still while nobody is
+                           registered on it. Watches the activity lifecycle for whether a screen is
+                           in front of the user at all
   steps/StepAccess.kt      READY / PERMISSION_MISSING / SENSOR_MISSING as a StateFlow the screens
                            and the readings both watch; refreshed by the application on start, and
                            by the activity on every start and after a permission answer. The permission is decided before the sensor
