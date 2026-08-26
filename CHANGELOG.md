@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+## v0.2.20260826+45
 - F The launcher icon drops the road bar under the pedestrian. At icon size it was one more thing
   to read beside a figure that is already small.
 - N The day chart can be driven without pinching: a ⋮ button on the dialog's date line unfolds
