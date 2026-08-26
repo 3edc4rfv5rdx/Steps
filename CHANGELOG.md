@@ -3,6 +3,8 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F The launcher icon drops the road bar under the pedestrian. At icon size it was one more thing
+  to read beside a figure that is already small.
 - N The day chart can be driven without pinching: a ⋮ button on the dialog's date line unfolds
   zoom and step-along controls beside it. Holding a finger still on the chart hands it over to
   dragging the window, with a tap of haptic feedback to say so. Touching the chart folds the

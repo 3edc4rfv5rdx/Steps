@@ -3,8 +3,9 @@
 
 The figure is taken from the sign itself rather than redrawn: the sign's black pixels are split
 into connected components, the zebra stripes are dropped, and what remains — torso, leading leg,
-head, trailing arm — is the pedestrian. It is scaled to sit inside the adaptive icon's 66dp safe zone with
-a solid bar for the road under it, standing in for the stripes, which turn to noise at icon size.
+head, trailing arm — is the pedestrian. It is scaled to sit inside the adaptive icon's 66dp safe
+zone, and stands there alone: the road it used to stand on was one more thing to read at a size
+where the figure alone is already small.
 
 Run from the project root:  python3 tools/make_icon.py
 """
@@ -12,7 +13,7 @@ Run from the project root:  python3 tools/make_icon.py
 from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 SOURCE = Path("ADD/images/znak.png")
 RES = Path("app/src/main/res")
@@ -22,16 +23,13 @@ RES = Path("app/src/main/res")
 CANVAS = 108
 SAFE_TOP = 21
 
-# Where the figure starts and ends, and where the road goes, in canvas units. The figure keeps a
-# little air inside the safe zone rather than filling it to the brim: level with the top of the
-# zone it read as too big for the launcher's circle, and stood taller than the icons beside it.
+# Where the figure starts and ends, in canvas units. It keeps a little air inside the safe zone
+# rather than filling it to the brim: level with the top of the zone it read as too big for the
+# launcher's circle, and stood taller than the icons beside it.
 FIGURE_TOP = 27
 FIGURE_BOTTOM = 79
-ROAD_Y = 84
-ROAD_HALF_WIDTH = 28
-ROAD_THICKNESS = 4.5
 
-# The tab icon is the same figure at 24dp, without the road: a bar under a 24dp glyph is a smudge.
+# The tab icon is the same figure at 24dp.
 TAB_DP = 24
 TAB_DENSITIES = {
     "mdpi": 24,
@@ -110,7 +108,7 @@ def figure_pixels(image):
 
 
 def build(source: Path) -> Image.Image:
-    """The 432px foreground: white figure and road on transparency."""
+    """The 432px foreground: the white figure alone on transparency."""
     image = Image.open(source).convert("RGB")
     pixels = figure_pixels(image)
     if not pixels:
@@ -136,19 +134,6 @@ def build(source: Path) -> Image.Image:
     size = DENSITIES["xxxhdpi"]
     alpha = Image.new("L", (size, size), 0)
     alpha.paste(figure, (round(size / 2 - figure.width / 2), round(FIGURE_TOP * scale)))
-
-    draw = ImageDraw.Draw(alpha)
-    half = ROAD_THICKNESS * scale / 2
-    draw.rounded_rectangle(
-        [
-            (CANVAS / 2 - ROAD_HALF_WIDTH) * scale,
-            ROAD_Y * scale - half,
-            (CANVAS / 2 + ROAD_HALF_WIDTH) * scale,
-            ROAD_Y * scale + half,
-        ],
-        radius=half,
-        fill=255,
-    )
 
     white = Image.new("RGBA", (size, size), (255, 255, 255, 255))
     white.putalpha(alpha)
