@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I SPEC describes the pause control, the week bars, the tables and the backup file as they actually are.
 - E A notification put back after being swiped away always shows the current count.
 - F Today's day label under the week bars is set in bold, so the highlighted bar is not the only thing saying which day it is.
 - I The instrumentation test for the counting state checks the rule the app follows, not the one it replaced.
