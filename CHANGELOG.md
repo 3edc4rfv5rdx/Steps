@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+## v0.2.20260826+46
 - I SPEC's file list names every source file, including the eight it had never mentioned.
 - E Switching the demo happens whole or not at all, instead of being able to stop halfway with the history already gone.
 - I SPEC describes the pause control, the week bars, the tables and the backup file as they actually are.
