@@ -3,6 +3,11 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E Steps taken with the phone in a pocket are counted again. The hardware counter is not
+  free-running: it advances only while some app holds a registration on it, so listening only while
+  the screen was on recorded just the steps taken in front of the app — about six per quarter hour
+  against a real several hundred. The registration now lives as long as the process does. This was
+  hidden for as long as another pedometer was installed and kept the sensor awake for everybody.
 - I A counting journal as a plain text file, `Documents/Steps/steps-<date>.txt`, one per day:
   every sensor event with its own timestamp, every reading with its raw delta, window and what
   survived the cap, and every background run that read nothing. Whether the sensor answers at all

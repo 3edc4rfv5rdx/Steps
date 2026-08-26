@@ -39,20 +39,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.steps.DemoSteps
-import xx.steps.steps.StepAccess
 import xx.steps.steps.StepAccessState
-import xx.steps.steps.StepSensor
 import xx.steps.ui.AboutDialog
 import xx.steps.ui.ConfirmDialog
 import xx.steps.ui.HistoryCommands
@@ -145,7 +136,6 @@ private fun TabIcon(tab: Tab) {
 
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Android 15 draws every app edge to edge whether it asks or not; saying so explicitly
@@ -156,35 +146,10 @@ class MainActivity : ComponentActivity() {
 
         // The permission is asked for from the Today screen, next to the sentence explaining what
         // it is for — a dialog thrown at a screen the user has not seen yet only gets dismissed.
-
-        // While a screen is on, read the counter directly: the count then grows as the user walks
-        // instead of jumping every quarter hour when the worker runs. Collection is tied to the
-        // STARTED state, so nothing is registered with the sensor in the background, and it
-        // restarts by itself the moment the permission is granted.
-        val repository = StepsRepository.get(applicationContext)
-        val sensor = StepSensor(applicationContext)
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                combine(StepAccessState.access, AppSettings.demoMode, ::Pair)
-                    .flatMapLatest { (access, demo) ->
-                        logSteps("live: access=$access demo=$demo")
-                        when {
-                            demo -> DemoSteps.readings()
-                            access == StepAccess.READY -> sensor.readings()
-                            else -> emptyFlow()
-                        }
-                    }
-                    .collect { raw ->
-                        // Readings are consumed even while paused: that is what makes the steps of
-                        // a bus ride disappear instead of arriving in one lump when it ends.
-                        repository.recordReading(
-                            rawCount = raw,
-                            goal = AppSettings.goal.value,
-                            credit = !AppSettings.paused.value,
-                        )
-                    }
-            }
-        }
+        //
+        // The readings themselves are not started here: they belong to the process, not to this
+        // screen — see StepCounting for why the sensor has to stay registered while the phone is
+        // in a pocket.
 
         setContent {
             val themeMode by AppSettings.themeMode.collectAsState()

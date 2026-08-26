@@ -75,14 +75,20 @@ Single `:app` module, package `xx.steps`.
   no separate check — but `first()` throws on such a flow, which is why the timed read uses
   `firstOrNull()`.
 - **`steps/StepAccess.kt`** — the one answer to "can we count right now": ready, permission
-  missing, or no sensor. The activity refreshes it; the screens and the live reading both watch it,
-  so the reading restarts by itself the moment the permission is granted.
+  missing, or no sensor. Refreshed by the application on start and by the activity on every start
+  and permission answer; the screens and the readings both watch it, so counting restarts by itself
+  the moment the permission is granted.
 - **`data/`** — Room: a table of day → steps and a one-row `sync_state` holding the counter
   baseline, plus the repository that folds a reading and writes both in a single transaction. The
   baseline belongs in the database, not in preferences, precisely so that pairing is atomic. CSV and
   ZIP import/export live here too.
+- **`steps/StepCounting.kt`** — the sensor registration, held for the life of the process. The
+  hardware counter is not free-running: it advances while some app holds a registration on it and
+  stands still otherwise, so listening only while a screen is open records only the steps taken in
+  front of it. Started by `StepsApp`, never by a screen.
 - **`work/StepsSyncWorker.kt`** — the periodic 15-minute sync. There is no foreground service by
-  design: the hardware counter accumulates on its own, so nothing has to run while walking.
+  design; the worker's job is to start the process again after the system has killed it, which is
+  what restores the registration.
 - **`settings/AppSettings`** — the only other persisted state, in `SharedPreferences`: goal, theme
   and accent. Language uses the framework `LocaleManager` (API 33+).
 - **`ui/`** — Compose only. Three tabs: Today (progress ring plus the past week), History

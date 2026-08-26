@@ -14,7 +14,7 @@ history tree, MediaStore export, the theme.
 |---|---|
 | Step source | hardware `TYPE_STEP_COUNTER` |
 | Storage | Room: one table of day → steps, one of day → quarter hour → steps |
-| Background | no foreground service: a WorkManager job every 15 minutes, plus live reading while the screen is open |
+| Background | no foreground service: the sensor stays registered for the life of the process, with a WorkManager job every 15 minutes to restart a process that was killed |
 | Screens | Today / History / Settings (three tabs) |
 | Metrics | steps, the goal, and distance from a step length set in Settings — no calories |
 | Widget | none |
@@ -57,8 +57,9 @@ carry.
   midnight keeps everything on the day it is credited to. The breakdown of a day therefore always
   adds up to that day's total, and both are written in the same transaction.
 - Rounding is cumulative rather than per slot, so the shares add up to exactly the steps credited.
-- No foreground service is involved: the hardware counter accumulates while nothing runs, and the
-  slots are reconstructed from the interval, not from the app being awake.
+- No foreground service is involved, but the sensor does stay registered while the process lives:
+  the hardware counter advances only while some app holds a registration on it, so the slots are
+  reconstructed from the interval between readings, not from a counter that ran unattended.
 - Days walked before this table existed simply have no breakdown; a CSV import, which carries day
   totals only, drops the breakdown of any day whose total it changes.
 
@@ -70,8 +71,8 @@ Accepted losses, documented in the README: steps between the last reading and a 
 ```
 app/src/main/java/xx/steps/
   StepsApp.kt              Application: AppSettings.load(), schedules the periodic work (KEEP)
-  MainActivity.kt          Scaffold + NavigationBar (three tabs), the ACTIVITY_RECOGNITION request,
-                           live sensor reading via repeatOnLifecycle(STARTED)
+  MainActivity.kt          Scaffold + NavigationBar (three tabs), the ACTIVITY_RECOGNITION request;
+                           refreshes StepAccessState on start. It does not read the sensor
   Common.kt                done
   StepLog.kt               the counting journal: logSteps() queues a line, a background writer
                            appends it to Documents/Steps/steps-<date>.txt through MediaStore, one
@@ -80,9 +81,12 @@ app/src/main/java/xx/steps/
   steps/StepSync.kt        done
   steps/StepSensor.kt      readings(): Flow<Long> over callbackFlow; readOnce(timeout) for the
                            worker; isAvailable for phones without the sensor; hasStepPermission()
+  steps/StepCounting.kt    holds the sensor registration for the life of the process and folds
+                           every reading in; started by StepsApp, not by a screen, because the
+                           hardware counter stands still while nobody is registered on it
   steps/StepAccess.kt      READY / PERMISSION_MISSING / SENSOR_MISSING as a StateFlow the screens
-                           and the live reading both watch; refreshed by the activity on start and
-                           after a permission answer. The permission is decided before the sensor
+                           and the readings both watch; refreshed by the application on start, and
+                           by the activity on every start and after a permission answer. The permission is decided before the sensor
                            is looked for: Android hides the step counter from an app without
                            ACTIVITY_RECOGNITION, so "no counter" cannot be told from "not allowed
                            yet" until the permission is granted

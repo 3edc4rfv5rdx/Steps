@@ -3,6 +3,8 @@ package xx.steps
 import android.app.Application
 import xx.steps.settings.AppSettings
 import xx.steps.steps.DemoSteps
+import xx.steps.steps.StepAccessState
+import xx.steps.steps.StepCounting
 import xx.steps.work.StepsSyncWorker
 
 /**
@@ -22,6 +24,10 @@ class StepsApp : Application() {
         if (AppSettings.demoMode.value && !DemoSteps.isEmulator) {
             AppSettings.setDemoMode(this, false)
         }
+        // Both before the readings start: the access state decides what they read, and on a launch
+        // that no screen took part in — a worker starting the process — nothing else would set it.
+        StepAccessState.refresh(this)
+        StepCounting.start(this)
         StepsSyncWorker.schedule(this)
     }
 }

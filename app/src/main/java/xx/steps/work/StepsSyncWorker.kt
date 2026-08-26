@@ -31,8 +31,8 @@ class StepsSyncWorker(
         val sensor = StepSensor(applicationContext)
 
         // None of these is a failure to retry: without a sensor there is nothing to read ever,
-        // without the permission the user has to act first, and in demo mode the fake counter
-        // exists only while a screen is open — a background read would break its illusion.
+        // without the permission the user has to act first, and in demo mode StepCounting is
+        // already feeding the fake counter in, so a second reader would only double it up.
         if (AppSettings.demoMode.value) {
             logSteps("worker: demo mode, nothing to read")
             return Result.success()
