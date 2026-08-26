@@ -103,6 +103,9 @@ app/src/main/java/xx/steps/
                            a screen, because the hardware counter stands still while nobody is
                            registered on it. Watches the activity lifecycle for whether a screen is
                            in front of the user at all
+  steps/DemoSteps.kt       the simulated counter and the made-up history behind demo mode, offered
+                           on an emulator only. demoHistory() builds a whole run before anything is
+                           written; toggle() empties the database and refills it in one transaction
   steps/StepAccess.kt      READY / PERMISSION_MISSING / SENSOR_MISSING as a StateFlow the screens
                            and the readings both watch; refreshed by the application on start, and
                            by the activity on every start and after a permission answer. The permission is decided before the sensor
@@ -136,12 +139,24 @@ app/src/main/java/xx/steps/
                            breakdown, keeping only the rows usableRows() can prove are readable
   settings/AppSettings.kt  object with StateFlows: goal, step length, paused, demo, themeMode,
                            accentIndex, journalEnabled
+  settings/PowerSettings.kt whether the app is exempt from battery optimisation, and the intent
+                           that asks for it or gives it back. Nothing here counts steps; what the
+                           restrictions bear on is how often the app is woken to read the counter
   settings/AppTheme.kt     ThemeMode and AppLanguage, plus the LocaleManager read/write (API 33+)
   work/StepsSyncWorker.kt  CoroutineWorker: refreshes StepAccessState and stands down on whatever
                            it says, then readOnce → repository.fold; periodic, 15 minutes
   ui/Theme.kt Color.kt Type.kt   ported from BikeTracker, plus the accent palette
   ui/TodayScreen.kt        progress ring and the seven bars of the past week
+  ui/StepRing.kt           the progress ring, the figures inside it, and the tap that pauses —
+                           the whole ring is the control
+  ui/WeekBars.kt           buildWeekBars(): the seven bars of the calendar week, gaps filled, free
+                           of Compose and covered by JVM tests; and the canvas that draws them
   ui/HistoryScreen.kt      year → month → day tree with period totals
+  ui/HistoryModel.kt       buildHistoryTree(), historyTotals() and visibleKeys(): the grouping, the
+                           calendar-period totals and the rows on show, free of Compose and covered
+                           by JVM tests
+  ui/HistoryCommands.kt    the top bar's two History buttons reach the tree through this, since the
+                           buttons live in the activity and the expansion state in the screen
   ui/SettingsScreen.kt     goal, step length, background work, theme, accent, language, CSV and ZIP
   ui/DayModel.kt           ChartView, zoomedView() and gridHours(): the stretch of the day on
                            show and the hours it is ruled at, as plain functions.
@@ -157,6 +172,10 @@ app/src/main/java/xx/steps/
                            and the one message they leave behind: both held by the process, since a
                            screen is a branch of a `when` on the tab and its scope goes when the tab
                            does. One job at a time; no composition owns such work
+  ui/StatusBanner.kt       one banner for every outcome in the app: green when it worked, amber
+                           when it worked partly, red when it did not
+  ui/DialogButtons.kt      the two buttons every dialog ends with — the accent one commits, the
+                           tonal one backs out, and neither is ever a bare text button
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app
   ui/NoticeCircle.kt       amber circle with black text, standing in for the ring
   ui/Distance.kt           distanceLabel(): the one place a distance string is built
