@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I The README describes the foreground service the app actually runs, instead of claiming it has none.
 - F The count is written once a minute while nothing is on screen, instead of on every step the sensor reports.
 - E Restoring a backup from elsewhere no longer breaks the History tab, and says how many days it could not read.
 - E Counting starts the moment the permission is allowed, and the notification is asked for right after the battery screen.
