@@ -11,8 +11,11 @@ import xx.steps.MIN_GOAL
 import xx.steps.SLOTS_PER_DAY
 import xx.steps.SLOT_MINUTES
 import xx.steps.clampGoal
+import xx.steps.data.DaySlot
+import xx.steps.data.DaySteps
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
+import xx.steps.toIso
 import java.time.LocalDate
 import kotlin.random.Random
 
@@ -127,31 +130,56 @@ object DemoSteps {
     }
 
     /**
-     * Turns the demo on or off. Either direction wipes the database first: a demo run and real
-     * history must never share one, and on the way out its made-up days have to go. This is the
-     * only place that sequence lives — both screens that offer the demo call it.
+     * Turns the demo on or off. Either direction empties the database of what was in it: a demo run
+     * and real history must never share one, and on the way out its made-up days have to go. This
+     * is the only place that sequence lives — both screens that offer the demo call it.
+     *
+     * The whole history is built first and written in one transaction, so the switch either happens
+     * or does not. Wiping and then filling seventy days one at a time meant a cancellation partway
+     * — the activity recreated by a language change, the screen gone — left the real history gone
+     * and the demo half-built.
      */
     suspend fun toggle(context: Context, repository: StepsRepository, turnOn: Boolean, goal: Int) {
-        repository.clearAll()
-        if (turnOn) seedHistory(repository, goal)
+        if (turnOn) {
+            val history = demoHistory(goal)
+            repository.restoreAll(days = history.days, slots = history.slots)
+        } else {
+            repository.clearAll()
+        }
         AppSettings.setDemoMode(context, turnOn)
         StepAccessState.refresh(context)
     }
 
+    /** A whole demo history, built before anything is written. */
+    internal data class DemoHistory(val days: List<DaySteps>, val slots: List<DaySlot>)
+
     /**
-     * Fills the past [days] with plausible days, leaving today alone for the live demo counter to
-     * fill. Every fourth day is a lazy one, so the history has visibly missed goals in it.
+     * The past [days] as plausible days with their breakdown, today left alone for the live demo
+     * counter to fill. Every fourth day is a lazy one, so the history has visibly missed goals in
+     * it.
+     *
+     * Pure but for the random draw: it builds a value rather than writing rows, which is what lets
+     * the switch be one transaction and lets a JVM test check it without a database.
      */
-    suspend fun seedHistory(repository: StepsRepository, goal: Int, days: Int = DEMO_HISTORY_DAYS) {
+    internal fun demoHistory(
+        goal: Int,
+        days: Int = DEMO_HISTORY_DAYS,
+        today: LocalDate = LocalDate.now(),
+    ): DemoHistory {
         // Clamped once, here, so the goal the days are stamped with is the same one their step
         // counts were drawn against. Two readings of it would let a day be judged by a goal it was
         // never placed against.
         val target = clampGoal(goal)
-        val today = LocalDate.now()
+        val dayRows = ArrayList<DaySteps>(days)
+        val slotRows = ArrayList<DaySlot>()
+
         for (back in 1..days) {
-            val date = today.minusDays(back.toLong())
+            val iso = today.minusDays(back.toLong()).toIso()
             val steps = seededSteps(target, lazy = back % 4 == 0)
-            repository.setDay(date = date, steps = steps, goal = target, slots = demoSlots(steps))
+            dayRows += DaySteps(date = iso, steps = steps, goal = target)
+            demoSlots(steps).forEach { slotRows += DaySlot(date = iso, slot = it.slot, steps = it.steps) }
         }
+
+        return DemoHistory(days = dayRows, slots = slotRows)
     }
 }

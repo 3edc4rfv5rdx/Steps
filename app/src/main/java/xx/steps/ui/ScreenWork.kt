@@ -9,18 +9,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * The long jobs the Settings screen starts — export, import, restore — and the one thing they have
- * to say afterwards.
+ * The long jobs a screen starts — export, import, restore, switching the demo — and the one thing
+ * they have to say afterwards.
  *
- * Both live in the process rather than in the screen. The Settings screen is one branch of a `when`
- * on the selected tab, so switching to Today takes its composition with it, and with it the scope
- * an import was running in: an operation the user confirmed would be cancelled halfway with nothing
- * said about it. Here the job runs to the end and its message waits for whoever looks next.
+ * Both live in the process rather than in the screen. A screen is a branch of a `when` on the
+ * selected tab, so switching tabs takes its composition with it, and with it the scope the job was
+ * running in: an operation the user confirmed would be cancelled halfway with nothing said about
+ * it. Here the job runs to the end and its message waits for whoever looks next. This is the only
+ * place such work is started from — a composition is never allowed to own it.
  *
  * Nothing is persisted. A message need only survive a tab switch, not a process death — a restore
  * whose process is gone has a database to speak for it.
  */
-object SettingsWork {
+object ScreenWork {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

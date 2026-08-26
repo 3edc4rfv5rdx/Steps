@@ -64,6 +64,34 @@ class DemoSeedTest {
     }
 
     @Test
+    fun `a demo history is built whole, every day it was asked for`() {
+        val today = java.time.LocalDate.of(2026, 8, 26)
+        val history = DemoSteps.demoHistory(goal = 8_000, days = 70, today = today)
+
+        // Built as one value and written in one transaction, so there is no halfway: either every
+        // one of these rows lands or none does.
+        assertEquals(70, history.days.size)
+        assertEquals(70, history.days.map { it.date }.distinct().size)
+        assertEquals(today.minusDays(1).toIso(), history.days.first().date)
+        assertEquals(today.minusDays(70).toIso(), history.days.last().date)
+        // Today is left alone for the live demo counter to fill.
+        assertTrue(history.days.none { it.date == today.toIso() })
+    }
+
+    @Test
+    fun `every day of a demo history carries its own breakdown, adding up to it`() {
+        val history = DemoSteps.demoHistory(goal = MIN_GOAL, days = 12)
+        val byDate = history.slots.groupBy { it.date }
+
+        assertEquals(history.days.map { it.date }.toSet(), byDate.keys)
+        history.days.forEach { day ->
+            assertEquals(day.steps, byDate.getValue(day.date).sumOf { it.steps })
+        }
+        // A stamped goal a day was never drawn against would make the history judge itself wrongly.
+        assertTrue(history.days.all { it.goal == MIN_GOAL })
+    }
+
+    @Test
     fun `a seeded day's breakdown adds up to its total`() {
         val random = Random(4)
 

@@ -36,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -45,7 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.launch
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
@@ -60,6 +58,7 @@ import xx.steps.ui.AboutDialog
 import xx.steps.ui.ConfirmDialog
 import xx.steps.ui.HistoryCommands
 import xx.steps.ui.HistoryScreen
+import xx.steps.ui.ScreenWork
 import xx.steps.ui.NavLabelStyle
 import xx.steps.ui.StepsTheme
 import xx.steps.ui.SettingsScreen
@@ -190,7 +189,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainScreen() {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val repository = remember(context) { StepsRepository.get(context) }
     val demo by AppSettings.demoMode.collectAsState()
     val goal by AppSettings.goal.collectAsState()
@@ -298,7 +296,9 @@ private fun MainScreen() {
             onDismiss = { confirmDemo = false },
             onConfirm = {
                 confirmDemo = false
-                scope.launch { DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal) }
+                // Not this composition's scope: the switch empties the database and refills it,
+                // and an activity recreated partway must not be able to stop that.
+                ScreenWork.launch { DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal) }
             },
         )
     }

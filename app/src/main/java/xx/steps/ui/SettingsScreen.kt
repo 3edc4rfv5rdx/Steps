@@ -82,8 +82,8 @@ fun SettingsScreen() {
 
     // Saveable: changing the theme or the language recreates the activity under an open dialog.
     var editing by rememberSaveable { mutableStateOf(Editing.NONE) }
-    // Held by the process, not by this screen — see SettingsWork.
-    val banner by SettingsWork.message.collectAsState()
+    // Held by the process, not by this screen — see ScreenWork.
+    val banner by ScreenWork.message.collectAsState()
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
     var pendingImport by remember { mutableStateOf<Uri?>(null) }
@@ -108,7 +108,7 @@ fun SettingsScreen() {
     // The answer is not read here, nor at the restore: getting back to either takes a trip through
     // the system picker, which no job of this size outlives.
     fun importCsvNow(uri: Uri) {
-        SettingsWork.run {
+        ScreenWork.run {
             val result = importCsv(context, uri, repository, AppSettings.goal.value)
             val summary = resources.getString(
                 R.string.import_done_message,
@@ -140,7 +140,7 @@ fun SettingsScreen() {
     // The dialog stays open when the job is refused, so a tap that did not take does not look like
     // one that did.
     fun exportCsvNow() {
-        val started = SettingsWork.run {
+        val started = ScreenWork.run {
             val result = runCatching { exportCsv(context, repository.allDays()) }.getOrNull()
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.export_failed))
@@ -155,7 +155,7 @@ fun SettingsScreen() {
     }
 
     fun exportZipNow() {
-        val started = SettingsWork.run {
+        val started = ScreenWork.run {
             val result = runCatching { exportZip(context, AppDatabase.get(context)) }.getOrNull()
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.backup_failed))
@@ -199,7 +199,7 @@ fun SettingsScreen() {
             onClick = {
                 val opened = runCatching { batterySettings.launch(batteryExemptionIntent(context)) }
                 if (opened.isFailure) {
-                    SettingsWork.show(
+                    ScreenWork.show(
                         BannerMessage(BannerKind.ERROR, resources.getString(R.string.battery_no_screen)),
                     )
                 }
@@ -243,7 +243,7 @@ fun SettingsScreen() {
         banner?.let { message ->
             StatusBanner(
                 message = message,
-                onDismiss = { SettingsWork.clear() },
+                onDismiss = { ScreenWork.clear() },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
             )
         }
@@ -257,7 +257,7 @@ fun SettingsScreen() {
             onConfirm = { entered ->
                 AppSettings.setGoal(context, entered)
                 // A goal changed today applies to today; past days keep the goal they were judged by.
-                SettingsWork.launch { repository.applyGoalToToday(AppSettings.goal.value) }
+                ScreenWork.launch { repository.applyGoalToToday(AppSettings.goal.value) }
                 editing = Editing.NONE
             },
         )
@@ -338,7 +338,7 @@ fun SettingsScreen() {
             onDismiss = { pendingRestore = null },
             onConfirm = {
                 pendingRestore = null
-                SettingsWork.run {
+                ScreenWork.run {
                     val result = importZip(context, uri, repository)
                     val done = resources.getString(R.string.restore_done_message)
                     // A day the archive held but this app could not read back is the one thing a
