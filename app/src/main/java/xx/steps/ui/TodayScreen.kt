@@ -123,7 +123,7 @@ fun TodayScreen(onCountingAllowed: () -> Unit) {
         Actions(access = access, onCountingAllowed = onCountingAllowed)
 
         Spacer(modifier = Modifier.height(20.dp))
-        WeekBars(days = bars, goalLine = goal, onDayClick = { opened = it.date })
+        WeekBars(days = bars, goalLine = goal, today = today, onDayClick = { opened = it.date })
     }
 
     opened?.let { date ->

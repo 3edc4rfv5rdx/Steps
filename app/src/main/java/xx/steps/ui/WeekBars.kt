@@ -16,6 +16,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import xx.steps.data.DaySteps
@@ -65,11 +66,16 @@ private const val BAR_WIDTH_SHARE = 0.55f
  *
  * A tap anywhere in a day's column opens that day, [onDayClick]: the columns divide the chart
  * between them, so there is nowhere in it that belongs to no day.
+ *
+ * [today] is passed in rather than read here: the screen already re-reads the date every minute so
+ * it survives midnight, and a second reading of it would let the bar and the label above the ring
+ * disagree about which day it is.
  */
 @Composable
 fun WeekBars(
     days: List<DayBar>,
     goalLine: Int,
+    today: LocalDate,
     onDayClick: (DayBar) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -80,7 +86,6 @@ fun WeekBars(
     val barColor = MaterialTheme.colorScheme.primary
     val dimmedBar = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
     val lineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-    val today = LocalDate.now()
 
     Column(modifier = modifier.fillMaxWidth()) {
         Canvas(
@@ -132,12 +137,12 @@ fun WeekBars(
                 Text(
                     text = day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                     style = MaterialTheme.typography.labelMedium,
+                    // Today is the one label set in bold. Weight, not colour: every label carries
+                    // the same onSurface, and a dimmed one would be the grey-on-grey this app
+                    // does not use.
+                    fontWeight = if (day.date == today) FontWeight.SemiBold else FontWeight.Normal,
                     textAlign = TextAlign.Center,
-                    color = if (day.date == today) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                 )
             }
