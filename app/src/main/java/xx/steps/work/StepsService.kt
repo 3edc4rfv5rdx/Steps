@@ -16,6 +16,7 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -52,12 +53,21 @@ import java.time.LocalDate
  */
 class StepsService : Service() {
 
-    private val scope = CoroutineScope(SupervisorJob())
+    /**
+     * The main thread, named rather than left to the default. Everything this scope does is format
+     * one line and hand it to the notification manager, and the only other toucher of that line is
+     * a broadcast receiver, which the framework calls on the main thread: one thread for both is
+     * what makes [line] a plain field and not a question about visibility between threads.
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /**
      * The readout as it stands, so a dismissed notification can be put back showing it. Filled in
      * onCreate rather than here: building it needs resources, which a field initialiser runs too
      * early to have.
+     *
+     * Confined to the main thread — written in onCreate and by the collector above, read by the
+     * dismissal receiver. Move that collector off the main thread and this needs publishing safely.
      */
     private var line: String = ""
 
