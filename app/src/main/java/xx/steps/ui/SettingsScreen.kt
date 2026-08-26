@@ -202,14 +202,6 @@ fun SettingsScreen() {
         )
         HorizontalDivider()
 
-        SwitchRow(
-            label = stringResource(R.string.setting_journal),
-            hint = stringResource(R.string.setting_journal_hint),
-            checked = journalEnabled,
-            onChange = { StepLog.setEnabled(context, it) },
-        )
-        HorizontalDivider()
-
         SettingRow(
             label = stringResource(R.string.setting_theme),
             value = stringResource(themeMode.labelRes()),
@@ -230,6 +222,16 @@ fun SettingsScreen() {
         ActionRow(
             label = stringResource(R.string.setting_backup),
             onClick = { showBackup = true },
+        )
+        HorizontalDivider()
+
+        // Last on the screen: a diagnostic, wanted rarely, and nothing above it should be scrolled
+        // past to reach a setting used more often.
+        SwitchRow(
+            label = stringResource(R.string.setting_journal),
+            hint = stringResource(R.string.setting_journal_hint),
+            checked = journalEnabled,
+            onChange = { StepLog.setEnabled(context, it) },
         )
     }
 
