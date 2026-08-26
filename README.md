@@ -25,11 +25,16 @@ fakes a walking counter, offered on an emulator only.
 
 ## How it counts
 
-The sensor reports a cumulative number of steps since the phone booted. The app reads it
-periodically, subtracts the previous reading, and adds the difference to the current day in its
-database. A WorkManager job does this every 15 minutes; while the screen is open the app listens to
-the sensor directly, so the number grows as you walk. Nothing runs in the background while you
-walk — the hardware counter accumulates on its own, so there is no foreground service.
+The sensor reports a cumulative number of steps since the phone booted. The app reads it, subtracts
+the previous reading, and adds the difference to the current day in its database.
+
+Reading it is not something the app can do only while you are looking at the screen. The hardware
+counter is not free-running: it advances while some app holds a registration on it and stands still
+otherwise, and Android stops delivering to a registration whose UID has gone idle. So the
+registration lives as long as the process does, and a foreground service keeps the process in a
+state where that registration is still fed. Its notification is today's count and the distance it
+comes to, and swiping it away puts it straight back. A WorkManager job every 15 minutes reads the
+counter again and starts back whatever the system killed.
 
 With a screen open the count is written as each reading arrives, so it grows as you walk; with none
 it is written once a minute, which loses nothing — the counter is cumulative.
@@ -45,7 +50,8 @@ its counter across a reboot — from dumping a lifetime total onto a single day.
 
 Known limits:
 
-- steps taken between the last reading and a reboot are lost — the sensor restarts at zero;
+- steps taken between the last reading and a reboot are lost — the sensor restarts at zero, and
+  with no screen open that can be up to a minute of them;
 - the sensor gives no timing breakdown, so everything read after midnight is credited to the new
   day: up to 15 minutes of evening steps can land on the next one;
 - a phone that decides the app may not run in the background wakes it to read less often. The day
@@ -62,6 +68,7 @@ of each day — and the CSV import says afterwards what it wrote and what it cos
 
 - Android 13+ (minSdk 33) and a hardware step counter
 - the `ACTIVITY_RECOGNITION` permission — without it the system withholds the counter's readings
+- permission to post notifications, which is where the count shows while the app is closed
 
 ## Build
 
