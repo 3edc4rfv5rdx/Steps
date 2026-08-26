@@ -2,8 +2,11 @@ package xx.steps.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import xx.steps.SLOTS_PER_DAY
 import xx.steps.SLOT_MINUTES
 import xx.steps.SYNC_STATE_ID
+import xx.steps.clampGoal
+import xx.steps.isIsoDate
 
 /**
  * One calendar day's step total. [date] is the local date as ISO yyyy-MM-dd, which sorts
@@ -47,3 +50,35 @@ data class DaySlot(
     val slot: Int,
     val steps: Int,
 )
+
+/** What a restore could use out of an untrusted database, and how many days it could not. */
+data class UsableRows(
+    val days: List<DaySteps>,
+    val slots: List<DaySlot>,
+    val daysDropped: Int,
+)
+
+/**
+ * Reduces the rows of a database this app did not necessarily write to the ones it can read back.
+ *
+ * Everything downstream takes [DaySteps.date] for an ISO date it can parse — the history tree parses
+ * every one of them — so a row that is not one of ours is dropped here rather than stored and
+ * crashed on afterwards, on every visit to that screen, with no way back through the app. A
+ * negative step count goes the same way; a goal from outside the editor's bounds is only clamped,
+ * since the steps of that day are still true and only the line they are judged against is not.
+ *
+ * A slot survives only with the day it belongs to: a breakdown with no total above it adds up to
+ * nothing, and an index outside the day is not a quarter hour of it.
+ */
+fun usableRows(days: List<DaySteps>, slots: List<DaySlot>): UsableRows {
+    val kept = days.mapNotNull { day ->
+        if (isIsoDate(day.date) && day.steps >= 0) day.copy(goal = clampGoal(day.goal)) else null
+    }
+    val dates = kept.mapTo(HashSet()) { it.date }
+
+    return UsableRows(
+        days = kept,
+        slots = slots.filter { it.date in dates && it.slot in 0 until SLOTS_PER_DAY && it.steps >= 0 },
+        daysDropped = days.size - kept.size,
+    )
+}

@@ -68,6 +68,7 @@
     <string name="restore_confirm_title">Замінити все</string>
     <string name="restore_confirm_message">Копія замінить усю історію — записане зараз буде втрачено</string>
     <string name="restore_done_message">Історію замінено</string>
+    <string name="restore_dropped">Днів не прочитано</string>
     <string name="restore_failed_archive">Файл не схожий на архів копії</string>
     <string name="restore_failed_content">В архіві немає бази кроків</string>
     <string name="restore_failed_size">Архів завеликий для копії</string>

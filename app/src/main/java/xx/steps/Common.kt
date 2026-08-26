@@ -124,6 +124,16 @@ fun LocalDate.toIso(): String = format(ISO_DATE)
 fun isoToDate(iso: String): LocalDate = LocalDate.parse(iso, ISO_DATE)
 
 /**
+ * The same date, or null when the string is not one this app can read back — a hand-edited file, a
+ * database written by something else. Every reader of a stored or imported date goes through this
+ * or [isIsoDate]: a date is assumed to be parseable everywhere it is used, and the one place that
+ * assumption can be wrong is where untrusted rows come in.
+ */
+fun isoToDateOrNull(iso: String): LocalDate? = runCatching { isoToDate(iso) }.getOrNull()
+
+fun isIsoDate(iso: String): Boolean = isoToDateOrNull(iso) != null
+
+/**
  * Milliseconds since boot, sleep included. Monotonic and reset by a reboot, which is exactly what
  * the counting rule needs: it both detects the restart and bounds how many steps can be real.
  * Wall-clock time is unusable here — it jumps when the clock is corrected or the zone changes.

@@ -77,7 +77,7 @@ class ZipBackupTest {
         val archive = archiveOf(listOf(day), slots)
 
         repository.clearAll()
-        assertNull(importZip(context, archive, repository))
+        assertNull(importZip(context, archive, repository).failure)
 
         // A full backup is the whole record, not just the day totals above the charts.
         val restored = repository.observeSlots(today).first()
@@ -96,7 +96,7 @@ class ZipBackupTest {
 
         // Wipe, then restore: the days must come back exactly, goals included.
         repository.clearAll()
-        assertNull(importZip(context, archive, repository))
+        assertNull(importZip(context, archive, repository).failure)
 
         val restored = repository.allDays()
         assertEquals(2, restored.size)
@@ -111,7 +111,7 @@ class ZipBackupTest {
         repository.clearAll()
         repository.setDays(listOf(DaySteps(today.minusDays(5).toIso(), 7_777, 8_000)))
 
-        assertNull(importZip(context, archive, repository))
+        assertNull(importZip(context, archive, repository).failure)
 
         // A restore is a replacement, not a merge: the day that was not in the archive is gone.
         assertEquals(listOf(today.toIso()), repository.allDays().map { it.date })
@@ -124,7 +124,7 @@ class ZipBackupTest {
         repository.clearAll()
         // Pretend this phone's sensor has been read before, then restore over it.
         repository.recordReading(rawCount = 50_000, goal = 8_000, today = today, uptimeMillis = 7_200_000)
-        assertNull(importZip(context, archive, repository))
+        assertNull(importZip(context, archive, repository).failure)
 
         // With the baseline cleared, the next reading only re-establishes it and credits nothing —
         // a figure from another phone would otherwise swallow or invent a chunk of steps.
@@ -133,10 +133,41 @@ class ZipBackupTest {
     }
 
     @Test
+    fun aRowThisAppCannotReadBackIsDroppedRatherThanStored() = runBlocking {
+        // A database from somewhere else, or one edited by hand: its date is not one this app can
+        // parse, and every reader of a stored date parses it.
+        val archive = archiveOf(
+            listOf(
+                DaySteps(today.toIso(), 4_000, 8_000),
+                DaySteps("not-a-date", 900, 8_000),
+            ),
+        )
+
+        repository.clearAll()
+        val result = importZip(context, archive, repository)
+
+        assertNull(result.failure)
+        assertEquals(1, result.daysDropped)
+        assertEquals(listOf(today.toIso()), repository.allDays().map { it.date })
+    }
+
+    @Test
+    fun anArchiveWithNoReadableDayLeavesTheHistoryAlone() = runBlocking {
+        val archive = archiveOf(listOf(DaySteps("not-a-date", 900, 8_000)))
+
+        repository.clearAll()
+        repository.setDays(listOf(DaySteps(today.toIso(), 5_555, 8_000)))
+
+        // Replacing everything with nothing is the worst possible reading of "replace".
+        assertEquals(RestoreFailure.NOT_A_DATABASE, importZip(context, archive, repository).failure)
+        assertEquals(5_555, repository.observeDay(today).first()?.steps)
+    }
+
+    @Test
     fun aFileThatIsNotAnArchiveIsRefused() = runBlocking {
         val notZip = File(scratch, "notes.txt").apply { writeText("just some text") }
 
-        assertEquals(RestoreFailure.NOT_AN_ARCHIVE, importZip(context, notZip.toUri(), repository))
+        assertEquals(RestoreFailure.NOT_AN_ARCHIVE, importZip(context, notZip.toUri(), repository).failure)
     }
 
     @Test
@@ -148,7 +179,7 @@ class ZipBackupTest {
             out.closeEntry()
         }
 
-        assertEquals(RestoreFailure.NO_DATABASE_INSIDE, importZip(context, zip.toUri(), repository))
+        assertEquals(RestoreFailure.NO_DATABASE_INSIDE, importZip(context, zip.toUri(), repository).failure)
     }
 
     @Test
@@ -156,7 +187,7 @@ class ZipBackupTest {
         repository.setDays(listOf(DaySteps(today.toIso(), 5_555, 8_000)))
         val notZip = File(scratch, "broken.zip").apply { writeText("PK not really") }
 
-        assertNotNull(importZip(context, notZip.toUri(), repository))
+        assertNotNull(importZip(context, notZip.toUri(), repository).failure)
 
         assertEquals(5_555, repository.observeDay(today).first()?.steps)
     }

@@ -46,6 +46,13 @@ data class BackupResult(val fileName: String)
 enum class RestoreFailure { NOT_AN_ARCHIVE, NO_DATABASE_INSIDE, TOO_LARGE, NOT_A_DATABASE }
 
 /**
+ * How a restore ended: [failure] null when it went through, and [daysDropped] the days the archive
+ * held that this app could not read back. A restore that drops days is not a failure, but it is not
+ * a clean success either — the user is told the number.
+ */
+data class RestoreResult(val failure: RestoreFailure?, val daysDropped: Int)
+
+/**
  * Zips the live database into `Documents/Steps`. The write-ahead log is checkpointed first, or the
  * copy would miss everything recorded since the last checkpoint.
  */
@@ -93,7 +100,7 @@ suspend fun exportZip(context: Context, database: AppDatabase): BackupResult? =
  * refused — nothing is touched until the archive has been unpacked and proven to be a database, so
  * a bad file leaves the existing history exactly as it was.
  */
-suspend fun importZip(context: Context, source: Uri, repository: StepsRepository): RestoreFailure? =
+suspend fun importZip(context: Context, source: Uri, repository: StepsRepository): RestoreResult =
     withContext(Dispatchers.IO) {
         val staged = File(context.cacheDir, "restore-$DATABASE_NAME")
         staged.delete()
@@ -102,11 +109,21 @@ suspend fun importZip(context: Context, source: Uri, repository: StepsRepository
             val extractionFailure = try {
                 extractDatabase(context, source, staged)
             } catch (_: Exception) {
-                return@withContext RestoreFailure.NOT_AN_ARCHIVE
+                return@withContext RestoreResult(RestoreFailure.NOT_AN_ARCHIVE, 0)
             }
-            if (extractionFailure != null) return@withContext extractionFailure
+            if (extractionFailure != null) return@withContext RestoreResult(extractionFailure, 0)
 
-            val snapshot = readSnapshot(staged) ?: return@withContext RestoreFailure.NOT_A_DATABASE
+            val snapshot = readSnapshot(staged)
+                ?: return@withContext RestoreResult(RestoreFailure.NOT_A_DATABASE, 0)
+
+            // Having our table names is not proof of holding our rows. What cannot be read back is
+            // dropped here rather than stored and crashed on later — see usableRows.
+            val usable = usableRows(snapshot.days, snapshot.slots)
+            // An archive whose every day was unreadable is not ours at all, and a restore that put
+            // nothing in place of everything would be the worst possible reading of "replace".
+            if (usable.days.isEmpty() && snapshot.days.isNotEmpty()) {
+                return@withContext RestoreResult(RestoreFailure.NOT_A_DATABASE, usable.daysDropped)
+            }
 
             // The rows are poured into the live database rather than the file being swapped
             // underneath it: the open connection keeps serving, every screen updates on its own,
@@ -115,8 +132,8 @@ suspend fun importZip(context: Context, source: Uri, repository: StepsRepository
             // The counter baseline is not restored, only cleared: it describes where *this* phone's
             // sensor stood, and a figure from another phone (or another install) would credit or
             // swallow a chunk of steps on the next reading.
-            repository.restoreAll(days = snapshot.days, slots = snapshot.slots)
-            null
+            repository.restoreAll(days = usable.days, slots = usable.slots)
+            RestoreResult(failure = null, daysDropped = usable.daysDropped)
         } finally {
             staged.delete()
         }

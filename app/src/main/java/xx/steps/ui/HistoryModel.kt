@@ -1,7 +1,7 @@
 package xx.steps.ui
 
 import xx.steps.data.DaySteps
-import xx.steps.isoToDate
+import xx.steps.isoToDateOrNull
 import xx.steps.startOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -63,8 +63,11 @@ data class HistoryTotals(
  */
 fun buildHistoryTree(recorded: List<DaySteps>): List<YearNode> {
     val days = recorded
-        .map { row ->
-            val date = isoToDate(row.date)
+        .mapNotNull { row ->
+            // A restore checks what it stores, but a database written by an older build of this app
+            // may already hold a date that cannot be parsed. Skipping it costs that one day; letting
+            // it through costs the whole screen, on every visit.
+            val date = isoToDateOrNull(row.date) ?: return@mapNotNull null
             DayNode(key = dayKey(date), date = date, steps = row.steps, goal = row.goal)
         }
         .sortedByDescending { it.date }
@@ -103,7 +106,7 @@ fun historyTotals(recorded: List<DaySteps>, today: LocalDate = LocalDate.now()):
     val monthStart = today.withDayOfMonth(1)
     val yearStart = today.withDayOfYear(1)
 
-    val dated = recorded.map { isoToDate(it.date) to it.steps }
+    val dated = recorded.mapNotNull { row -> isoToDateOrNull(row.date)?.let { it to row.steps } }
 
     fun total(from: LocalDate?): PeriodTotal {
         val inRange = dated.filter { (date, _) ->

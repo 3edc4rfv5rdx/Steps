@@ -67,6 +67,7 @@
     <string name="restore_confirm_title">Replace everything</string>
     <string name="restore_confirm_message">The backup replaces the whole history — what is recorded now will be gone</string>
     <string name="restore_done_message">The history has been replaced</string>
+    <string name="restore_dropped">Days that could not be read</string>
     <string name="restore_failed_archive">This file does not look like a backup</string>
     <string name="restore_failed_content">The archive holds no step database</string>
     <string name="restore_failed_size">The archive is too large to be a backup</string>

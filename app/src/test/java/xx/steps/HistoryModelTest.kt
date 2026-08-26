@@ -21,6 +21,24 @@ class HistoryModelTest {
         DaySteps(date = date.toIso(), steps = steps, goal = goal)
 
     @Test
+    fun `a date that cannot be parsed is skipped rather than thrown on`() {
+        // Only a database from an older build, or a hand-edited one, can hold such a row — and the
+        // whole screen is what it costs if this throws.
+        val rows = listOf(
+            row(LocalDate.of(2026, 8, 25), 4_000),
+            DaySteps(date = "not-a-date", steps = 900, goal = 8_000),
+        )
+
+        val tree = buildHistoryTree(rows)
+        assertEquals(1, tree.size)
+        assertEquals(4_000, tree[0].steps)
+
+        val totals = historyTotals(rows, today)
+        assertEquals(4_000, totals.allTime.steps)
+        assertEquals(1, totals.allTime.days)
+    }
+
+    @Test
     fun `days are grouped newest first at every level`() {
         val tree = buildHistoryTree(
             listOf(

@@ -1,7 +1,7 @@
 package xx.steps.data
 
 import xx.steps.clampGoal
-import xx.steps.isoToDate
+import xx.steps.isIsoDate
 
 /**
  * The CSV shape and the merge rule, free of Android so both are covered by JVM tests. Reading and
@@ -60,8 +60,7 @@ private fun parseLine(line: String): DaySteps? {
 
     val date = parts[0].trim()
     // Parsing the date is the check that it is a date: anything else is a malformed line.
-    val valid = runCatching { isoToDate(date) }.isSuccess
-    if (!valid) return null
+    if (!isIsoDate(date)) return null
 
     val steps = parts[1].trim().toIntOrNull() ?: return null
     if (steps < 0) return null

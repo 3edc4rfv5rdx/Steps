@@ -334,11 +334,21 @@ fun SettingsScreen() {
             onConfirm = {
                 pendingRestore = null
                 scope.launch {
-                    val failure = importZip(context, uri, repository)
-                    banner = if (failure == null) {
-                        BannerMessage(BannerKind.SUCCESS, resources.getString(R.string.restore_done_message))
-                    } else {
-                        BannerMessage(BannerKind.ERROR, resources.getString(failure.messageRes()))
+                    val result = importZip(context, uri, repository)
+                    val done = resources.getString(R.string.restore_done_message)
+                    // A day the archive held but this app could not read back is the one thing a
+                    // restore destroys without being asked to, so it is said out loud.
+                    banner = when {
+                        result.failure != null ->
+                            BannerMessage(BannerKind.ERROR, resources.getString(result.failure.messageRes()))
+
+                        result.daysDropped > 0 -> BannerMessage(
+                            BannerKind.WARNING,
+                            done + "\n" + resources.getString(R.string.restore_dropped) +
+                                ": " + result.daysDropped,
+                        )
+
+                        else -> BannerMessage(BannerKind.SUCCESS, done)
                     }
                 }
             },
