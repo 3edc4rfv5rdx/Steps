@@ -146,6 +146,10 @@ app/src/main/java/xx/steps/
                            tap, scrub, pan and pinch. ChartMenuButton is the fold-out control
   ui/DayDetailDialog.kt    the day taken apart: hour or half-hour bars, the pointer readout, and the
                            day's figures
+  ui/SettingsWork.kt       the export, import and restore jobs, and the one message they leave
+                           behind: both held by the process, since the Settings screen is a branch
+                           of a `when` on the tab and its scope goes when the tab does. One job at
+                           a time
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app
   ui/NoticeCircle.kt       amber circle with black text, standing in for the ring
   ui/Distance.kt           distanceLabel(): the one place a distance string is built
@@ -215,7 +219,8 @@ costs the day its shape rather than its steps; step length in centimetres,
 color from a palette of 6–8 swatches (check each for contrast in both themes); language
 system/English/Russian/Ukrainian through the framework `LocaleManager` (API 33+); CSV export and
 import; ZIP export and import of the database. Either import asks for confirmation first: CSV merges
-by date, ZIP replaces the database wholesale. A restore keeps only the rows it can read back — every
+by date, ZIP replaces the database wholesale. Either one runs to the end whether or not the screen
+that started it is still on show, and says what it did when the user comes back to it. A restore keeps only the rows it can read back — every
 reader of a stored date parses it, so a date that will not parse is dropped rather than stored and
 crashed on afterwards — and says how many days it dropped. An archive in which no day survives is
 refused, and the stored history is left as it was.
