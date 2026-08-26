@@ -121,9 +121,13 @@ app/src/main/java/xx/steps/
   ui/TodayScreen.kt        progress ring and the seven bars of the past week
   ui/HistoryScreen.kt      year → month → day tree with period totals
   ui/SettingsScreen.kt     goal, step length, background work, theme, accent, language, CSV and ZIP
-  ui/DayModel.kt           buildDayBuckets() and dayStats(): the chart's bars and its figures,
+  ui/DayModel.kt           ChartView, zoomedView() and gridHours(): the stretch of the day on
+                           show and the hours it is ruled at, as plain functions.
+                           buildDayBuckets() and dayStats(): the chart's bars and its figures,
                            free of Compose and covered by JVM tests
-  ui/DayChart.kt           one day as bars from midnight to midnight, with the pointer that reads it
+  ui/DayChart.kt           one day as bars from midnight to midnight, with the pointer that reads
+                           it. Two fingers stretch the X axis; one gesture handler decides between
+                           tap, scrub and pinch
   ui/DayDetailDialog.kt    the day taken apart: hour or half-hour bars, the pointer readout, and the
                            day's figures
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app

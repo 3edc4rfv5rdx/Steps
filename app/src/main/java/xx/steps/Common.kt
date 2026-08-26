@@ -53,8 +53,11 @@ const val MILLIS_PER_MINUTE = 60_000L
 /** Sensor event timestamps arrive in nanoseconds; the rest of the app counts milliseconds. */
 const val NANOS_PER_MILLI = 1_000_000L
 
+/** Hours in a day — the span the intra-day chart is ruled along. */
+const val HOURS_PER_DAY = 24
+
 /** Minutes in a day — the width of the intra-day chart, and the bound on any minute-of-day. */
-const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
+const val MINUTES_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR
 
 /**
  * Resolution the intra-day breakdown is stored at. A quarter hour is the sync interval, so it is

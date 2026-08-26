@@ -1,5 +1,6 @@
 package xx.steps.ui
 
+import xx.steps.HOURS_PER_DAY
 import xx.steps.MINUTES_PER_DAY
 import xx.steps.SLOTS_PER_DAY
 import xx.steps.SLOT_MINUTES
@@ -62,4 +63,54 @@ fun dayStats(buckets: List<DayBucket>): DayStats {
         firstMinute = walked.firstOrNull()?.startMinute,
         lastMinute = walked.lastOrNull()?.endMinute,
     )
+}
+
+/**
+ * The stretch of the day the chart is showing, as fractions of it: [start] is where the left edge
+ * falls, [width] how much of the day fits across. The whole day is (0, 1); pinching narrows the
+ * width and pans the start.
+ */
+data class ChartView(val start: Float, val width: Float) {
+    companion object {
+        /** The whole day, which is what the chart opens at. */
+        val WholeDay = ChartView(start = 0f, width = 1f)
+    }
+}
+
+/**
+ * Furthest the X axis can be stretched. Eight puts three hours across the chart, by which point a
+ * quarter-hour bar is wide enough to hit with a finger; past that there is nothing left to gain.
+ */
+const val CHART_MAX_ZOOM = 8f
+
+/**
+ * The window after pinching by [zoom] around the screen fraction [focus] and panning by [pan],
+ * itself a fraction of the chart's width.
+ *
+ * The moment under the fingers stays under them: that is what [focus] anchors. Panning is scaled by
+ * the new width, so dragging the chart a third of the way across always moves it a third of what is
+ * on screen, whatever the zoom.
+ */
+fun zoomedView(view: ChartView, zoom: Float, focus: Float, pan: Float): ChartView {
+    val width = (view.width / zoom).coerceIn(1f / CHART_MAX_ZOOM, 1f)
+    val anchor = view.start + focus.coerceIn(0f, 1f) * view.width
+    val start = (anchor - focus.coerceIn(0f, 1f) * width - pan * width).coerceIn(0f, 1f - width)
+    return ChartView(start, width)
+}
+
+/**
+ * Hours to rule and label the chart at, for a window [viewWidth] of the day wide.
+ *
+ * Quarters of the day are right when the whole day is on screen and useless once it is stretched:
+ * three hours across would carry no label at all. The step therefore follows the window, and always
+ * divides 24, so midnight and the end of the day stay on it.
+ */
+fun gridHours(viewWidth: Float): List<Int> {
+    val step = when {
+        viewWidth <= 0.2f -> 1
+        viewWidth <= 0.4f -> 2
+        viewWidth <= 0.8f -> 3
+        else -> 6
+    }
+    return (0..HOURS_PER_DAY step step).toList()
 }

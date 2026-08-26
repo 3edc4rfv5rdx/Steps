@@ -65,6 +65,11 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
     // Where the pointer stands, as a fraction of the day — a time, so changing the bar width keeps
     // it in place. Below zero means "not placed yet", filled in once there is a day to place it on.
     var pointer by rememberSaveable { mutableFloatStateOf(UNPLACED_POINTER) }
+    // The stretch of the day on show, held here rather than in the chart so that changing the bar
+    // width does not throw a zoom away. Kept as two numbers because that is what survives a
+    // rememberSaveable without a Saver of its own.
+    var viewStart by rememberSaveable { mutableFloatStateOf(ChartView.WholeDay.start) }
+    var viewWidth by rememberSaveable { mutableFloatStateOf(ChartView.WholeDay.width) }
 
     val buckets = remember(slots, bucketMinutes) { buildDayBuckets(slots, bucketMinutes) }
     val stats = remember(buckets) { dayStats(buckets) }
@@ -97,6 +102,8 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
                     buckets = buckets,
                     pointer = pointer.coerceAtLeast(0f),
                     onPointer = { pointer = it },
+                    view = ChartView(viewStart, viewWidth),
+                    onView = { viewStart = it.start; viewWidth = it.width },
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))

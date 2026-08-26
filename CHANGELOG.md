@@ -3,6 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- N The day chart stretches: two fingers zoom its axis, up to three hours across, and the moment
+  under them stays under them. The hour rules follow the zoom, so a stretched chart is still
+  labelled, and the bar width can be changed without losing the zoom.
 - F The paused circle gives its play glyph the room it deserves and puts the word under it instead
   of beside it, so the one thing there is to tap reads at arm's length.
 - N Counting survives a locked screen: a foreground service keeps the app active, and its
