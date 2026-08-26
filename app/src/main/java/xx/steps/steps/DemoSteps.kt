@@ -5,9 +5,12 @@ import android.os.Build
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import xx.steps.MAX_GOAL
 import xx.steps.MINUTES_PER_HOUR
+import xx.steps.MIN_GOAL
 import xx.steps.SLOTS_PER_DAY
 import xx.steps.SLOT_MINUTES
+import xx.steps.clampGoal
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import java.time.LocalDate
@@ -51,9 +54,17 @@ object DemoSteps {
     /** Days of history the demo seeds, enough to fill the week bars and a couple of months. */
     const val DEMO_HISTORY_DAYS = 70
 
-    /** Range the seeded days fall in — some short, some well past a normal goal. */
-    private const val SEED_MIN_STEPS = 1_200
-    private const val SEED_MAX_STEPS = 15_500
+    /**
+     * How a seeded day is placed against the goal it is judged by: a lazy one lands between a
+     * quarter of the goal and just under it, an ordinary one between the goal and twice it.
+     *
+     * Shares of the goal rather than fixed step counts, because the goal is the user's and runs
+     * from [MIN_GOAL] to [MAX_GOAL]. Fixed bounds left one range or the other empty at the ends of
+     * that scale, and an empty range is not a dull demo — it is an exception, thrown after the
+     * database has already been wiped.
+     */
+    private const val SEED_LAZY_FLOOR_DIVISOR = 4
+    private const val SEED_BEST_MULTIPLE = 2
 
     /**
      * Shape of a made-up day, one weight per hour: asleep until six, out to work, a walk at lunch,
@@ -86,11 +97,28 @@ object DemoSteps {
     }
 
     /**
+     * One seeded day's step count. Total by construction: [clampGoal] first, so the goal is inside
+     * the bounds the editor accepts, and both ranges are then non-empty for every value in them —
+     * a quarter of [MIN_GOAL] is 125, and twice any goal is above it. Nothing here can throw, which
+     * matters because [toggle] has already wiped the database by the time this runs.
+     *
+     * [random] is a parameter so the rule can be driven from a test without a phone.
+     */
+    internal fun seededSteps(goal: Int, lazy: Boolean, random: Random = Random): Int {
+        val target = clampGoal(goal)
+        return if (lazy) {
+            random.nextInt(target / SEED_LAZY_FLOOR_DIVISOR, target)
+        } else {
+            random.nextInt(target, target * SEED_BEST_MULTIPLE)
+        }
+    }
+
+    /**
      * Spreads a made-up day's [steps] over its quarter hours along [DEMO_HOUR_WEIGHTS], jittered so
      * no two demo days look alike. The shares add up to [steps] exactly — the same distribution
      * the real breakdown is written with.
      */
-    private fun demoSlots(steps: Int): List<SlotShare> {
+    internal fun demoSlots(steps: Int): List<SlotShare> {
         val weights = IntArray(SLOTS_PER_DAY) { slot ->
             val hourly = DEMO_HOUR_WEIGHTS[slot * SLOT_MINUTES / MINUTES_PER_HOUR]
             if (hourly == 0) 0 else hourly * Random.nextInt(DEMO_JITTER_MIN, DEMO_JITTER_MAX)
@@ -115,15 +143,15 @@ object DemoSteps {
      * fill. Every fourth day is a lazy one, so the history has visibly missed goals in it.
      */
     suspend fun seedHistory(repository: StepsRepository, goal: Int, days: Int = DEMO_HISTORY_DAYS) {
+        // Clamped once, here, so the goal the days are stamped with is the same one their step
+        // counts were drawn against. Two readings of it would let a day be judged by a goal it was
+        // never placed against.
+        val target = clampGoal(goal)
         val today = LocalDate.now()
         for (back in 1..days) {
             val date = today.minusDays(back.toLong())
-            val steps = if (back % 4 == 0) {
-                Random.nextInt(SEED_MIN_STEPS, goal)
-            } else {
-                Random.nextInt(goal, SEED_MAX_STEPS)
-            }
-            repository.setDay(date = date, steps = steps, goal = goal, slots = demoSlots(steps))
+            val steps = seededSteps(target, lazy = back % 4 == 0)
+            repository.setDay(date = date, steps = steps, goal = target, slots = demoSlots(steps))
         }
     }
 }
