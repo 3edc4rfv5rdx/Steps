@@ -153,10 +153,10 @@ app/src/main/java/xx/steps/
                            tap, scrub, pan and pinch. ChartMenuButton is the fold-out control
   ui/DayDetailDialog.kt    the day taken apart: hour or half-hour bars, the pointer readout, and the
                            day's figures
-  ui/SettingsWork.kt       the export, import and restore jobs, and the one message they leave
-                           behind: both held by the process, since the Settings screen is a branch
-                           of a `when` on the tab and its scope goes when the tab does. One job at
-                           a time
+  ui/ScreenWork.kt         the jobs a screen starts — export, import, restore, the demo switch —
+                           and the one message they leave behind: both held by the process, since a
+                           screen is a branch of a `when` on the tab and its scope goes when the tab
+                           does. One job at a time; no composition owns such work
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app
   ui/NoticeCircle.kt       amber circle with black text, standing in for the ring
   ui/Distance.kt           distanceLabel(): the one place a distance string is built
@@ -202,8 +202,9 @@ lump at the end. The state persists across restarts.
 `DEMO_HISTORY_DAYS` of plausible days and feeds the app a simulated counter that climbs by a few
 steps every second and a half, through the same folding path as the real one. Its one control is a
 flask in the top bar of the Today tab, lit while the demo runs and dimmed while it does not, and
-present on an emulator only. Starting or stopping it wipes the database — a demo run and real
-history must never mix. The background worker stands down while it runs, since the fake counter exists only while a screen is open.
+present on an emulator only. Starting or stopping it empties the database of what was in it — a
+demo run and real history must never mix — in one transaction, so the switch either happens or does
+not: built whole first, written once. The background worker stands down while it runs, since the fake counter exists only while a screen is open.
 
 **History.** An expandable year → month → day tree (a day is a leaf). Expansion state survives
 rotation and Back collapses one level — the mechanics of `history/HistoryScreen.kt:398` in
