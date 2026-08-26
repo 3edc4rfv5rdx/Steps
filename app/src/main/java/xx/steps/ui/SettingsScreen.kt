@@ -27,18 +27,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import xx.steps.R
 import xx.steps.data.AppDatabase
 import xx.steps.data.RestoreFailure
@@ -64,8 +61,9 @@ import xx.steps.settings.supportedLanguages
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val resources = LocalResources.current
+    // The jobs outlive this screen, so they carry the application's resources rather than the
+    // activity's: a Resources held past the activity that owned it is a leak with a stale locale.
+    val resources = context.applicationContext.resources
     val repository = remember(context) { StepsRepository.get(context) }
 
     val goal by AppSettings.goal.collectAsState()
@@ -84,7 +82,8 @@ fun SettingsScreen() {
 
     // Saveable: changing the theme or the language recreates the activity under an open dialog.
     var editing by rememberSaveable { mutableStateOf(Editing.NONE) }
-    var banner by remember { mutableStateOf<BannerMessage?>(null) }
+    // Held by the process, not by this screen — see SettingsWork.
+    val banner by SettingsWork.message.collectAsState()
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
     var pendingImport by remember { mutableStateOf<Uri?>(null) }
@@ -106,8 +105,10 @@ fun SettingsScreen() {
         pendingImport = uri
     }
 
+    // The answer is not read here, nor at the restore: getting back to either takes a trip through
+    // the system picker, which no job of this size outlives.
     fun importCsvNow(uri: Uri) {
-        scope.launch {
+        SettingsWork.run {
             val result = importCsv(context, uri, repository, AppSettings.goal.value)
             val summary = resources.getString(
                 R.string.import_done_message,
@@ -118,7 +119,7 @@ fun SettingsScreen() {
             // Skipped lines mean the file was not entirely understood; a dropped breakdown means
             // something was destroyed to make room for it. Either one worked, but not cleanly.
             val lost = result.breakdownsDropped
-            banner = BannerMessage(
+            BannerMessage(
                 kind = if (result.skipped > 0 || lost > 0) BannerKind.WARNING else BannerKind.SUCCESS,
                 text = if (lost == 0) {
                     summary
@@ -136,11 +137,12 @@ fun SettingsScreen() {
         pendingRestore = uri
     }
 
+    // The dialog stays open when the job is refused, so a tap that did not take does not look like
+    // one that did.
     fun exportCsvNow() {
-        showBackup = false
-        scope.launch {
+        val started = SettingsWork.run {
             val result = runCatching { exportCsv(context, repository.allDays()) }.getOrNull()
-            banner = if (result == null) {
+            if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.export_failed))
             } else {
                 BannerMessage(
@@ -149,13 +151,13 @@ fun SettingsScreen() {
                 )
             }
         }
+        if (started) showBackup = false
     }
 
     fun exportZipNow() {
-        showBackup = false
-        scope.launch {
+        val started = SettingsWork.run {
             val result = runCatching { exportZip(context, AppDatabase.get(context)) }.getOrNull()
-            banner = if (result == null) {
+            if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.backup_failed))
             } else {
                 BannerMessage(
@@ -164,6 +166,7 @@ fun SettingsScreen() {
                 )
             }
         }
+        if (started) showBackup = false
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -196,7 +199,9 @@ fun SettingsScreen() {
             onClick = {
                 val opened = runCatching { batterySettings.launch(batteryExemptionIntent(context)) }
                 if (opened.isFailure) {
-                    banner = BannerMessage(BannerKind.ERROR, resources.getString(R.string.battery_no_screen))
+                    SettingsWork.show(
+                        BannerMessage(BannerKind.ERROR, resources.getString(R.string.battery_no_screen)),
+                    )
                 }
             },
         )
@@ -238,7 +243,7 @@ fun SettingsScreen() {
         banner?.let { message ->
             StatusBanner(
                 message = message,
-                onDismiss = { banner = null },
+                onDismiss = { SettingsWork.clear() },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
             )
         }
@@ -252,7 +257,7 @@ fun SettingsScreen() {
             onConfirm = { entered ->
                 AppSettings.setGoal(context, entered)
                 // A goal changed today applies to today; past days keep the goal they were judged by.
-                scope.launch { repository.applyGoalToToday(AppSettings.goal.value) }
+                SettingsWork.launch { repository.applyGoalToToday(AppSettings.goal.value) }
                 editing = Editing.NONE
             },
         )
@@ -333,12 +338,12 @@ fun SettingsScreen() {
             onDismiss = { pendingRestore = null },
             onConfirm = {
                 pendingRestore = null
-                scope.launch {
+                SettingsWork.run {
                     val result = importZip(context, uri, repository)
                     val done = resources.getString(R.string.restore_done_message)
                     // A day the archive held but this app could not read back is the one thing a
                     // restore destroys without being asked to, so it is said out loud.
-                    banner = when {
+                    when {
                         result.failure != null ->
                             BannerMessage(BannerKind.ERROR, resources.getString(result.failure.messageRes()))
 
