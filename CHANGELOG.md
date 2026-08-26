@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E The counting journal names the real reason a background run did not count, instead of blaming a missing sensor.
 - E An import or backup finishes even if you leave the Settings tab, and tells you what it did when you come back.
 - I The README describes the foreground service the app actually runs, instead of claiming it has none.
 - F The count is written once a minute while nothing is on screen, instead of on every step the sensor reports.

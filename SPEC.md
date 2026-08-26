@@ -106,8 +106,10 @@ app/src/main/java/xx/steps/
                            by the activity on every start and after a permission answer. The permission is decided before the sensor
                            is looked for: Android hides the step counter from an app without
                            ACTIVITY_RECOGNITION, so "no counter" cannot be told from "not allowed
-                           yet" until the permission is granted. nextPermissionAsk() is the order
-                           the remaining questions go in, kept pure so a JVM test pins it
+                           yet" until the permission is granted. stepAccessOf() is that rule, pure
+                           and pinned by a JVM test, and everything else asks it rather than working
+                           the answer out again. nextPermissionAsk() is the order the remaining
+                           questions go in, kept pure for the same reason
   data/DaySteps.kt         usableRows(): what a restore may take out of an untrusted database,
                            free of Android and covered by JVM tests;
                            @Entity day_steps: date TEXT PK (ISO), steps, goal INTEGER;
@@ -131,7 +133,8 @@ app/src/main/java/xx/steps/
   settings/AppSettings.kt  object with StateFlows: goal, step length, paused, demo, themeMode,
                            accentIndex
   settings/AppTheme.kt     ThemeMode and AppLanguage, plus the LocaleManager read/write (API 33+)
-  work/StepsSyncWorker.kt  CoroutineWorker: readOnce → repository.fold; periodic, 15 minutes
+  work/StepsSyncWorker.kt  CoroutineWorker: refreshes StepAccessState and stands down on whatever
+                           it says, then readOnce → repository.fold; periodic, 15 minutes
   ui/Theme.kt Color.kt Type.kt   ported from BikeTracker, plus the accent palette
   ui/TodayScreen.kt        progress ring and the seven bars of the past week
   ui/HistoryScreen.kt      year → month → day tree with period totals
