@@ -46,16 +46,20 @@ import xx.steps.startOfWeek
 import xx.steps.data.StepsRepository
 import xx.steps.formatDayLabel
 import xx.steps.settings.AppSettings
-import xx.steps.settings.batteryExemptionIntent
-import xx.steps.settings.isIgnoringBatteryOptimizations
 import xx.steps.steps.StepAccess
 import xx.steps.steps.StepAccessState
 import java.time.LocalDate
 
-/** How often the screen re-checks the calendar date, so it rolls over at midnight on its own. */
-/** Today's step count: progress ring over the daily goal, with the past week under it. */
+/**
+ * Today's step count: progress ring over the daily goal, with the past week under it.
+ *
+ * [onCountingAllowed] is called once the user allows activity data. What follows from that — the
+ * service, the battery exemption, the notification permission — is the activity's to run: this
+ * screen's permission button is gone the moment the answer arrives, and a chain hosted on it would
+ * stop at the first hand-off.
+ */
 @Composable
-fun TodayScreen() {
+fun TodayScreen(onCountingAllowed: () -> Unit) {
     val context = LocalContext.current
     val repository = remember(context) { StepsRepository.get(context) }
 
@@ -116,7 +120,7 @@ fun TodayScreen() {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-        Actions(access = access)
+        Actions(access = access, onCountingAllowed = onCountingAllowed)
 
         Spacer(modifier = Modifier.height(20.dp))
         WeekBars(days = bars, goalLine = goal, onDayClick = { opened = it.date })
@@ -132,12 +136,12 @@ fun TodayScreen() {
  * which leaves the permission as the only thing needing a button of its own.
  */
 @Composable
-private fun Actions(access: StepAccess) {
+private fun Actions(access: StepAccess, onCountingAllowed: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (access == StepAccess.PERMISSION_MISSING) PermissionButton()
+        if (access == StepAccess.PERMISSION_MISSING) PermissionButton(onCountingAllowed)
     }
 }
 
@@ -145,33 +149,23 @@ private fun Actions(access: StepAccess) {
  * Asks for the permission, or sends the user to system settings once Android stops showing the
  * dialog — a second tap that visibly does nothing is worse than no button at all.
  *
- * A granted permission is followed straight away by the battery exemption, while the user is
- * already answering questions about this app. Both are asked at once on purpose: the exemption
- * lives on a system screen nobody opens unprompted, and without it Android defers the
- * quarter-hourly read, so a walk arrives in one lump at the hour the app was next opened.
+ * A granted permission hands over to [onCountingAllowed] and this button goes away: the questions
+ * that follow are asked one at a time by the activity, while the user is still answering for this
+ * app. The exemption is the first of them, because it lives on a system screen nobody opens
+ * unprompted, and without it Android defers the quarter-hourly read.
  */
 @Composable
-private fun PermissionButton() {
+private fun PermissionButton(onCountingAllowed: () -> Unit) {
     val context = LocalContext.current
     val activity = LocalActivity.current
     var deniedForGood by rememberSaveable { mutableStateOf(false) }
-
-    // Nothing to do with the answer: the exemption is read again wherever it is shown, and the
-    // system dialog is the whole of the asking.
-    val batterySettings = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) {}
 
     val request = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         StepAccessState.refresh(context)
         if (granted) {
-            // Already exempt, there is nothing to ask; a phone with no such screen is left alone
-            // rather than crashed on an intent it cannot resolve.
-            if (!isIgnoringBatteryOptimizations(context)) {
-                runCatching { batterySettings.launch(batteryExemptionIntent(context)) }
-            }
+            onCountingAllowed()
         } else if (activity != null) {
             deniedForGood = !ActivityCompat.shouldShowRequestPermissionRationale(
                 activity,

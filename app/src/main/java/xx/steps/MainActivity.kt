@@ -48,9 +48,13 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
+import xx.steps.settings.batteryExemptionIntent
+import xx.steps.settings.isIgnoringBatteryOptimizations
 import xx.steps.steps.DemoSteps
+import xx.steps.steps.PermissionAsk
 import xx.steps.steps.StepAccessState
 import xx.steps.steps.hasStepPermission
+import xx.steps.steps.nextPermissionAsk
 import xx.steps.work.StepsService
 import xx.steps.ui.AboutDialog
 import xx.steps.ui.ConfirmDialog
@@ -151,9 +155,6 @@ class MainActivity : ComponentActivity() {
         // space and the two would differ.
         enableEdgeToEdge()
         StepAccessState.refresh(this)
-        // Counting only survives a locked screen while the app holds a foreground service; opening
-        // the app is the moment it can always be started from.
-        StepsService.start(this)
 
         // The permission is asked for from the Today screen, next to the sentence explaining what
         // it is for — a dialog thrown at a screen the user has not seen yet only gets dismissed.
@@ -178,6 +179,11 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         // The permission can be revoked from system settings while the app sits in the background.
         StepAccessState.refresh(this)
+        // And granted there too — or in the dialog the Today screen puts up, which stops this
+        // activity and starts it again. Every way back into the app passes through here, so this
+        // is where the service is caught up with a permission that was not there at onCreate.
+        // Starting a running one is a no-op the system absorbs.
+        StepsService.start(this)
     }
 }
 
@@ -189,16 +195,58 @@ private fun MainScreen() {
     val demo by AppSettings.demoMode.collectAsState()
     val goal by AppSettings.goal.collectAsState()
 
-    // The count lives in the service's notification, which Android 13 will not show without this.
-    // Asked only once the activity permission is in hand, so the two dialogs never stack up.
+    // The questions that follow the user allowing activity data live here rather than on the button
+    // that starts them: that button disappears the moment the permission is granted, and a launcher
+    // disposed mid-chain never delivers the answer that would carry the chain on. This composable
+    // stands for as long as the activity does.
     val notifications = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {}
-    LaunchedEffect(Unit) {
-        val posting = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-        if (hasStepPermission(context) && posting != PackageManager.PERMISSION_GRANTED) {
-            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+
+    // The count lives in the service's notification, which Android 13 will not show without this.
+    fun canPostNotifications(): Boolean =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+
+    fun askNotifications() {
+        if (!canPostNotifications()) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    // Nothing to do with the exemption's own answer — it is read again wherever it is shown. What
+    // matters is that the user is back in the app, which is when the next question can be put.
+    val battery = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { askNotifications() }
+
+    /**
+     * Everything that follows the user allowing counting, in order: the service, then whichever
+     * question is still open. Remembered rather than referenced, so the screen it is handed to is
+     * not rebuilt on every recomposition by a lambda that only looks new.
+     */
+    val onCountingAllowed: () -> Unit = remember(context, battery, notifications) {
+        {
+            // Counting only survives a locked screen while the service is up, and this is the
+            // moment the app first becomes able to count. onStart catches it too, on the phones
+            // where the permission dialog stops this activity; on the ones where it does not,
+            // this is the only catch there is.
+            StepsService.start(context)
+            when (nextPermissionAsk(isIgnoringBatteryOptimizations(context), canPostNotifications())) {
+                // A phone with no such screen is left alone rather than crashed on an intent it
+                // cannot resolve — and it still gets asked the question that comes after.
+                PermissionAsk.BATTERY_EXEMPTION ->
+                    runCatching { battery.launch(batteryExemptionIntent(context)) }
+                        .onFailure { askNotifications() }
+
+                PermissionAsk.NOTIFICATIONS -> askNotifications()
+                PermissionAsk.NOTHING -> Unit
+            }
         }
+    }
+
+    // The app opening with counting already allowed: no dialog is in flight, so the one question
+    // that may still be open can be put straight away.
+    LaunchedEffect(Unit) {
+        if (hasStepPermission(context)) askNotifications()
     }
 
     var current by rememberSaveable { mutableStateOf(Tab.TODAY) }
@@ -231,7 +279,7 @@ private fun MainScreen() {
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             when (current) {
-                Tab.TODAY -> TodayScreen()
+                Tab.TODAY -> TodayScreen(onCountingAllowed = onCountingAllowed)
                 Tab.HISTORY -> HistoryScreen()
                 Tab.SETTINGS -> SettingsScreen()
             }

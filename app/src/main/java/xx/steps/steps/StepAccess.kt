@@ -43,3 +43,29 @@ object StepAccessState {
         }
     }
 }
+
+/** What the app still has to put to the user once counting itself has been allowed. */
+enum class PermissionAsk {
+    /** The battery exemption, without which the quarter-hourly read is deferred away. */
+    BATTERY_EXEMPTION,
+
+    /** Permission to post the notification the step count lives in. */
+    NOTIFICATIONS,
+
+    /** Everything is settled; ask nothing. */
+    NOTHING,
+}
+
+/**
+ * The next question to ask, given what is already settled. One at a time, and the exemption before
+ * the notification: it is a system screen the user leaves the app for, and a permission dialog
+ * launched while that screen is coming up is dismissed unread. Whatever is left is asked on the way
+ * back from it.
+ *
+ * Pure, so the order is pinned by a JVM test rather than by the sequence of callbacks that runs it.
+ */
+fun nextPermissionAsk(exempt: Boolean, canPostNotifications: Boolean): PermissionAsk = when {
+    !exempt -> PermissionAsk.BATTERY_EXEMPTION
+    !canPostNotifications -> PermissionAsk.NOTIFICATIONS
+    else -> PermissionAsk.NOTHING
+}
