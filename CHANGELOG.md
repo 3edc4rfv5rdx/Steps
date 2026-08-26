@@ -4,8 +4,8 @@
 
 ## Unreleased
 - N Counting survives a locked screen: a foreground service keeps the app active, and its
-  notification shows today's steps and distance on one line, under the walking figure from the
-  Today tab, and does not expand. Swiping it away puts it straight back: Android 14 allows the
+  notification shows the app's name, today's steps and the distance on one line, under the walking
+  figure from the Today tab, and does not expand. Swiping it away puts it straight back: Android 14 allows the
   swipe whatever the notification asks for, and losing the card would hide both the count and the
   one visible sign that the app is holding the sensor open.
   Without it Android stops handing sensor events to an app it considers idle — the registration

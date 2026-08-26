@@ -54,8 +54,12 @@ class StepsService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob())
 
-    /** The readout as it stands, so a dismissed notification can be put back showing it. */
-    private var line: String = formatSteps(0)
+    /**
+     * The readout as it stands, so a dismissed notification can be put back showing it. Filled in
+     * onCreate rather than here: building it needs resources, which a field initialiser runs too
+     * early to have.
+     */
+    private var line: String = ""
 
     /**
      * Android 14 lets the user swipe away a foreground service's notification whatever ONGOING and
@@ -73,6 +77,7 @@ class StepsService : Service() {
     override fun onCreate() {
         super.onCreate()
         logSteps("service: starting")
+        line = readout(steps = 0, stepLengthCm = AppSettings.stepLengthCm.value)
         createChannel()
         // Posted before anything else can go wrong: a foreground service that has not called
         // startForeground in time is killed by the system with an ANR-shaped crash. The type is
@@ -106,15 +111,12 @@ class StepsService : Service() {
         scope.launch {
             days.flatMapLatest { day -> repository.observeDay(day) }
                 .combine(AppSettings.stepLengthCm) { day, stepLength ->
-                    val steps = day?.steps ?: 0
-                    // One line, built the way the totals card builds it, so the notification and
-                    // the screen never word the same two numbers differently.
-                    formatSteps(steps) + " / " + distanceLabel(applicationContext, steps, stepLength)
+                    readout(steps = day?.steps ?: 0, stepLengthCm = stepLength)
                 }
                 .distinctUntilChanged()
-                .collect { readout ->
-                    line = readout
-                    notificationManager()?.notify(NOTIFICATION_ID, notification(readout))
+                .collect { current ->
+                    line = current
+                    notificationManager()?.notify(NOTIFICATION_ID, notification(current))
                 }
         }
     }
@@ -130,6 +132,15 @@ class StepsService : Service() {
         scope.cancel()
         super.onDestroy()
     }
+
+    /**
+     * The whole notification in one line: what the app is called, then today's steps and the
+     * distance they come to. The two numbers are joined the way the totals card joins them, so the
+     * notification and the screen never word the same pair differently.
+     */
+    private fun readout(steps: Int, stepLengthCm: Int): String =
+        getString(R.string.app_name) + " · " + formatSteps(steps) +
+            " / " + distanceLabel(this, steps, stepLengthCm)
 
     /**
      * The service's type, which Android 14 and later require to be stated at startForeground and to
