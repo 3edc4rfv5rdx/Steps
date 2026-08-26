@@ -19,7 +19,9 @@ Scripts are shared in shape with the sibling `../BikeTracker`, `../WalkieTalkie`
 projects:
 
 - `10-MakeRelease.sh` — bumps `build_number.txt`, runs `assembleRelease`, renames the ABI splits to
-  `steps-<version>+<code>-release-*.apk`.
+  `steps-<version>+<code>-release-*.apk`. The `major.minor` line moves by itself when `CHANGELOG.md`
+  has an `N` entry waiting under `Unreleased` and the last tag went out on the current line — so a
+  feature raises it once, not on every build after it.
 - `11-EmulRELEASE.sh` (emulator, x86_64) / `12-SamsRELEASE.sh` (device, arm64) — install.
 - `03-MakeDebug.sh` and `15-SamsDebug.sh` exist for completeness and are not part of the workflow.
 - `05-Lint.sh` — Android Lint on the debug variant, findings printed as plain text.
