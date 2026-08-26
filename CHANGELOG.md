@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E Demo mode seeds its history at any daily goal instead of wiping the history and stopping.
 - I `10-MakeRelease.sh` raises the `major.minor` line by itself when a feature is waiting: an `N`
   entry under `Unreleased` is the whole decision, already made when the entry was written. It fires
   once per feature, since after the line moves the last tag still names the old one.
