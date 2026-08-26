@@ -1,17 +1,23 @@
 package xx.steps.steps
 
+import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
+import xx.steps.BACKGROUND_FOLD_INTERVAL_MS
 import xx.steps.data.StepsRepository
 import xx.steps.logSteps
 import xx.steps.settings.AppSettings
+import xx.steps.uptimeMillis
 
 /**
  * Reads the counter for as long as the process lives, and folds every reading into today's row.
@@ -47,7 +53,14 @@ object StepCounting {
         val repository = StepsRepository.get(app)
         val sensor = StepSensor(app)
 
+        watchScreens(app)
+
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            // When the last reading was written, and how many arrived meanwhile without being.
+            // Both are read and written only by this collector, on one coroutine.
+            var lastFold: Long? = null
+            var heldBack = 0
+
             combine(StepAccessState.access, AppSettings.demoMode, ::Pair)
                 .flatMapLatest { (access, demo) ->
                     logSteps("counting: access=$access demo=$demo")
@@ -60,12 +73,87 @@ object StepCounting {
                     }
                 }
                 .collect { raw ->
+                    val now = uptimeMillis()
+                    val paused = AppSettings.paused.value
+                    if (!shouldFold(lastFold, now, screenOpen.value, paused)) {
+                        heldBack++
+                        return@collect
+                    }
+                    // Said once per fold rather than once per reading: a line for every held-back
+                    // reading would cost exactly what holding them back is meant to save, and the
+                    // sensor's own line is written for every event either way.
+                    if (heldBack > 0) logSteps("counting: $heldBack readings held back since the last fold")
+                    lastFold = now
+                    heldBack = 0
                     repository.recordReading(
                         rawCount = raw,
                         goal = AppSettings.goal.value,
-                        credit = !AppSettings.paused.value,
+                        credit = !paused,
                     )
                 }
         }
     }
+
+    /**
+     * Whether a screen of this app is in front of the user, watched on the application rather than
+     * asked of a screen: the readings belong to the process, and all a screen changes is how often
+     * the number it shows has to be right.
+     */
+    private val screenOpen = MutableStateFlow(true)
+
+    /** Started activities, touched only from the main thread, which is where the callbacks land. */
+    private var startedActivities = 0
+
+    private fun watchScreens(app: Context) {
+        val application = app as? Application
+        if (application == null) {
+            // Nothing to watch it with: fold every reading, which is what the app did before there
+            // was a cadence at all. Wrong on the side of writing too often, never too rarely.
+            logSteps("counting: no application to watch screens on, folding every reading")
+            return
+        }
+        application.registerActivityLifecycleCallbacks(
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityStarted(activity: Activity) {
+                    startedActivities++
+                    screenOpen.value = true
+                }
+
+                override fun onActivityStopped(activity: Activity) {
+                    startedActivities--
+                    screenOpen.value = startedActivities > 0
+                }
+
+                override fun onActivityCreated(activity: Activity, state: Bundle?) = Unit
+                override fun onActivityResumed(activity: Activity) = Unit
+                override fun onActivityPaused(activity: Activity) = Unit
+                override fun onActivitySaveInstanceState(activity: Activity, out: Bundle) = Unit
+                override fun onActivityDestroyed(activity: Activity) = Unit
+            },
+        )
+        // Nothing is on screen until an activity says so — the process is often started by the
+        // worker, with nobody looking at it.
+        screenOpen.value = false
+    }
 }
+
+/**
+ * Whether a reading taken at [now] is written now or held back for the next one.
+ *
+ * With a screen in front of the user every reading is written: the count on it grows as they walk,
+ * and that is the whole of what the screen is for. With none, once every
+ * [BACKGROUND_FOLD_INTERVAL_MS] is enough — the counter is cumulative, so the next reading carries
+ * the steps of every one held back, and the quarter-hourly worker closes the day whatever happens.
+ *
+ * [paused] is the exception to the cadence. A pause throws steps away rather than postponing them,
+ * and which steps it throws away is decided by where the baseline stands when it ends: let the
+ * baseline lag a minute behind the counter and a minute of the bus ride is credited on resuming.
+ * So while it lasts — a ride, not a day — every reading moves the baseline, as it did before there
+ * was a cadence at all.
+ *
+ * [lastFoldMillis] and [now] both come from `uptimeMillis()`, monotonic within one process; a fresh
+ * process has no last fold and writes at once.
+ */
+fun shouldFold(lastFoldMillis: Long?, now: Long, screenOpen: Boolean, paused: Boolean): Boolean =
+    screenOpen || paused || lastFoldMillis == null ||
+        now - lastFoldMillis >= BACKGROUND_FOLD_INTERVAL_MS

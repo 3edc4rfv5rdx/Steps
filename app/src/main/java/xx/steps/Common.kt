@@ -104,6 +104,18 @@ const val SYNC_STATE_ID = 0
 const val SYNC_INTERVAL_MINUTES = 15L
 
 /**
+ * How often a reading is folded into the database while no screen of this app is in front of the
+ * user. The counter is cumulative, so a reading held back costs nothing: the next one carries its
+ * steps too. With a screen open nothing is held back at all — the number on it has to grow as the
+ * user walks — and the quarter-hourly worker folds whatever the last held-back reading left,
+ * so nothing waits longer than that in any case.
+ *
+ * What it does cost is the reboot window: steps taken between the last fold and a restart are lost
+ * whatever happens, and this makes that window up to a minute wide instead of seconds.
+ */
+const val BACKGROUND_FOLD_INTERVAL_MS = MILLIS_PER_MINUTE
+
+/**
  * How long a background read waits for the sensor to report. Some devices only deliver the counter
  * on the next step rather than replaying the cached value, so a read while standing still can time
  * out — harmlessly, since a still phone has no new steps to lose.
