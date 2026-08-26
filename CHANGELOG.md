@@ -3,6 +3,10 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I A counting journal as a plain text file, `Documents/Steps/steps-<date>.txt`, one per day:
+  every sensor event with its own timestamp, every reading with its raw delta, window and what
+  survived the cap, and every background run that read nothing. Whether the sensor answers at all
+  is the phone's decision, and this is the only place it is written down.
 - E A fresh install asks for the permission instead of claiming the phone has no step counter.
   Android hides the counter from an app that has not been allowed activity data, so the app was
   reading its own missing permission as missing hardware and offering nothing to fix it.

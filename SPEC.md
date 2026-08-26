@@ -73,6 +73,10 @@ app/src/main/java/xx/steps/
   MainActivity.kt          Scaffold + NavigationBar (three tabs), the ACTIVITY_RECOGNITION request,
                            live sensor reading via repeatOnLifecycle(STARTED)
   Common.kt                done
+  StepLog.kt               the counting journal: logSteps() queues a line, a background writer
+                           appends it to Documents/Steps/steps-<date>.txt through MediaStore, one
+                           file per day. Whether the sensor answers a registration at all is the
+                           phone's decision and nothing else in the app records it
   steps/StepSync.kt        done
   steps/StepSensor.kt      readings(): Flow<Long> over callbackFlow; readOnce(timeout) for the
                            worker; isAvailable for phones without the sensor; hasStepPermission()

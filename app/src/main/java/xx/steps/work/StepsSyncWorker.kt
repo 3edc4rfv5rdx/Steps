@@ -7,6 +7,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import xx.steps.SYNC_INTERVAL_MINUTES
+import xx.steps.logSteps
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.steps.StepSensor
@@ -26,26 +27,40 @@ class StepsSyncWorker(
 ) : CoroutineWorker(context, parameters) {
 
     override suspend fun doWork(): Result {
+        logSteps("worker: run")
         val sensor = StepSensor(applicationContext)
 
         // None of these is a failure to retry: without a sensor there is nothing to read ever,
         // without the permission the user has to act first, and in demo mode the fake counter
         // exists only while a screen is open — a background read would break its illusion.
-        if (AppSettings.demoMode.value) return Result.success()
-        if (!sensor.isAvailable) return Result.success()
-        if (!hasStepPermission(applicationContext)) return Result.success()
+        if (AppSettings.demoMode.value) {
+            logSteps("worker: demo mode, nothing to read")
+            return Result.success()
+        }
+        if (!sensor.isAvailable) {
+            logSteps("worker: no sensor")
+            return Result.success()
+        }
+        if (!hasStepPermission(applicationContext)) {
+            logSteps("worker: no permission")
+            return Result.success()
+        }
 
         // A silent sensor means no step since the last event on devices that do not replay the
         // cached value; the next run picks the counter up, and no steps are lost meanwhile.
-        val raw = sensor.readOnce() ?: return Result.success()
+        val raw = sensor.readOnce() ?: run {
+            logSteps("worker: sensor said nothing, no steps moved this run")
+            return Result.success()
+        }
 
         // While paused the reading is still consumed, moving the baseline without recording:
         // otherwise the pause would only postpone the steps it is meant to discard.
-        StepsRepository.get(applicationContext).recordReading(
+        val added = StepsRepository.get(applicationContext).recordReading(
             rawCount = raw,
             goal = AppSettings.goal.value,
             credit = !AppSettings.paused.value,
         )
+        logSteps("worker: added=$added")
         return Result.success()
     }
 

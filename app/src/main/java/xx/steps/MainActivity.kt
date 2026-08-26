@@ -167,6 +167,7 @@ class MainActivity : ComponentActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 combine(StepAccessState.access, AppSettings.demoMode, ::Pair)
                     .flatMapLatest { (access, demo) ->
+                        logSteps("live: access=$access demo=$demo")
                         when {
                             demo -> DemoSteps.readings()
                             access == StepAccess.READY -> sensor.readings()
