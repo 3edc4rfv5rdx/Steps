@@ -73,7 +73,9 @@ Accepted losses, documented in the README: steps between the last reading and a 
 app/src/main/java/xx/steps/
   StepsApp.kt              Application: AppSettings.load(), schedules the periodic work (KEEP)
   MainActivity.kt          Scaffold + NavigationBar (three tabs), the ACTIVITY_RECOGNITION request;
-                           refreshes StepAccessState on start. It does not read the sensor
+                           refreshes StepAccessState and starts StepsService on every start, and
+                           owns the chain of questions that follows a granted permission. It does
+                           not read the sensor
   Common.kt                done
   StepLog.kt               the counting journal, switchable from Settings and on by default:
                            logSteps() queues a line, a background writer
@@ -96,7 +98,8 @@ app/src/main/java/xx/steps/
                            by the activity on every start and after a permission answer. The permission is decided before the sensor
                            is looked for: Android hides the step counter from an app without
                            ACTIVITY_RECOGNITION, so "no counter" cannot be told from "not allowed
-                           yet" until the permission is granted
+                           yet" until the permission is granted. nextPermissionAsk() is the order
+                           the remaining questions go in, kept pure so a JVM test pins it
   data/DaySteps.kt         @Entity day_steps: date TEXT PK (ISO), steps, goal INTEGER;
                            @Entity day_slots: (date, slot) PK, steps — the intra-day breakdown, a
                            row per quarter hour that has any;
@@ -158,9 +161,12 @@ open. A tap on any bar opens that day's breakdown.
 Special states take the ring's exact footprint as an amber circle with black text, so the screen
 never reads as a genuine zero and nothing below it shifts: no sensor; permission not granted (with a
 button that asks for it, turning into "open settings" once Android stops showing the dialog);
-counting paused. Granting the permission leads straight into the battery exemption dialog, unless
-the app is exempt already: both questions are asked in one go rather than leaving the second one
-to a system screen nobody opens unprompted.
+counting paused. Granting the permission starts the foreground service at once, and leads straight
+into the questions that are still open, one at a time: the battery exemption first, unless the app
+is exempt already, then permission to post the notification the count lives in. All of it is asked
+while the user is already answering for this app, rather than left to a system screen nobody opens
+unprompted or to the next launch. The chain is held by the activity, not by the button that starts
+it — that button is gone the moment the permission is granted.
 
 **Pause.** A button under the ring stops counting for a bus ride and resumes it after. While paused
 the app still consumes readings and moves the baseline without crediting anything — the hardware
