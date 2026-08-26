@@ -3,6 +3,8 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F The paused circle gives its play glyph the room it deserves and puts the word under it instead
+  of beside it, so the one thing there is to tap reads at arm's length.
 - N Counting survives a locked screen: a foreground service keeps the app active, and its
   notification shows the app's name, today's steps and the distance on one line, under the walking
   figure from the Today tab, and does not expand. Swiping it away puts it straight back: Android 14 allows the

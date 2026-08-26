@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import xx.steps.R
@@ -163,28 +164,55 @@ private fun RingLabel(
     }
 }
 
+/** The play or pause glyph: the large one carries a whole circle, the small one sits on the ring. */
+private val ActionIconLarge = 56.dp
+private val ActionIconSmall = 24.dp
+
 /**
- * The icon-and-word line at the bottom of the circle, saying what tapping it does. [large] is for
- * the paused state, where this line is the only thing to act on and carries the whole circle.
+ * What tapping the circle does, drawn as a glyph and a word.
+ *
+ * [large] is for the paused state, where this is the only thing on the circle to act on: the glyph
+ * grows to stand in for the step count it replaced, and the word moves under it rather than beside
+ * it, so neither has to shrink to fit the two side by side.
  */
 @Composable
 fun CircleAction(icon: ImageVector, text: String, tint: Color, large: Boolean = false) {
-    Row(
-        modifier = Modifier.padding(top = if (large) 16.dp else 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(if (large) 34.dp else 24.dp),
-        )
-        Text(
-            text = text,
-            fontSize = if (large) 26.sp else 18.sp,
-            fontWeight = if (large) FontWeight.Bold else FontWeight.SemiBold,
-            color = tint,
-            modifier = Modifier.padding(start = 8.dp),
-        )
+    if (large) {
+        Column(
+            modifier = Modifier.padding(top = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ActionIcon(icon = icon, tint = tint, size = ActionIconLarge)
+            ActionText(text = text, tint = tint, large = true, modifier = Modifier.padding(top = 4.dp))
+        }
+    } else {
+        Row(
+            modifier = Modifier.padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ActionIcon(icon = icon, tint = tint, size = ActionIconSmall)
+            ActionText(text = text, tint = tint, large = false, modifier = Modifier.padding(start = 8.dp))
+        }
     }
+}
+
+@Composable
+private fun ActionIcon(icon: ImageVector, tint: Color, size: Dp) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = tint,
+        modifier = Modifier.size(size),
+    )
+}
+
+@Composable
+private fun ActionText(text: String, tint: Color, large: Boolean, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        fontSize = if (large) 26.sp else 18.sp,
+        fontWeight = if (large) FontWeight.Bold else FontWeight.SemiBold,
+        color = tint,
+        modifier = modifier,
+    )
 }
