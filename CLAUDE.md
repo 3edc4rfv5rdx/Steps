@@ -86,9 +86,12 @@ Single `:app` module, package `xx.steps`.
   hardware counter is not free-running: it advances while some app holds a registration on it and
   stands still otherwise, so listening only while a screen is open records only the steps taken in
   front of it. Started by `StepsApp`, never by a screen.
-- **`work/StepsSyncWorker.kt`** — the periodic 15-minute sync. There is no foreground service by
-  design; the worker's job is to start the process again after the system has killed it, which is
-  what restores the registration.
+- **`work/StepsService.kt`** — the foreground service. Android stops delivering sensor events to
+  an app whose UID has gone idle, without unregistering anything, so counting from a pocket is
+  impossible without it. It does not read the sensor; it keeps the process in a state where
+  `StepCounting`'s registration works, and shows today's steps and distance in its notification.
+- **`work/StepsSyncWorker.kt`** — the periodic 15-minute sync, and what starts the service again
+  after the system has killed the process.
 - **`settings/AppSettings`** — the only other persisted state, in `SharedPreferences`: goal, theme,
   accent, and whether the counting journal is written. Language uses the framework `LocaleManager` (API 33+).
 - **`ui/`** — Compose only. Three tabs: Today (progress ring plus the past week), History

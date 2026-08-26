@@ -1,5 +1,6 @@
 package xx.steps
 
+import android.content.Context
 import android.os.SystemClock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -106,6 +107,12 @@ const val SYNC_INTERVAL_MINUTES = 15L
  */
 const val SENSOR_READ_TIMEOUT_MS = 10_000L
 
+/**
+ * How often anything showing "today" re-reads the date, so it survives midnight without being
+ * rebuilt. A minute is far below the error the counting itself carries.
+ */
+const val DATE_TICK_MS = 60_000L
+
 /** Dates are stored as ISO yyyy-MM-dd strings so they sort lexicographically in SQL. */
 private val ISO_DATE: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
 
@@ -143,6 +150,19 @@ fun formatDistanceValue(meters: Double, decimals: Int = 1): String =
 
 /** True when [formatDistanceValue] rendered kilometres rather than metres. */
 fun isKilometres(meters: Double): Boolean = meters >= 1_000
+
+/**
+ * Distance walked, with its unit — "4,4 km" or "850 m". One place builds this string, so the ring,
+ * the totals card and the notification all read the same way. [decimals] is 0 where whole
+ * kilometres are enough, as in the history table.
+ *
+ * The Compose screens reach this through the `distanceLabel` in `ui/`, which supplies the context.
+ */
+fun distanceLabel(context: Context, steps: Int, stepLengthCm: Int, decimals: Int = 1): String {
+    val meters = distanceMeters(steps, stepLengthCm)
+    val unit = context.getString(if (isKilometres(meters)) R.string.unit_km else R.string.unit_m)
+    return "${formatDistanceValue(meters, decimals)} $unit"
+}
 
 /** Short day label for the history rows, e.g. "Mon, 24 Aug", in the user's locale. */
 private val DAY_LABEL: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE, d MMM")

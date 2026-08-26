@@ -7,6 +7,14 @@
     <!-- Asked for from Settings, so the quarter-hourly counter read is not deferred away. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Android stops delivering sensor events to an app whose UID has gone idle, so counting from
+         a pocket needs a foreground service. Its notification is the step count itself, which is
+         why posting notifications is asked for too. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- The app is useless without the counter, but it must still install on devices that lack
          it: the UI says so instead of the store hiding the app. -->
     <uses-feature
@@ -42,6 +50,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Not exported: nothing outside the app has any business starting the counting. -->
+        <service
+            android:name=".work.StepsService"
+            android:exported="false"
+            android:foregroundServiceType="health|dataSync" />
 
     </application>
 </manifest>

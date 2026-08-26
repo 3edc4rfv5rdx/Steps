@@ -46,6 +46,10 @@ class StepsSyncWorker(
             return Result.success()
         }
 
+        // The process is up, which is the whole point of this run: the service goes with it, and
+        // with the service the sensor delivery that an idle UID had switched off.
+        StepsService.start(applicationContext)
+
         // A silent sensor means no step since the last event on devices that do not replay the
         // cached value; the next run picks the counter up, and no steps are lost meanwhile.
         val raw = sensor.readOnce() ?: run {

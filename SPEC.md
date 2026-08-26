@@ -14,7 +14,7 @@ history tree, MediaStore export, the theme.
 |---|---|
 | Step source | hardware `TYPE_STEP_COUNTER` |
 | Storage | Room: one table of day → steps, one of day → quarter hour → steps |
-| Background | no foreground service: the sensor stays registered for the life of the process, with a WorkManager job every 15 minutes to restart a process that was killed |
+| Background | a foreground service holds the app active so sensor delivery continues with the screen off; its notification is today's count. A WorkManager job every 15 minutes restarts what the system killed |
 | Screens | Today / History / Settings (three tabs) |
 | Metrics | steps, the goal, and distance from a step length set in Settings — no calories |
 | Widget | none |
@@ -57,9 +57,10 @@ carry.
   midnight keeps everything on the day it is credited to. The breakdown of a day therefore always
   adds up to that day's total, and both are written in the same transaction.
 - Rounding is cumulative rather than per slot, so the shares add up to exactly the steps credited.
-- No foreground service is involved, but the sensor does stay registered while the process lives:
-  the hardware counter advances only while some app holds a registration on it, so the slots are
-  reconstructed from the interval between readings, not from a counter that ran unattended.
+- Counting needs a foreground service. The hardware counter advances only while some app holds a
+  registration on it, and Android stops delivering to a registration whose UID has gone idle — so
+  the slots are reconstructed from the interval between readings, not from a counter that ran
+  unattended.
 - Days walked before this table existed simply have no breakdown; a CSV import, which carries day
   totals only, drops the breakdown of any day whose total it changes.
 
@@ -82,6 +83,9 @@ app/src/main/java/xx/steps/
   steps/StepSync.kt        done
   steps/StepSensor.kt      readings(): Flow<Long> over callbackFlow; readOnce(timeout) for the
                            worker; isAvailable for phones without the sensor; hasStepPermission()
+  work/StepsService.kt     foreground service: keeps the UID active so sensor delivery continues,
+                           and shows today's steps and distance in its notification. Does not read
+                           the sensor itself
   steps/StepCounting.kt    holds the sensor registration for the life of the process and folds
                            every reading in; started by StepsApp, not by a screen, because the
                            hardware counter stands still while nobody is registered on it

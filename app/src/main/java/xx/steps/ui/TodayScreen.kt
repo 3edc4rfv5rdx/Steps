@@ -40,6 +40,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
 import kotlinx.coroutines.delay
 import xx.steps.R
+import xx.steps.DATE_TICK_MS
 import xx.steps.WEEK_DAYS
 import xx.steps.startOfWeek
 import xx.steps.data.StepsRepository
@@ -52,8 +53,6 @@ import xx.steps.steps.StepAccessState
 import java.time.LocalDate
 
 /** How often the screen re-checks the calendar date, so it rolls over at midnight on its own. */
-private const val DATE_TICK_MS = 60_000L
-
 /** Today's step count: progress ring over the daily goal, with the past week under it. */
 @Composable
 fun TodayScreen() {

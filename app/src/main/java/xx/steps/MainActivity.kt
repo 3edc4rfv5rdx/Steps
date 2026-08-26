@@ -1,8 +1,12 @@
 package xx.steps
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
@@ -44,6 +50,8 @@ import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.steps.DemoSteps
 import xx.steps.steps.StepAccessState
+import xx.steps.steps.hasStepPermission
+import xx.steps.work.StepsService
 import xx.steps.ui.AboutDialog
 import xx.steps.ui.ConfirmDialog
 import xx.steps.ui.HistoryCommands
@@ -143,6 +151,9 @@ class MainActivity : ComponentActivity() {
         // space and the two would differ.
         enableEdgeToEdge()
         StepAccessState.refresh(this)
+        // Counting only survives a locked screen while the app holds a foreground service; opening
+        // the app is the moment it can always be started from.
+        StepsService.start(this)
 
         // The permission is asked for from the Today screen, next to the sentence explaining what
         // it is for — a dialog thrown at a screen the user has not seen yet only gets dismissed.
@@ -177,6 +188,18 @@ private fun MainScreen() {
     val repository = remember(context) { StepsRepository.get(context) }
     val demo by AppSettings.demoMode.collectAsState()
     val goal by AppSettings.goal.collectAsState()
+
+    // The count lives in the service's notification, which Android 13 will not show without this.
+    // Asked only once the activity permission is in hand, so the two dialogs never stack up.
+    val notifications = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) {}
+    LaunchedEffect(Unit) {
+        val posting = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+        if (hasStepPermission(context) && posting != PackageManager.PERMISSION_GRANTED) {
+            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     var current by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var showAbout by rememberSaveable { mutableStateOf(false) }

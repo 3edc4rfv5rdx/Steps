@@ -1,20 +1,13 @@
 package xx.steps.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import xx.steps.R
-import xx.steps.distanceMeters
-import xx.steps.formatDistanceValue
-import xx.steps.isKilometres
+import androidx.compose.ui.platform.LocalContext
+import xx.steps.distanceLabel
 
 /**
- * Distance walked, with its unit — "4,4 km" or "850 m". One place builds this string, so the ring,
- * the totals card and anything later all read the same way. [decimals] is 0 where whole kilometres
- * are enough, as in the history table.
+ * The Compose face of `distanceLabel`: same string, with the context taken from the composition.
+ * The string itself is built in `Common.kt`, so the notification says exactly what the ring says.
  */
 @Composable
-fun distanceLabel(steps: Int, stepLengthCm: Int, decimals: Int = 1): String {
-    val meters = distanceMeters(steps, stepLengthCm)
-    val unit = stringResource(if (isKilometres(meters)) R.string.unit_km else R.string.unit_m)
-    return "${formatDistanceValue(meters, decimals)} $unit"
-}
+fun distanceLabel(steps: Int, stepLengthCm: Int, decimals: Int = 1): String =
+    distanceLabel(LocalContext.current, steps, stepLengthCm, decimals)

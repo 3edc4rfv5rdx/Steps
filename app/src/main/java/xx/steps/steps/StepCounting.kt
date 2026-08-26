@@ -25,6 +25,10 @@ import xx.steps.settings.AppSettings
  * The registration is cheap: an on-change, non-wakeup, low-power sensor, delivering an event every
  * few steps and nothing at all while the phone is still.
  *
+ * Holding it is necessary but not sufficient. Android stops delivering events to an app whose UID
+ * has gone idle, leaving the registration in place and marked `disabled`, so what keeps this flow
+ * fed with the screen off is StepsService — see it for why there is no cheaper way.
+ *
  * A killed process still leaves a gap, which the periodic worker closes when it starts the process
  * up again. Counting is not stopped while paused: readings are consumed and thrown away, so a
  * pause discards steps rather than postponing them.

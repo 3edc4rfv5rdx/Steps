@@ -87,6 +87,7 @@
     <string name="setting_battery_hint">Battery optimisation delays the counter read</string>
     <string name="setting_journal">Counting journal</string>
     <string name="setting_journal_hint">Every reading written to Documents/Steps</string>
+    <string name="notification_channel">Step counting</string>
     <string name="battery_unrestricted">Unrestricted</string>
     <string name="battery_restricted">Restricted</string>
     <string name="battery_no_screen">This phone has no battery settings screen</string>
