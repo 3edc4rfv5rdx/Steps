@@ -92,6 +92,8 @@ Single `:app` module, package `xx.steps`.
   `StepCounting`'s registration works, and shows today's steps and distance in its notification.
 - **`work/StepsSyncWorker.kt`** — the periodic 15-minute sync, and what starts the service again
   after the system has killed the process.
+- **`work/StepsBootReceiver.kt`** — the same job for the two events that stop counting silently: a
+  reboot and an app update. Both leave the app installed and scheduled but not running.
 - **`settings/AppSettings`** — the only other persisted state, in `SharedPreferences`: goal, theme,
   accent, and whether the counting journal is written. Language uses the framework `LocaleManager` (API 33+).
 - **`ui/`** — Compose only. Three tabs: Today (progress ring plus the past week), History

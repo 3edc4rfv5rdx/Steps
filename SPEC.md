@@ -83,6 +83,8 @@ app/src/main/java/xx/steps/
   steps/StepSync.kt        done
   steps/StepSensor.kt      readings(): Flow<Long> over callbackFlow; readOnce(timeout) for the
                            worker; isAvailable for phones without the sensor; hasStepPermission()
+  work/StepsBootReceiver.kt starts the service again after a reboot or an app update, neither of
+                           which leaves the app running
   work/StepsService.kt     foreground service: keeps the UID active so sensor delivery continues,
                            and shows today's steps and distance in its notification. Does not read
                            the sensor itself

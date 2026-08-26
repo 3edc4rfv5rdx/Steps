@@ -15,6 +15,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- A restart leaves the app installed and scheduled but not running, and nothing counts until
+         something starts it. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- The app is useless without the counter, but it must still install on devices that lack
          it: the UI says so instead of the store hiding the app. -->
     <uses-feature
@@ -56,6 +60,16 @@
             android:name=".work.StepsService"
             android:exported="false"
             android:foregroundServiceType="health|dataSync" />
+
+        <!-- Not exported beyond the system broadcasts it is registered for. -->
+        <receiver
+            android:name=".work.StepsBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 </manifest>
