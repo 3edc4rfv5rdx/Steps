@@ -3,6 +3,8 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E A batch of journal lines whose write fails is kept for the next attempt rather than dropped.
+  Deleting the day's file used to take the lines in flight with it.
 - E Counting starts again by itself after a restart or an app update. Both leave the app installed
   and scheduled but not running, and nothing counted until the quarter-hourly worker next came
   round — a reboot cost up to fifteen minutes of walking.

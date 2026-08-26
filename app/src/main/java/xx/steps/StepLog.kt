@@ -43,6 +43,14 @@ object StepLog {
     /** How long a batch is allowed to gather before it is written. */
     private const val BATCH_MS = 1_000L
 
+    /**
+     * Ceiling on the lines held back from failed writes. A journal that cannot be written at all —
+     * no storage, no permission — would otherwise grow in memory for as long as the walk lasts.
+     * Past this the oldest go, since the lines worth having when writing resumes are the recent
+     * ones.
+     */
+    private const val MAX_CARRIED = 64 * 1024
+
     private val STAMP: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
 
     /** Unbounded on purpose: lines queued before [start] runs are kept, not dropped. */
@@ -52,6 +60,9 @@ object StepLog {
 
     /** The day's file, remembered between batches; dropped whenever a write fails. */
     private var cached: Pair<String, Uri>? = null
+
+    /** Lines whose write did not land, waiting to go out in front of the next batch. */
+    private var carried: String = ""
 
     /** Starts the writer. Called once, from the application object. */
     fun start(context: Context) {
@@ -63,12 +74,20 @@ object StepLog {
                 // Wait once, then take everything that arrived meanwhile: during a walk the events
                 // come twice a second, and each one on its own would mean reopening the file.
                 delay(BATCH_MS)
-                val batch = StringBuilder().appendLine(first)
+                val batch = StringBuilder(carried).appendLine(first)
                 while (true) {
                     val next = pending.tryReceive().getOrNull() ?: break
                     batch.appendLine(next)
                 }
-                append(resolver, batch.toString())
+                // Deleting the day's file used to take the batch in flight with it — the lines were
+                // gone before the new file existed. They are carried to the next attempt instead,
+                // which is the one that creates it.
+                carried = if (append(resolver, batch.toString())) {
+                    ""
+                } else {
+                    // Trimmed at a line break, so what is kept is whole lines and never half of one.
+                    batch.toString().takeLast(MAX_CARRIED).substringAfter('\n', "")
+                }
             }
         }
     }
@@ -88,17 +107,24 @@ object StepLog {
         if (enabled) write("journal: switched on")
     }
 
-    private fun append(resolver: ContentResolver, text: String) {
+    /**
+     * Appends one batch, and says whether it landed. A write fails when the file has been deleted
+     * or moved from under us — the cached handle then points at nothing, and the caller has lines
+     * in hand that were never written.
+     */
+    private fun append(resolver: ContentResolver, text: String): Boolean {
         val today = LocalDate.now().toIso()
-        val uri = uriFor(resolver, today) ?: return
-        runCatching {
+        val uri = uriFor(resolver, today) ?: return false
+        return runCatching {
             // "wa" appends; anything else would truncate the day's file on every batch.
             resolver.openOutputStream(uri, "wa")?.use { it.write(text.toByteArray()) }
                 ?: error("no stream for $uri")
-        }.onFailure {
-            // The file may have been deleted or moved from under us; the next batch makes a new one.
+            true
+        }.getOrElse {
+            // Forget the handle so the next attempt looks the file up again, or makes a new one.
             cached = null
             Log.w(TAG, "journal append failed", it)
+            false
         }
     }
 
