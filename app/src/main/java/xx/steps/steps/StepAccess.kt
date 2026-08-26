@@ -29,19 +29,32 @@ object StepAccessState {
     val access: StateFlow<StepAccess> = _access.asStateFlow()
 
     fun refresh(context: Context) {
-        _access.value = when {
-            // The demo feeds its own readings, so neither the hardware nor the permission matters.
-            AppSettings.demoMode.value -> StepAccess.READY
-            // The permission comes first, before the sensor is looked for at all: Android hides
-            // the step counter from an app that does not hold ACTIVITY_RECOGNITION, so a phone
-            // that has one is indistinguishable from a phone that has none until the permission
-            // is granted. Asked the other way round, a fresh install on a phone with a counter
-            // would say it has none and never offer the button that would have fixed it.
-            !hasStepPermission(context) -> StepAccess.PERMISSION_MISSING
-            !StepSensor(context).isAvailable -> StepAccess.SENSOR_MISSING
-            else -> StepAccess.READY
-        }
+        _access.value = stepAccessOf(
+            demo = AppSettings.demoMode.value,
+            permitted = hasStepPermission(context),
+            sensorPresent = { StepSensor(context).isAvailable },
+        )
     }
+}
+
+/**
+ * Which of the three states a set of facts adds up to. The one place that decision is made — the
+ * background worker used to make it again, in the opposite order, and journal "no sensor" for a
+ * phone that simply had not been allowed one yet.
+ *
+ * The demo feeds its own readings, so neither the hardware nor the permission matters to it.
+ *
+ * The permission comes first, and [sensorPresent] is a function so that on a phone without it the
+ * sensor is never looked for at all: Android hides the step counter from an app that does not hold
+ * ACTIVITY_RECOGNITION, so a phone that has one is indistinguishable from a phone that has none
+ * until the permission is granted. Asked the other way round, a fresh install on a phone with a
+ * counter would say it has none and never offer the button that would have fixed it.
+ */
+fun stepAccessOf(demo: Boolean, permitted: Boolean, sensorPresent: () -> Boolean): StepAccess = when {
+    demo -> StepAccess.READY
+    !permitted -> StepAccess.PERMISSION_MISSING
+    !sensorPresent() -> StepAccess.SENSOR_MISSING
+    else -> StepAccess.READY
 }
 
 /** What the app still has to put to the user once counting itself has been allowed. */

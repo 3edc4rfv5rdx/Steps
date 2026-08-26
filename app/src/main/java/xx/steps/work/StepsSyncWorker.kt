@@ -10,8 +10,9 @@ import xx.steps.SYNC_INTERVAL_MINUTES
 import xx.steps.logSteps
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
+import xx.steps.steps.StepAccess
+import xx.steps.steps.StepAccessState
 import xx.steps.steps.StepSensor
-import xx.steps.steps.hasStepPermission
 import java.util.concurrent.TimeUnit
 
 /**
@@ -28,7 +29,6 @@ class StepsSyncWorker(
 
     override suspend fun doWork(): Result {
         logSteps("worker: run")
-        val sensor = StepSensor(applicationContext)
 
         // None of these is a failure to retry: without a sensor there is nothing to read ever,
         // without the permission the user has to act first, and in demo mode StepCounting is
@@ -37,14 +37,22 @@ class StepsSyncWorker(
             logSteps("worker: demo mode, nothing to read")
             return Result.success()
         }
-        if (!sensor.isAvailable) {
-            logSteps("worker: no sensor")
-            return Result.success()
+
+        // Asked of StepAccessState rather than worked out again here. Two answers to one question
+        // is how this run came to journal "no sensor" for a phone that had one and had simply not
+        // been allowed it — and the run is a good moment to bring that state up to date anyway,
+        // since a permission can be taken away while nothing of this app is on screen.
+        StepAccessState.refresh(applicationContext)
+        when (val access = StepAccessState.access.value) {
+            StepAccess.PERMISSION_MISSING, StepAccess.SENSOR_MISSING -> {
+                logSteps("worker: not counting, $access")
+                return Result.success()
+            }
+
+            StepAccess.READY -> Unit
         }
-        if (!hasStepPermission(applicationContext)) {
-            logSteps("worker: no permission")
-            return Result.success()
-        }
+
+        val sensor = StepSensor(applicationContext)
 
         // The process is up, which is the whole point of this run: the service goes with it, and
         // with the service the sensor delivery that an idle UID had switched off.
