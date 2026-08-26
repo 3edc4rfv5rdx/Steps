@@ -95,7 +95,9 @@ app/src/main/java/xx/steps/
                            which leaves the app running
   work/StepsService.kt     foreground service: keeps the UID active so sensor delivery continues,
                            and shows today's steps and distance in its notification. Does not read
-                           the sensor itself
+                           the sensor itself. Its collector runs on the main thread, which is also
+                           where the framework calls the dismissal receiver, so the readout the two
+                           share needs no publishing between threads
   steps/StepCounting.kt    holds the sensor registration for the life of the process and folds the
                            readings in at the cadence shouldFold() sets; started by StepsApp, not by
                            a screen, because the hardware counter stands still while nobody is
