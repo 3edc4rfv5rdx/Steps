@@ -67,6 +67,9 @@ fun bucketAt(buckets: List<DayBucket>, pointer: Float): Int =
  * dragging slides along the day and the selection keeps up, a tap puts the pointer where it landed,
  * and lifting the finger leaves it there to be read. Only horizontal drags are taken, so the dialog
  * around the chart can still be scrolled.
+ *
+ * [onTouch] fires on every touch that lands on the chart, whatever it turns into — the dialog uses
+ * it to fold the controls away.
  */
 @Composable
 fun DayChart(
@@ -76,6 +79,7 @@ fun DayChart(
     view: ChartView,
     onView: (ChartView) -> Unit,
     modifier: Modifier = Modifier,
+    onTouch: () -> Unit = {},
 ) {
     if (buckets.isEmpty()) return
 
@@ -86,6 +90,7 @@ fun DayChart(
     val currentView by rememberUpdatedState(view)
     val onViewNow by rememberUpdatedState(onView)
     val onPointerNow by rememberUpdatedState(onPointer)
+    val onTouchNow by rememberUpdatedState(onTouch)
 
     val measurer = rememberTextMeasurer()
     val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
@@ -111,6 +116,9 @@ fun DayChart(
             .pointerInput(buckets.size) {
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
+                    // Reaching for the chart is the same as putting the controls away: they sit
+                    // over the date, and whoever is touching the bars is done with them.
+                    onTouchNow()
                     val slop = viewConfiguration.touchSlop
                     var mode = ChartGesture.UNDECIDED
                     var last = down.position
@@ -320,6 +328,6 @@ fun ChartMenuButton(
     }
 }
 
-/** Small enough to sit on the title line beside the date, large enough to hit. */
-private val MENU_BUTTON_SIZE = 36.dp
-private val MENU_ICON_SIZE = 20.dp
+/** Sized to be hit without aiming; the strip lies over the date, so it can afford the room. */
+private val MENU_BUTTON_SIZE = 46.dp
+private val MENU_ICON_SIZE = 26.dp

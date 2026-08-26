@@ -2,8 +2,12 @@ package xx.steps.ui
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -114,10 +120,27 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            // The controls unfold along this line, to the left of the button that opens them: the
-            // dialog is short, and a strip of its own would push the chart further down it.
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = formatDayLabel(date), modifier = Modifier.weight(1f))
+            // The controls unfold over the date rather than beside it. Sharing the row squeezed the
+            // date into three lines the moment they appeared, and the whole dialog jumped; laid on
+            // top, they cost no height at all. The strip carries the dialog's own background so the
+            // date does not show through it.
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = formatDayLabel(date),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(end = MENU_RESERVE),
+                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .background(
+                            color = AlertDialogDefaults.containerColor,
+                            shape = RoundedCornerShape(percent = 50),
+                        )
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                 if (controlsOpen) {
                     ChartMenuButton(
                         icon = Icons.Filled.Add,
@@ -148,6 +171,7 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
                     // strip is open is said by the strip being there.
                     active = true,
                 ) { controlsOpen = !controlsOpen }
+                }
             }
         },
         text = {
@@ -162,6 +186,7 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
                     onPointer = { pointer = it },
                     view = ChartView(viewStart, viewWidth),
                     onView = { viewStart = it.start; viewWidth = it.width },
+                    onTouch = { controlsOpen = false },
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -275,5 +300,8 @@ private fun StatRow(label: String, value: String) {
 private fun timeRange(fromMinute: Int, toMinute: Int): String =
     formatMinuteOfDay(fromMinute) + " – " + formatMinuteOfDay(toMinute)
 
-/** Gap between the fold-out controls on the title line. */
-private val CONTROL_GAP = 6.dp
+/** Gap between the fold-out controls, wide enough that neighbours are not caught by a thumb. */
+private val CONTROL_GAP = 12.dp
+
+/** Room kept clear at the end of the date, so the shut ⋮ button never sits on the text. */
+private val MENU_RESERVE = 56.dp
