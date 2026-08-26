@@ -26,7 +26,8 @@ projects:
 - `06-Test.sh` — JVM unit tests with a per-class summary. One class:
   `./06-Test.sh --tests 'xx.steps.StepSyncTest'`.
 - `99-CopyToAPKX.sh` — symlink the newest APK.
-- `00-MakeAll.sh` — the whole run: icons, release, both installs, the `OUT/` link. A step that
+- `00-MakeAll.sh` — the whole run: release, both installs, the `OUT/` link. Not the icons —
+  regenerating tracked files mid-build is what `02-MakeIcons.sh` exists to keep out of a build. A step that
   had no device to work on exits 3 and is reported as skipped rather than failed.
 - `bash 02-MakeIcons.sh` — runs `tools/make_icon.py`, but only when `ADD/images/znak.png` is
   newer than the generated PNGs. No execute bit, so a build can never pull it in.

@@ -3,6 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I `00-MakeAll.sh` no longer redraws the icons. The step rewrites tracked files, which left the
+  tree dirty mid-build and stopped the version bump being folded into the previous commit — the
+  very thing `02-MakeIcons.sh` says it stays out of a build to avoid.
 ## v0.2.20260826+45
 - F The launcher icon drops the road bar under the pedestrian. At icon size it was one more thing
   to read beside a figure that is already small.

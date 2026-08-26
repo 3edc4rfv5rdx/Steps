@@ -13,12 +13,12 @@
 # failure: the generated PNGs are committed, and without the master there is
 # simply nothing to redo.
 #
-# Its own step, and deliberately not part of a build. A build that regenerated
-# icons would rewrite tracked files behind the build's back: the APK would carry
-# icons no commit recorded, and 10-MakeRelease.sh would stop folding the version
-# bump into the previous commit because the tree was dirty for a reason nobody
-# asked for. 00-MakeAll.sh runs this before it builds, so a full run cannot go
-# out with yesterday's icon.
+# Its own step, and deliberately not part of a build — 00-MakeAll.sh does not run
+# it either. A build that regenerated icons would rewrite tracked files behind the
+# build's back: the APK would carry icons no commit recorded, and
+# 10-MakeRelease.sh would stop folding the version bump into the previous commit
+# because the tree was dirty for a reason nobody asked for. Redraw the master and
+# you run this yourself, then commit what it rewrote.
 #
 # What it rewrites is listed at the end; those files belong in a commit of their
 # own. No execute bit, on purpose:  bash 02-MakeIcons.sh

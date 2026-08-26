@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 #
-# Everything in one run: refresh the icons, build the signed release, install it
-# on the emulator and on the phone, and link the arm64 APK into OUT/.
+# Everything in one run: build the signed release, install it on the emulator and
+# on the phone, and link the arm64 APK into OUT/.
+#
+# The icons are not part of it. 02-MakeIcons.sh rewrites tracked files, which
+# would leave the tree dirty in the middle of a build and stop 10-MakeRelease.sh
+# from folding the version bump into the previous commit. Redrawing them is its
+# own deliberate step, and its own commit:  bash 02-MakeIcons.sh
 #
 # A build that fails stops the run. A device that is not plugged in does not: an
 # absent emulator should not cost you the APK. The difference is in the exit code
@@ -42,13 +47,6 @@ run() { # run <script> <fatal|optional>
     [ "$2" = "fatal" ] && exit 1
     FAILED="$FAILED $1"
 }
-
-# The icons come first, and only redraw themselves when they are older than the
-# drawing — otherwise the build would go out carrying yesterday's launcher icon.
-# Run through bash: that step has no execute bit.
-echo
-echo "=== 02-MakeIcons.sh ==="
-bash 02-MakeIcons.sh
 
 run 10-MakeRelease.sh fatal
 run 11-EmulRELEASE.sh optional
