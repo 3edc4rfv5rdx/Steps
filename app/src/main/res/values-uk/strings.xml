@@ -86,6 +86,8 @@
     <!-- Background work -->
     <string name="setting_battery">Робота у фоні</string>
     <string name="setting_battery_hint">Оптимізація батареї затримує зняття показань</string>
+    <string name="setting_journal">Журнал підрахунку</string>
+    <string name="setting_journal_hint">Кожне зчитування пишеться в Documents/Steps</string>
     <string name="battery_unrestricted">Без обмежень</string>
     <string name="battery_restricted">Обмежена</string>
     <string name="battery_no_screen">На цьому телефоні немає такого системного екрана</string>

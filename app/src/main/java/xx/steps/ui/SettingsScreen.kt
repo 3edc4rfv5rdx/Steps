@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -47,6 +48,7 @@ import xx.steps.data.exportZip
 import xx.steps.data.importCsv
 import xx.steps.data.importZip
 import xx.steps.formatSteps
+import xx.steps.StepLog
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
 import xx.steps.settings.isIgnoringBatteryOptimizations
@@ -70,6 +72,7 @@ fun SettingsScreen() {
     val stepLength by AppSettings.stepLengthCm.collectAsState()
     val themeMode by AppSettings.themeMode.collectAsState()
     val accentIndex by AppSettings.accentIndex.collectAsState()
+    val journalEnabled by AppSettings.journalEnabled.collectAsState()
 
     // Both come from the platform: the shipped locales from locales_config.xml, the current one
     // from the per-app locale. Re-read whenever this screen is built, since choosing a language
@@ -196,6 +199,14 @@ fun SettingsScreen() {
                     banner = BannerMessage(BannerKind.ERROR, resources.getString(R.string.battery_no_screen))
                 }
             },
+        )
+        HorizontalDivider()
+
+        SwitchRow(
+            label = stringResource(R.string.setting_journal),
+            hint = stringResource(R.string.setting_journal_hint),
+            checked = journalEnabled,
+            onChange = { StepLog.setEnabled(context, it) },
         )
         HorizontalDivider()
 
@@ -392,6 +403,40 @@ private fun SettingRow(label: String, value: String, hint: String? = null, onCli
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface,
         )
+    }
+}
+
+/**
+ * A row whose setting is plainly on or off, so it carries the switch itself rather than a word
+ * describing one. The whole row is not clickable: the switch is the control, and a row that also
+ * toggles makes an accidental brush of the label change a setting.
+ */
+@Composable
+private fun SwitchRow(
+    label: String,
+    hint: String? = null,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            hint?.let {
+                Text(
+                    text = it,
+                    style = RowHintStyle,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+        Switch(checked = checked, onCheckedChange = onChange)
     }
 }
 

@@ -74,7 +74,8 @@ app/src/main/java/xx/steps/
   MainActivity.kt          Scaffold + NavigationBar (three tabs), the ACTIVITY_RECOGNITION request;
                            refreshes StepAccessState on start. It does not read the sensor
   Common.kt                done
-  StepLog.kt               the counting journal: logSteps() queues a line, a background writer
+  StepLog.kt               the counting journal, switchable from Settings and on by default:
+                           logSteps() queues a line, a background writer
                            appends it to Documents/Steps/steps-<date>.txt through MediaStore, one
                            file per day. Whether the sensor answers a registration at all is the
                            phone's decision and nothing else in the app records it

@@ -89,8 +89,8 @@ Single `:app` module, package `xx.steps`.
 - **`work/StepsSyncWorker.kt`** — the periodic 15-minute sync. There is no foreground service by
   design; the worker's job is to start the process again after the system has killed it, which is
   what restores the registration.
-- **`settings/AppSettings`** — the only other persisted state, in `SharedPreferences`: goal, theme
-  and accent. Language uses the framework `LocaleManager` (API 33+).
+- **`settings/AppSettings`** — the only other persisted state, in `SharedPreferences`: goal, theme,
+  accent, and whether the counting journal is written. Language uses the framework `LocaleManager` (API 33+).
 - **`ui/`** — Compose only. Three tabs: Today (progress ring plus the past week), History
   (year → month → day tree), Settings. `HistoryModel.kt` holds the grouping and the period totals
   as plain functions, free of Compose, so both are covered by JVM tests; the screen only renders

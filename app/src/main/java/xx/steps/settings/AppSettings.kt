@@ -27,6 +27,7 @@ object AppSettings {
     private const val KEY_STEP_LENGTH = "step_length_cm"
     private const val KEY_THEME = "theme_mode"
     private const val KEY_ACCENT = "accent_index"
+    private const val KEY_JOURNAL = "journal_enabled"
 
     private val _goal = MutableStateFlow(DEFAULT_GOAL)
 
@@ -65,6 +66,15 @@ object AppSettings {
      */
     val demoMode: StateFlow<Boolean> = _demoMode.asStateFlow()
 
+    private val _journalEnabled = MutableStateFlow(true)
+
+    /**
+     * Whether the counting journal is written. On by default: the sensor's behaviour is the one
+     * thing about this app that cannot be reasoned about from the code, and a walk that went
+     * uncounted leaves nothing to look at afterwards unless it was recorded while it happened.
+     */
+    val journalEnabled: StateFlow<Boolean> = _journalEnabled.asStateFlow()
+
     /** Load persisted settings into memory. Call once at startup before the UI reads them. */
     fun load(context: Context) {
         val prefs = prefs(context)
@@ -77,6 +87,7 @@ object AppSettings {
             ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.SYSTEM
         _accentIndex.value = prefs.getInt(KEY_ACCENT, DEFAULT_ACCENT_INDEX)
             .coerceIn(AccentPalette.indices)
+        _journalEnabled.value = prefs.getBoolean(KEY_JOURNAL, true)
         if (stored != _goal.value) {
             prefs.edit { putInt(KEY_GOAL, _goal.value) }
         }
@@ -102,6 +113,12 @@ object AppSettings {
     fun setThemeMode(context: Context, mode: ThemeMode) {
         _themeMode.value = mode
         prefs(context).edit { putString(KEY_THEME, mode.name) }
+    }
+
+    /** Prefer StepLog.setEnabled, which notes the change in the journal on the way past. */
+    fun setJournalEnabled(context: Context, enabled: Boolean) {
+        _journalEnabled.value = enabled
+        prefs(context).edit { putBoolean(KEY_JOURNAL, enabled) }
     }
 
     fun setAccentIndex(context: Context, index: Int) {

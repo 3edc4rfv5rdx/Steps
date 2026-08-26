@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import xx.steps.settings.AppSettings
 
 /**
  * Writes one line to the counting journal. Free to call from anywhere, including the sensor
@@ -73,7 +74,18 @@ object StepLog {
     }
 
     fun write(message: String) {
+        if (!AppSettings.journalEnabled.value) return
         pending.trySend("${LocalDateTime.now().format(STAMP)} $message")
+    }
+
+    /**
+     * Turns the journal on or off, leaving a line on whichever side of the switch is still
+     * recording: a file that simply stops has a gap in it that nothing explains.
+     */
+    fun setEnabled(context: Context, enabled: Boolean) {
+        if (!enabled) write("journal: switched off")
+        AppSettings.setJournalEnabled(context, enabled)
+        if (enabled) write("journal: switched on")
     }
 
     private fun append(resolver: ContentResolver, text: String) {
