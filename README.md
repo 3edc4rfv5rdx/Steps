@@ -20,8 +20,7 @@ from midnight to midnight: bars an hour wide, half an hour, or a quarter, with a
 follows the finger and names the stretch it stands on, and the day's figures under it.
 
 Settings hold the goal (10 000 steps until you pick your own), the step length the distance is
-figured from, the theme and accent, the language (English, Russian, Ukrainian), the backups, and a
-counting journal that records what the sensor reported and what was made of it. A demo mode seeds plausible history and
+figured from, the theme and accent, the language (English, Russian, Ukrainian), and the backups. A demo mode seeds plausible history and
 fakes a walking counter, offered on an emulator only.
 
 ## How it counts

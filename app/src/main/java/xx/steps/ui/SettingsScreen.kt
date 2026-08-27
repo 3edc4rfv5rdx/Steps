@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import xx.steps.R
+import xx.steps.SHOW_JOURNAL_SETTING
 import xx.steps.data.AppDatabase
 import xx.steps.data.RestoreFailure
 import xx.steps.data.StepsRepository
@@ -228,16 +229,19 @@ fun SettingsScreen() {
             label = stringResource(R.string.setting_backup),
             onClick = { showBackup = true },
         )
-        HorizontalDivider()
-
         // Last on the screen: a diagnostic, wanted rarely, and nothing above it should be scrolled
-        // past to reach a setting used more often.
-        SwitchRow(
-            label = stringResource(R.string.setting_journal),
-            hint = stringResource(R.string.setting_journal_hint),
-            checked = journalEnabled,
-            onChange = { StepLog.setEnabled(context, it) },
-        )
+        // past to reach a setting used more often. Hidden altogether unless SHOW_JOURNAL_SETTING
+        // says otherwise, divider and all — a separator under the last row would be a line under
+        // nothing.
+        if (SHOW_JOURNAL_SETTING) {
+            HorizontalDivider()
+            SwitchRow(
+                label = stringResource(R.string.setting_journal),
+                hint = stringResource(R.string.setting_journal_hint),
+                checked = journalEnabled,
+                onChange = { StepLog.setEnabled(context, it) },
+            )
+        }
     }
 
         banner?.let { message ->

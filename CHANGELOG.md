@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F The counting journal is off by default and its switch is gone from Settings — a diagnostic, not a setting.
 - I The README describes the write cadence, the journal setting and the new default goal as they now are.
 - F The daily goal starts at 10 000 steps instead of 8 000.
 - F The count is written at most twice a second while a screen is open, instead of on every event the sensor sends.

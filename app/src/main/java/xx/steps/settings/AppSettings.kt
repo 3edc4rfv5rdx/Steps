@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import xx.steps.DEFAULT_GOAL
+import xx.steps.SHOW_JOURNAL_SETTING
 import xx.steps.DEFAULT_STEP_LENGTH_CM
 import xx.steps.PREFS_NAME
 import xx.steps.clampGoal
@@ -66,12 +67,13 @@ object AppSettings {
      */
     val demoMode: StateFlow<Boolean> = _demoMode.asStateFlow()
 
-    private val _journalEnabled = MutableStateFlow(true)
+    private val _journalEnabled = MutableStateFlow(false)
 
     /**
-     * Whether the counting journal is written. On by default: the sensor's behaviour is the one
-     * thing about this app that cannot be reasoned about from the code, and a walk that went
-     * uncounted leaves nothing to look at afterwards unless it was recorded while it happened.
+     * Whether the counting journal is written. Off by default, and its switch is hidden — see
+     * [SHOW_JOURNAL_SETTING]. It is a diagnostic for a phone that is miscounting, not something an
+     * app that counts correctly should be writing a line per reading for; turning it on is a
+     * deliberate act, and it stays on until turned off again.
      */
     val journalEnabled: StateFlow<Boolean> = _journalEnabled.asStateFlow()
 
@@ -87,7 +89,7 @@ object AppSettings {
             ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.SYSTEM
         _accentIndex.value = prefs.getInt(KEY_ACCENT, DEFAULT_ACCENT_INDEX)
             .coerceIn(AccentPalette.indices)
-        _journalEnabled.value = prefs.getBoolean(KEY_JOURNAL, true)
+        _journalEnabled.value = prefs.getBoolean(KEY_JOURNAL, false)
         if (stored != _goal.value) {
             prefs.edit { putInt(KEY_GOAL, _goal.value) }
         }

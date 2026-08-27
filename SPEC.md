@@ -86,7 +86,9 @@ app/src/main/java/xx/steps/
                            owns the chain of questions that follows a granted permission. It does
                            not read the sensor
   Common.kt                done
-  StepLog.kt               the counting journal, switchable from Settings and on by default:
+  StepLog.kt               the counting journal, off by default and with no switch on the Settings
+                           screen — SHOW_JOURNAL_SETTING hides the row rather than deleting it, so
+                           a phone that miscounts is one flag away from recording why:
                            logSteps() queues a line, a background writer
                            appends it to Documents/Steps/steps-<date>.txt through MediaStore, one
                            file per day. Whether the sensor answers a registration at all is the

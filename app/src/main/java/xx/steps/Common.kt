@@ -17,6 +17,14 @@ const val DATABASE_NAME = "steps.db"
 /** SharedPreferences file holding the daily goal; the sensor baseline lives in the database. */
 const val PREFS_NAME = "steps_prefs"
 
+/**
+ * Whether the counting journal has a switch on the Settings screen. False: the journal is a
+ * diagnostic for a phone that miscounts, and the app counts. The row is kept in the code rather
+ * than deleted — flipping this back is the whole of what it takes to hand it back to the user,
+ * which is what a diagnostic has to stay one flag away from.
+ */
+const val SHOW_JOURNAL_SETTING = false
+
 /** Daily step goal used until the user picks their own. */
 const val DEFAULT_GOAL = 10_000
 
