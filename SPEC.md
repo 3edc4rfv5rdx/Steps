@@ -193,7 +193,7 @@ app/src/main/java/xx/steps/
                            on the DATE_TICK_MS tick so Today and History never disagree about the
                            date across midnight
 app/src/test/java/xx/steps/StepSyncTest.kt
-app/src/main/res/values{,-ru,-uk}/strings.xml, values/themes.xml,
+app/src/main/res/values{,-ru,-uk}/strings.xml, values{,-night}/themes.xml,
                  xml/locales_config.xml, xml/data_extraction_rules.xml
 ```
 
