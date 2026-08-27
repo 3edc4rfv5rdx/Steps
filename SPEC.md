@@ -202,8 +202,8 @@ percentage turn green, which says it without a line of text. Under the ring, sev
 bars for the current calendar week — it starts on the locale's first day, not seven days ago —
 each scaled against the taller of that week's best day and the goal, so the goal line cannot sit off
 the top edge and leave the week looking complete. Every bar is the full accent colour, a day that met its goal green; today
-is told apart by its label, set in bold below the bar, since nothing in this app is dimmed to say
-what it is. A dashed goal line runs across them, day labels underneath. The number grows live
+is told apart by its label, set in bold and underlined below the bar, since nothing in this app is
+dimmed to say what it is. A dashed goal line runs across them, day labels underneath. The number grows live
 while the screen is open. A tap on any bar opens that day's breakdown.
 
 Special states take the ring's exact footprint as an amber circle with black text, so the screen

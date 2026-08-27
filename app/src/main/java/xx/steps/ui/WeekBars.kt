@@ -10,12 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -57,6 +63,10 @@ private val BAR_CORNER = 4.dp
 /** The dashed goal line: thick enough to read as a rule across the week, not as a hairline. */
 private val GOAL_LINE_WIDTH = 1.5.dp
 
+/** The rule under today's label: how far below the baseline it sits, and how thick it is. */
+private val UNDERLINE_GAP = 7.dp
+private val UNDERLINE_THICKNESS = 2.dp
+
 /** Share of a day's slot taken by its bar; the rest is the gap to the next one. */
 private const val BAR_WIDTH_SHARE = 0.55f
 
@@ -89,6 +99,7 @@ fun WeekBars(
     // Every day of the week is the full accent. Today is told apart by its label, set in bold
     // below the bar, the same way the labels themselves do it: weight, not a faded colour.
     val barColor = MaterialTheme.colorScheme.primary
+    val underlineColor = MaterialTheme.colorScheme.onSurface
     val lineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = CHART_LINE_ALPHA)
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -132,18 +143,42 @@ fun WeekBars(
             )
         }
 
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        // The bottom padding is the room the underline hangs in: it is drawn below the label's
+        // own box, and without it the rule would land on whatever the screen puts underneath.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp, bottom = UNDERLINE_GAP + UNDERLINE_THICKNESS),
+        ) {
             days.forEach { day ->
+                val isToday = day.date == today
+                // The rule under today's label is drawn rather than asked of the font:
+                // TextDecoration.Underline sets its own thickness and sits tight under the
+                // letters, and this one is thicker and lower. It runs the width of the text, so
+                // the layout is untouched — a fill around the label would widen it enough to wrap
+                // inside a seventh of the width.
+                var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
                 Text(
                     text = day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
                     style = MaterialTheme.typography.labelMedium,
-                    // Today is the one label set in bold. Weight, not colour: every label carries
-                    // the same onSurface, and a dimmed one would be the grey-on-grey this app
-                    // does not use.
-                    fontWeight = if (day.date == today) FontWeight.SemiBold else FontWeight.Normal,
+                    // Weight and a rule, not colour: every label carries the same onSurface, and a
+                    // dimmed one would be the grey-on-grey this app does not use.
+                    fontWeight = if (isToday) FontWeight.SemiBold else FontWeight.Normal,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
+                    onTextLayout = { layout = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .drawBehind {
+                            val line = layout?.takeIf { isToday } ?: return@drawBehind
+                            val y = line.firstBaseline + UNDERLINE_GAP.toPx()
+                            drawLine(
+                                color = underlineColor,
+                                start = Offset(line.getLineLeft(0), y),
+                                end = Offset(line.getLineRight(0), y),
+                                strokeWidth = UNDERLINE_THICKNESS.toPx(),
+                            )
+                        },
                 )
             }
         }
