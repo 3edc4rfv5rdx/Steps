@@ -93,11 +93,13 @@ fun DayChart(
     val onTouchNow by rememberUpdatedState(onTouch)
 
     val measurer = rememberTextMeasurer()
-    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+    // The same step down from the accent the week's bars take: the picked quarter hour is the full
+    // colour, the rest of the day is a shade under it rather than a wash.
+    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = QUIET_BAR_ALPHA)
     val pickedColor = MaterialTheme.colorScheme.primary
     val pointerColor = MaterialTheme.colorScheme.onSurface
     val gridColor = ChartGridAmber
-    val baselineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+    val baselineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = CHART_LINE_ALPHA)
     val labelStyle = MaterialTheme.typography.labelMedium.copy(
         color = MaterialTheme.colorScheme.onSurface,
     )

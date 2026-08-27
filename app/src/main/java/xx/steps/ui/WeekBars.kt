@@ -54,6 +54,9 @@ fun buildWeekBars(
 private val BARS_HEIGHT = 96.dp
 private val BAR_CORNER = 4.dp
 
+/** The dashed goal line: thick enough to read as a rule across the week, not as a hairline. */
+private val GOAL_LINE_WIDTH = 1.5.dp
+
 /** Share of a day's slot taken by its bar; the rest is the gap to the next one. */
 private const val BAR_WIDTH_SHARE = 0.55f
 
@@ -84,8 +87,10 @@ fun WeekBars(
     val scale = maxOf(days.maxOf { it.steps }, goalLine, 1)
     val reachedColor = GoalReachedGreen
     val barColor = MaterialTheme.colorScheme.primary
-    val dimmedBar = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
-    val lineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    // A past day is a step below today, not a ghost of one: enough alpha off the accent to tell
+    // the two apart at a glance, and nowhere near the wash that made most of the week look unlit.
+    val pastBar = MaterialTheme.colorScheme.primary.copy(alpha = QUIET_BAR_ALPHA)
+    val lineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = CHART_LINE_ALPHA)
 
     Column(modifier = modifier.fillMaxWidth()) {
         Canvas(
@@ -109,7 +114,7 @@ fun WeekBars(
                 val color = when {
                     day.goal > 0 && day.steps >= day.goal -> reachedColor
                     day.date == today -> barColor
-                    else -> dimmedBar
+                    else -> pastBar
                 }
                 // A day with no steps still gets a hairline, so the week reads as seven days.
                 val drawnHeight = maxOf(barHeight, 2.dp.toPx())
@@ -127,7 +132,7 @@ fun WeekBars(
                 color = lineColor,
                 start = Offset(0f, goalY),
                 end = Offset(size.width, goalY),
-                strokeWidth = 1.dp.toPx(),
+                strokeWidth = GOAL_LINE_WIDTH.toPx(),
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 8f)),
             )
         }

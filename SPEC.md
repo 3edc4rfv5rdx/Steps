@@ -201,8 +201,10 @@ counting on past the goal. Nothing announces the goal in words: the arc closes a
 percentage turn green, which says it without a line of text. Under the ring, seven
 bars for the current calendar week — it starts on the locale's first day, not seven days ago —
 each scaled against the taller of that week's best day and the goal, so the goal line cannot sit off
-the top edge and leave the week looking complete. Today's bar is in the accent colour and its label
-is in bold, with a dashed goal line across them and day labels underneath. The number grows live
+the top edge and leave the week looking complete. A day that met its goal is green; today is the full accent colour and its
+label is in bold; the rest of the week is the same accent one step down, bright enough that a
+week of ordinary days still reads as a chart rather than a shadow of one. A dashed goal line runs
+across them, day labels underneath. The number grows live
 while the screen is open. A tap on any bar opens that day's breakdown.
 
 Special states take the ring's exact footprint as an amber circle with black text, so the screen

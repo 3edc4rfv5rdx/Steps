@@ -33,6 +33,16 @@ val NoticeText = Color(0xFF000000)
 val GoalReachedGreen = Color(0xFF2E9E5B)
 
 /**
+ * How much of the accent a bar keeps when it is not the one being pointed at — today's bar in the
+ * week, the picked quarter hour in a day. One step down from the full colour is enough to tell
+ * them apart; anything fainter and a chart of ordinary days reads as a shadow of itself.
+ */
+const val QUIET_BAR_ALPHA = 0.7f
+
+/** The same for a rule drawn over or under the bars: the goal line, the chart's baseline. */
+const val CHART_LINE_ALPHA = 0.8f
+
+/**
  * The day chart's hour rules, every six hours. Amber rather than a grey hairline: they are the only
  * thing telling one part of the day from another, and they have to carry through a wall of bars in
  * both themes without being mistaken for one.
