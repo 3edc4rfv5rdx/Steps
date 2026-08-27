@@ -86,10 +86,9 @@ fun WeekBars(
 
     val scale = maxOf(days.maxOf { it.steps }, goalLine, 1)
     val reachedColor = GoalReachedGreen
+    // Every day of the week is the full accent. Today is told apart by its label, set in bold
+    // below the bar, the same way the labels themselves do it: weight, not a faded colour.
     val barColor = MaterialTheme.colorScheme.primary
-    // A past day is a step below today, not a ghost of one: enough alpha off the accent to tell
-    // the two apart at a glance, and nowhere near the wash that made most of the week look unlit.
-    val pastBar = MaterialTheme.colorScheme.primary.copy(alpha = QUIET_BAR_ALPHA)
     val lineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = CHART_LINE_ALPHA)
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -111,11 +110,7 @@ fun WeekBars(
             days.forEachIndexed { index, day ->
                 val barHeight = size.height * (day.steps.toFloat() / scale)
                 val left = slot * index + (slot - barWidth) / 2
-                val color = when {
-                    day.goal > 0 && day.steps >= day.goal -> reachedColor
-                    day.date == today -> barColor
-                    else -> pastBar
-                }
+                val color = if (day.goal > 0 && day.steps >= day.goal) reachedColor else barColor
                 // A day with no steps still gets a hairline, so the week reads as seven days.
                 val drawnHeight = maxOf(barHeight, 2.dp.toPx())
 

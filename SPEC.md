@@ -201,10 +201,9 @@ counting on past the goal. Nothing announces the goal in words: the arc closes a
 percentage turn green, which says it without a line of text. Under the ring, seven
 bars for the current calendar week — it starts on the locale's first day, not seven days ago —
 each scaled against the taller of that week's best day and the goal, so the goal line cannot sit off
-the top edge and leave the week looking complete. A day that met its goal is green; today is the full accent colour and its
-label is in bold; the rest of the week is the same accent one step down, bright enough that a
-week of ordinary days still reads as a chart rather than a shadow of one. A dashed goal line runs
-across them, day labels underneath. The number grows live
+the top edge and leave the week looking complete. Every bar is the full accent colour, a day that met its goal green; today
+is told apart by its label, set in bold below the bar, since nothing in this app is dimmed to say
+what it is. A dashed goal line runs across them, day labels underneath. The number grows live
 while the screen is open. A tap on any bar opens that day's breakdown.
 
 Special states take the ring's exact footprint as an amber circle with black text, so the screen
@@ -241,7 +240,7 @@ number — against the goal stored in that day's row. A tap on a day opens its b
 
 **A day's breakdown.** A dialog over either screen: the day from midnight to midnight as bars, an
 hour, half an hour or a quarter of one by three buttons — half an hour to begin with — built out of
-the stored quarter hours, and ruled in amber every six hours. A pointer
+the stored quarter hours, every bar the full accent, and ruled in amber every six hours. A pointer
 reads it — the line follows the finger while its dot snaps to the top of the bar underneath, a tap
 puts it where it landed, and it stays there to be read; above the chart it names the stretch of the
 day and what was walked in it. It starts on the current hour for today and on the busiest stretch

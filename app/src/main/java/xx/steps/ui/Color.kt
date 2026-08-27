@@ -33,13 +33,11 @@ val NoticeText = Color(0xFF000000)
 val GoalReachedGreen = Color(0xFF2E9E5B)
 
 /**
- * How much of the accent a bar keeps when it is not the one being pointed at — today's bar in the
- * week, the picked quarter hour in a day. One step down from the full colour is enough to tell
- * them apart; anything fainter and a chart of ordinary days reads as a shadow of itself.
+ * A rule drawn over or under the bars: the goal line, the chart's baseline. The bars themselves
+ * carry no alpha at all — every one of them is the full accent, and what a bar means is said by
+ * its colour (green for a goal met) or by what is drawn next to it (the bold label under today,
+ * the pointer over the picked stretch), never by fading it out.
  */
-const val QUIET_BAR_ALPHA = 0.7f
-
-/** The same for a rule drawn over or under the bars: the goal line, the chart's baseline. */
 const val CHART_LINE_ALPHA = 0.8f
 
 /**

@@ -93,10 +93,9 @@ fun DayChart(
     val onTouchNow by rememberUpdatedState(onTouch)
 
     val measurer = rememberTextMeasurer()
-    // The same step down from the accent the week's bars take: the picked quarter hour is the full
-    // colour, the rest of the day is a shade under it rather than a wash.
-    val barColor = MaterialTheme.colorScheme.primary.copy(alpha = QUIET_BAR_ALPHA)
-    val pickedColor = MaterialTheme.colorScheme.primary
+    // Every bar is the full accent, as in the week. Which stretch is picked is said by the pointer
+    // standing on it — a line and a dot on the bar's top — not by dimming the rest of the day.
+    val barColor = MaterialTheme.colorScheme.primary
     val pointerColor = MaterialTheme.colorScheme.onSurface
     val gridColor = ChartGridAmber
     val baselineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = CHART_LINE_ALPHA)
@@ -243,14 +242,14 @@ fun DayChart(
 
         fun barHeight(steps: Int): Float = plotHeight * steps / tallest
 
-        buckets.forEachIndexed { index, bucket ->
-            if (bucket.steps == 0) return@forEachIndexed
+        buckets.forEach { bucket ->
+            if (bucket.steps == 0) return@forEach
             val height = barHeight(bucket.steps)
             val left = xOf(bucket.startMinute.toFloat() / MINUTES_PER_DAY) + (slot - barWidth) / 2
             // Off either edge of the window: nothing to draw, and at full zoom most bars are.
-            if (left + barWidth < 0f || left > size.width) return@forEachIndexed
+            if (left + barWidth < 0f || left > size.width) return@forEach
             drawRoundRect(
-                color = if (index == picked) pickedColor else barColor,
+                color = barColor,
                 topLeft = Offset(left, plotHeight - height),
                 size = Size(barWidth, height),
                 cornerRadius = corner,

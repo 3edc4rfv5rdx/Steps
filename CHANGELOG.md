@@ -3,7 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
-- F The week bars, the day chart and their lines are brighter: an ordinary day no longer looks like a shadow of the chart.
+- F Every bar of the week and of the day chart is the full accent colour, and the goal line and baseline are drawn brighter.
 - F The counting journal is off by default and its switch is gone from Settings — a diagnostic, not a setting.
 - I The README describes the write cadence, the journal setting and the new default goal as they now are.
 - F The daily goal starts at 10 000 steps instead of 8 000.
