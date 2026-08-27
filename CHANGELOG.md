@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- R The History model drops a per-day average that no screen ever showed.
 - E An operation refused because another one is still running says so instead of ending in silence.
 - E Restarting the app during a demo run no longer drops the demo's whole starting count onto today.
 - E An import or a restore is refused while the demo runs, and says so, instead of mixing real days into the made-up ones.

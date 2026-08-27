@@ -242,7 +242,7 @@ stands down while it runs, since the fake counter exists only while a screen is 
 **History.** An expandable year → month → day tree (a day is a leaf). Expansion state survives
 rotation and Back collapses one level — the mechanics of `history/HistoryScreen.kt:398` in
 BikeTracker (`groupByDate`, `orderedItemKeys`, `expanded`), one level shorter. Year and month rows
-carry the total and the average per day, counted over days that have rows. A totals card sits on
+carry the total and the distance it comes to. A totals card sits on
 top: week / month / year / all time. Days that met their goal are marked by the color of the
 number — against the goal stored in that day's row. A tap on a day opens its breakdown.
 
