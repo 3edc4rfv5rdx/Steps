@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F The daily goal starts at 10 000 steps instead of 8 000.
 - F The count is written at most twice a second while a screen is open, instead of on every event the sensor sends.
 ## v0.2.20260826+46
 - I SPEC's file list names every source file, including the eight it had never mentioned.

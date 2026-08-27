@@ -18,7 +18,7 @@ const val DATABASE_NAME = "steps.db"
 const val PREFS_NAME = "steps_prefs"
 
 /** Daily step goal used until the user picks their own. */
-const val DEFAULT_GOAL = 8000
+const val DEFAULT_GOAL = 10_000
 
 /** Lowest and highest goal the editor accepts — below is meaningless, above is a typo. */
 const val MIN_GOAL = 500
