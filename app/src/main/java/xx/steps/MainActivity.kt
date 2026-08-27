@@ -189,6 +189,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainScreen() {
     val context = LocalContext.current
+    // The demo switch outlives this composition, so it carries the application's resources rather
+    // than the activity's — the same reason SettingsScreen's jobs do.
+    val resources = context.applicationContext.resources
     val repository = remember(context) { StepsRepository.get(context) }
     val demo by AppSettings.demoMode.collectAsState()
     val goal by AppSettings.goal.collectAsState()
@@ -297,8 +300,16 @@ private fun MainScreen() {
             onConfirm = {
                 confirmDemo = false
                 // Not this composition's scope: the switch empties the database and refills it,
-                // and an activity recreated partway must not be able to stop that.
-                ScreenWork.launch { DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal) }
+                // and an activity recreated partway must not be able to stop that. It takes its
+                // turn in ScreenWork like the import and the restore do — the two write the same
+                // table, and whichever finished second used to decide what was in it.
+                ScreenWork.run(
+                    failureText = resources.getString(R.string.demo_failed),
+                    busyText = resources.getString(R.string.work_busy),
+                ) {
+                    DemoSteps.toggle(context, repository, turnOn = !demo, goal = goal)
+                    null
+                }
             },
         )
     }

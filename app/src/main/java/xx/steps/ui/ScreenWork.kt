@@ -65,21 +65,28 @@ object ScreenWork {
 
     /**
      * Runs [job] and keeps what it answers, unless one is already running — in which case nothing
-     * starts and false comes back, so a caller can say so rather than appear to have done it.
+     * starts, [busyText] is left in an amber banner and false comes back, so a caller can also keep
+     * a dialog open rather than appear to have done it.
      *
      * The flag is cleared in a `finally`: a job that throws must not leave the screen refusing
      * every operation after it for the life of the process.
      *
-     * A job that throws answers [failureText] in a red banner. The text is a parameter, and a
-     * required one, because the job cannot say anything once it has thrown and a caller that forgot
-     * to guard its own work used to take the whole process down with it: the picked file that no
-     * longer resolves, the lapsed grant, the document provider that fails part-way through.
+     * A job that throws answers [failureText] in a red banner. Both texts are parameters, and
+     * required ones, because the job cannot say anything once it has thrown or has never started,
+     * and a caller that forgot either used to leave the operation silent: the picked file that no
+     * longer resolves, the lapsed grant, the restore confirmed while an export is still writing.
+     *
+     * A job that answers null has nothing to say — the demo switch, whose whole result is the
+     * screen behind the dialog — and leaves whatever banner was already there alone.
      */
-    fun run(failureText: String, job: suspend () -> BannerMessage): Boolean {
-        if (!_running.compareAndSet(expect = false, update = true)) return false
+    fun run(failureText: String, busyText: String, job: suspend () -> BannerMessage?): Boolean {
+        if (!_running.compareAndSet(expect = false, update = true)) {
+            _message.value = BannerMessage(BannerKind.WARNING, busyText)
+            return false
+        }
         scope.launch {
             try {
-                _message.value = job()
+                job()?.let { _message.value = it }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {

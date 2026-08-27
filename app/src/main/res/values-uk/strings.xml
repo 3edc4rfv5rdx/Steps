@@ -39,6 +39,8 @@
     <string name="setting_language">Мова</string>
     <string name="demo_wipe_title">Стерти й перемкнути</string>
     <string name="demo_wipe_message">Усі записані дні буде видалено, щоб демо не змішалося зі справжніми даними</string>
+    <string name="demo_failed">Не вдалося перемкнути демо</string>
+    <string name="demo_blocks_history">Спочатку зупиніть демо</string>
     <string name="theme_system">Системна</string>
     <string name="theme_light">Світла</string>
     <string name="theme_dark">Темна</string>
@@ -77,6 +79,7 @@
     <string name="restore_failed">Не вдалося відновити копію</string>
     <string name="backup_done_message">Documents/Steps/%1$s</string>
     <string name="backup_failed">Не вдалося записати копію</string>
+    <string name="work_busy">Інша операція ще триває</string>
     <string name="close">Закрити</string>
     <!-- Day breakdown -->
     <string name="chart_hour">1 год</string>

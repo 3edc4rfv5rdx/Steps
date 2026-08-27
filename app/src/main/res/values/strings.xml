@@ -39,6 +39,8 @@
     <string name="setting_language">Language</string>
     <string name="demo_wipe_title">Wipe and switch</string>
     <string name="demo_wipe_message">Every recorded day will be deleted, so demo days and real ones never mix</string>
+    <string name="demo_failed">Could not switch the demo</string>
+    <string name="demo_blocks_history">Stop the demo first</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
@@ -76,6 +78,7 @@
     <string name="restore_failed">Could not restore the backup</string>
     <string name="backup_done_message">Documents/Steps/%1$s</string>
     <string name="backup_failed">Could not write the backup</string>
+    <string name="work_busy">Another operation is still running</string>
     <string name="close">Close</string>
     <!-- Day breakdown -->
     <string name="chart_hour">1 h</string>

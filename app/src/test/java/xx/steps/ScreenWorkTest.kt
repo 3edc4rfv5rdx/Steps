@@ -34,7 +34,7 @@ class ScreenWorkTest {
 
     @Test
     fun `a result finished with nobody looking waits for the next observer`() = runBlocking {
-        assertTrue(ScreenWork.run(FAILED) { message("done") })
+        assertTrue(ScreenWork.run(FAILED, BUSY) { message("done") })
 
         // Nothing is collecting while it runs — which is exactly the tab switch this exists for.
         val shown = withTimeout(TIMEOUT) { ScreenWork.message.first { it != null } }
@@ -45,21 +45,54 @@ class ScreenWorkTest {
     fun `a second job is refused while one is still running`() = runBlocking {
         val gate = CompletableDeferred<Unit>()
 
-        assertTrue(ScreenWork.run(FAILED) { gate.await(); message("first") })
-        assertFalse(ScreenWork.run(FAILED) { message("second") })
+        assertTrue(ScreenWork.run(FAILED, BUSY) { gate.await(); message("first") })
+        assertFalse(ScreenWork.run(FAILED, BUSY) { message("second") })
 
         gate.complete(Unit)
-        val shown = withTimeout(TIMEOUT) { ScreenWork.message.first { it != null } }
+        val shown = withTimeout(TIMEOUT) { ScreenWork.message.first { it?.text == "first" } }
         assertEquals("first", shown?.text)
+    }
+
+    /**
+     * The demo switch and a restore both replace every row there is. The refused one has to say so
+     * and, above all, has to leave the database alone — its job body must never run.
+     */
+    @Test
+    fun `a refused job says so and never touches anything`() = runBlocking {
+        val gate = CompletableDeferred<Unit>()
+        var second = false
+
+        assertTrue(ScreenWork.run(FAILED, BUSY) { gate.await(); message("first") })
+        assertFalse(ScreenWork.run(FAILED, BUSY) { second = true; message("second") })
+
+        val refused = withTimeout(TIMEOUT) { ScreenWork.message.first { it != null } }
+        assertEquals(BannerKind.WARNING, refused?.kind)
+        assertEquals(BUSY, refused?.text)
+        assertFalse(second)
+
+        gate.complete(Unit)
+        withTimeout(TIMEOUT) { ScreenWork.running.first { !it } }
+        assertFalse(second)
+    }
+
+    /** The demo switch has nothing to report, and must not wipe what the last job left behind. */
+    @Test
+    fun `a job with nothing to say leaves the banner before it alone`() = runBlocking {
+        ScreenWork.show(message("before"))
+
+        assertTrue(ScreenWork.run(FAILED, BUSY) { null })
+        withTimeout(TIMEOUT) { ScreenWork.running.first { !it } }
+
+        assertEquals("before", ScreenWork.message.value?.text)
     }
 
     @Test
     fun `a job that throws does not leave the screen refusing every one after it`() = runBlocking {
-        assertTrue(ScreenWork.run(FAILED) { error("no disk") })
+        assertTrue(ScreenWork.run(FAILED, BUSY) { error("no disk") })
         withTimeout(TIMEOUT) { ScreenWork.running.first { !it } }
         ScreenWork.clear()
 
-        assertTrue(ScreenWork.run(FAILED) { message("after") })
+        assertTrue(ScreenWork.run(FAILED, BUSY) { message("after") })
         val shown = withTimeout(TIMEOUT) { ScreenWork.message.first { it != null } }
         assertEquals("after", shown?.text)
     }
@@ -72,7 +105,7 @@ class ScreenWorkTest {
     @Test
     fun `a job that throws answers a red banner and never reaches the uncaught handler`() = runBlocking {
         val seen = withUncaughtHandler {
-            assertTrue(ScreenWork.run(FAILED) { error("no disk") })
+            assertTrue(ScreenWork.run(FAILED, BUSY) { error("no disk") })
             val shown = withTimeout(TIMEOUT) { ScreenWork.message.first { it != null } }
             assertEquals(BannerKind.ERROR, shown?.kind)
             assertEquals(FAILED, shown?.text)
@@ -114,5 +147,7 @@ class ScreenWorkTest {
         const val GRACE = 1_000L
 
         const val FAILED = "could not read the file"
+
+        const val BUSY = "another operation is still running"
     }
 }

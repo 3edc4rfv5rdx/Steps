@@ -106,10 +106,23 @@ fun SettingsScreen() {
         pendingImport = uri
     }
 
-    // The answer is not read here, nor at the restore: getting back to either takes a trip through
-    // the system picker, which no job of this size outlives.
+    /**
+     * Whether the demo is in the way, saying so if it is. Both jobs below write real days, and a
+     * demo run has the database to itself — refusing is the only answer that keeps the two apart
+     * without throwing away the one the user did not name.
+     */
+    fun demoBlocks(): Boolean {
+        if (!AppSettings.demoMode.value) return false
+        ScreenWork.show(BannerMessage(BannerKind.WARNING, resources.getString(R.string.demo_blocks_history)))
+        return true
+    }
+
     fun importCsvNow(uri: Uri) {
-        ScreenWork.run(resources.getString(R.string.import_failed)) {
+        if (demoBlocks()) return
+        ScreenWork.run(
+            failureText = resources.getString(R.string.import_failed),
+            busyText = resources.getString(R.string.work_busy),
+        ) {
             val result = importCsv(context, uri, repository, AppSettings.goal.value)
             val summary = resources.getString(
                 R.string.import_done_message,
@@ -141,7 +154,10 @@ fun SettingsScreen() {
     // The dialog stays open when the job is refused, so a tap that did not take does not look like
     // one that did.
     fun exportCsvNow() {
-        val started = ScreenWork.run(resources.getString(R.string.export_failed)) {
+        val started = ScreenWork.run(
+            failureText = resources.getString(R.string.export_failed),
+            busyText = resources.getString(R.string.work_busy),
+        ) {
             val result = exportCsv(context, repository.allDays())
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.export_failed))
@@ -156,7 +172,10 @@ fun SettingsScreen() {
     }
 
     fun exportZipNow() {
-        val started = ScreenWork.run(resources.getString(R.string.backup_failed)) {
+        val started = ScreenWork.run(
+            failureText = resources.getString(R.string.backup_failed),
+            busyText = resources.getString(R.string.work_busy),
+        ) {
             val result = exportZip(context, AppDatabase.get(context))
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.backup_failed))
@@ -342,7 +361,11 @@ fun SettingsScreen() {
             onDismiss = { pendingRestore = null },
             onConfirm = {
                 pendingRestore = null
-                ScreenWork.run(resources.getString(R.string.restore_failed)) {
+                if (demoBlocks()) return@ConfirmDialog
+                ScreenWork.run(
+                    failureText = resources.getString(R.string.restore_failed),
+                    busyText = resources.getString(R.string.work_busy),
+                ) {
                     val result = importZip(context, uri, repository)
                     val done = resources.getString(R.string.restore_done_message)
                     // A day the archive held but this app could not read back is the one thing a
