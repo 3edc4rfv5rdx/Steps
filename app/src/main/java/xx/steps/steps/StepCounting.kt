@@ -57,10 +57,12 @@ object StepCounting {
         watchScreens(app)
 
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-            // When the last reading was written, and how many arrived meanwhile without being.
-            // Both are read and written only by this collector, on one coroutine.
+            // When the last reading was written, how many arrived meanwhile without being, and
+            // whether the demo has yet had a reading folded in this process. All three are read and
+            // written only by this collector, on one coroutine.
             var lastFold: Long? = null
             var heldBack = 0
+            var demoFoldPending = true
 
             combine(StepAccessState.access, AppSettings.demoMode, ::Pair)
                 .flatMapLatest { (access, demo) ->
@@ -76,6 +78,7 @@ object StepCounting {
                 .collect { raw ->
                     val now = uptimeMillis()
                     val paused = AppSettings.paused.value
+                    val demo = AppSettings.demoMode.value
                     if (!shouldFold(lastFold, now, screenOpen.value, paused)) {
                         heldBack++
                         return@collect
@@ -86,10 +89,12 @@ object StepCounting {
                     if (heldBack > 0) logSteps("counting: $heldBack readings held back since the last fold")
                     lastFold = now
                     heldBack = 0
+                    val credit = creditsSteps(paused, demoFirstOfProcess = demo && demoFoldPending)
+                    if (demo) demoFoldPending = false
                     repository.recordReading(
                         rawCount = raw,
                         goal = AppSettings.goal.value,
-                        credit = !paused,
+                        credit = credit,
                     )
                 }
         }
@@ -162,3 +167,22 @@ fun shouldFold(lastFoldMillis: Long?, now: Long, screenOpen: Boolean, paused: Bo
     val floor = if (screenOpen) FOREGROUND_FOLD_INTERVAL_MS else BACKGROUND_FOLD_INTERVAL_MS
     return now - lastFoldMillis >= floor
 }
+
+/**
+ * Whether a folded reading adds its steps to the day, or only moves the baseline.
+ *
+ * [paused] consumes the reading without crediting it — a pause throws steps away rather than
+ * postponing them, which is why the readings are never stopped.
+ *
+ * [demoFirstOfProcess] is the same move made for a different reason. The demo counter starts from
+ * the same constant in every process, while the baseline it left behind persists, so the first
+ * reading of a restarted demo stands below the stored value and `foldReading` — rightly, for the
+ * real sensor — reads that as a reboot and offers the whole of it. Twenty thousand steps would land
+ * on today at once, smeared flat back across the day chart. Discarding that one reading leaves the
+ * demo doing exactly what an install does: the first reading establishes a baseline and credits
+ * nothing.
+ *
+ * Once per process is enough. Switching the demo off and on again empties the database, baseline
+ * included, so a demo started inside a process has nothing to fold against either way.
+ */
+fun creditsSteps(paused: Boolean, demoFirstOfProcess: Boolean): Boolean = !paused && !demoFirstOfProcess
