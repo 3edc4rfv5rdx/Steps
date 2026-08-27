@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I SPEC and the journal's own description say what the code does: the .txt extension, the whole test suite, and the release scripts.
 - E A dark start no longer flashes a white window, and the status bar icons follow the theme you picked rather than the phone's.
 - R The folder exports, backups and the journal are written to has one definition instead of three.
 - E The History tab follows the date over midnight instead of keeping yesterday's totals and today band.
