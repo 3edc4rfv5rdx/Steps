@@ -57,6 +57,7 @@
     <string name="setting_import_csv">Import CSV</string>
     <string name="export_done_message">Documents/Steps/%2$s\nDays written %1$d</string>
     <string name="export_failed">Could not write the file</string>
+    <string name="import_failed">Could not read the file</string>
     <string name="import_done_message">Read %1$d, written %2$d, skipped %3$d</string>
     <string name="import_confirm_title">Merge the file</string>
     <string name="import_confirm_message">Days merge by date and the fuller record wins, and a day that changes loses its hourly breakdown</string>
@@ -72,6 +73,7 @@
     <string name="restore_failed_content">The archive holds no step database</string>
     <string name="restore_failed_size">The archive is too large to be a backup</string>
     <string name="restore_failed_broken">The database inside is not readable</string>
+    <string name="restore_failed">Could not restore the backup</string>
     <string name="backup_done_message">Documents/Steps/%1$s</string>
     <string name="backup_failed">Could not write the backup</string>
     <string name="close">Close</string>

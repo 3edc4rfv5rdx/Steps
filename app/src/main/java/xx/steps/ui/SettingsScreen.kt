@@ -109,7 +109,7 @@ fun SettingsScreen() {
     // The answer is not read here, nor at the restore: getting back to either takes a trip through
     // the system picker, which no job of this size outlives.
     fun importCsvNow(uri: Uri) {
-        ScreenWork.run {
+        ScreenWork.run(resources.getString(R.string.import_failed)) {
             val result = importCsv(context, uri, repository, AppSettings.goal.value)
             val summary = resources.getString(
                 R.string.import_done_message,
@@ -141,8 +141,8 @@ fun SettingsScreen() {
     // The dialog stays open when the job is refused, so a tap that did not take does not look like
     // one that did.
     fun exportCsvNow() {
-        val started = ScreenWork.run {
-            val result = runCatching { exportCsv(context, repository.allDays()) }.getOrNull()
+        val started = ScreenWork.run(resources.getString(R.string.export_failed)) {
+            val result = exportCsv(context, repository.allDays())
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.export_failed))
             } else {
@@ -156,8 +156,8 @@ fun SettingsScreen() {
     }
 
     fun exportZipNow() {
-        val started = ScreenWork.run {
-            val result = runCatching { exportZip(context, AppDatabase.get(context)) }.getOrNull()
+        val started = ScreenWork.run(resources.getString(R.string.backup_failed)) {
+            val result = exportZip(context, AppDatabase.get(context))
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.backup_failed))
             } else {
@@ -342,7 +342,7 @@ fun SettingsScreen() {
             onDismiss = { pendingRestore = null },
             onConfirm = {
                 pendingRestore = null
-                ScreenWork.run {
+                ScreenWork.run(resources.getString(R.string.restore_failed)) {
                     val result = importZip(context, uri, repository)
                     val done = resources.getString(R.string.restore_done_message)
                     // A day the archive held but this app could not read back is the one thing a

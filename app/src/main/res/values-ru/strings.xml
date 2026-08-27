@@ -58,6 +58,7 @@
     <string name="export_done_message">Documents/Steps/%2$s
 Записано дней: %1$d</string>
     <string name="export_failed">Не удалось записать файл</string>
+    <string name="import_failed">Не удалось прочитать файл</string>
     <string name="import_done_message">Прочитано %1$d, записано %2$d, пропущено %3$d</string>
     <string name="import_confirm_title">Слить файл</string>
     <string name="import_confirm_message">Дни сливаются по дате, побеждает более полная запись, а изменённый день теряет почасовую раскладку</string>
@@ -73,6 +74,7 @@
     <string name="restore_failed_content">В архиве нет базы шагов</string>
     <string name="restore_failed_size">Архив слишком велик для копии</string>
     <string name="restore_failed_broken">База внутри не читается</string>
+    <string name="restore_failed">Не удалось восстановить копию</string>
     <string name="backup_done_message">Documents/Steps/%1$s</string>
     <string name="backup_failed">Не удалось записать копию</string>
     <string name="close">Закрыть</string>

@@ -1,5 +1,6 @@
 package xx.steps.ui
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -51,7 +52,15 @@ object ScreenWork {
      * waits on, and two of them in a row settle on the same answer.
      */
     fun launch(job: suspend () -> Unit) {
-        scope.launch { job() }
+        scope.launch {
+            try {
+                job()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Throwable) {
+                report(failure)
+            }
+        }
     }
 
     /**
@@ -60,16 +69,36 @@ object ScreenWork {
      *
      * The flag is cleared in a `finally`: a job that throws must not leave the screen refusing
      * every operation after it for the life of the process.
+     *
+     * A job that throws answers [failureText] in a red banner. The text is a parameter, and a
+     * required one, because the job cannot say anything once it has thrown and a caller that forgot
+     * to guard its own work used to take the whole process down with it: the picked file that no
+     * longer resolves, the lapsed grant, the document provider that fails part-way through.
      */
-    fun run(job: suspend () -> BannerMessage): Boolean {
+    fun run(failureText: String, job: suspend () -> BannerMessage): Boolean {
         if (!_running.compareAndSet(expect = false, update = true)) return false
         scope.launch {
             try {
                 _message.value = job()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Throwable) {
+                report(failure)
+                _message.value = BannerMessage(BannerKind.ERROR, failureText)
             } finally {
                 _running.value = false
             }
         }
         return true
+    }
+
+    /**
+     * Where a failed job goes on its way to a banner. `System.err` rather than `android.util.Log`:
+     * this object is deliberately free of Android, which is what lets its whole contract — the
+     * refusal, the message, the failure — be pinned by plain JVM tests. Android routes `System.err`
+     * to logcat anyway.
+     */
+    private fun report(failure: Throwable) {
+        failure.printStackTrace()
     }
 }
