@@ -19,8 +19,9 @@ are calendar ones: the week starts on the locale's first day, not seven days ago
 from midnight to midnight: bars an hour wide, half an hour, or a quarter, with a pointer that
 follows the finger and names the stretch it stands on, and the day's figures under it.
 
-Settings hold the goal, the step length the distance is figured from, the theme and accent, the
-language (English, Russian, Ukrainian), and the backups. A demo mode seeds plausible history and
+Settings hold the goal (10 000 steps until you pick your own), the step length the distance is
+figured from, the theme and accent, the language (English, Russian, Ukrainian), the backups, and a
+counting journal that records what the sensor reported and what was made of it. A demo mode seeds plausible history and
 fakes a walking counter, offered on an emulator only.
 
 ## How it counts
@@ -36,8 +37,10 @@ state where that registration is still fed. Its notification is today's count an
 comes to, and swiping it away puts it straight back. A WorkManager job every 15 minutes reads the
 counter again and starts back whatever the system killed.
 
-With a screen open the count is written as each reading arrives, so it grows as you walk; with none
-it is written once a minute, which loses nothing — the counter is cumulative.
+Not every reading is written. The counter reports every step or two, and each write is a database
+transaction, so there is a floor: two seconds with a screen open, which still reads as live, and a
+minute with none. Nothing is lost either way — the counter is cumulative, so the next reading
+carries the steps of every one held back.
 
 Each reading is also spread over the quarter hours its own interval covered, which is what the day
 chart is built from. The sensor gives no timing breakdown, so an even spread is the only claim
@@ -76,7 +79,7 @@ Release-only workflow, driven by the scripts in the repository root:
 
 | Script | What it does |
 |---|---|
-| `./00-MakeAll.sh` | icons, release, both installs and the OUT link in one run |
+| `./00-MakeAll.sh` | release, both installs and the OUT link in one run — not the icons |
 | `bash 02-MakeIcons.sh` | redraw the icons when `ADD/images/znak.png` is newer |
 | `./10-MakeRelease.sh` | signed release with ABI splits, bumping the build number |
 | `./12-SamsRELEASE.sh` | install on the connected phone |
