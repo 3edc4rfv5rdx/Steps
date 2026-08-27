@@ -4,11 +4,11 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import xx.steps.DATABASE_NAME
+import xx.steps.EXPORT_DIR
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -25,8 +25,6 @@ import java.util.zip.ZipOutputStream
  * This is deliberately distinct from the CSV export: CSV is readable and merges, a ZIP is an exact
  * snapshot that replaces. Restoring one is therefore destructive, and the UI asks first.
  */
-
-private val EXPORT_DIR = "${Environment.DIRECTORY_DOCUMENTS}/Steps"
 
 private const val ZIP_MIME = "application/zip"
 

@@ -18,6 +18,24 @@ const val DATABASE_NAME = "steps.db"
 const val PREFS_NAME = "steps_prefs"
 
 /**
+ * The public folder every file this app writes lands in: the CSV export, the ZIP backup and the
+ * counting journal. One definition, so moving it moves all three.
+ *
+ * Spelled out rather than built from `Environment.DIRECTORY_DOCUMENTS`: that field is not final, so
+ * it is no compile-time constant, and reading it would put a device dependency in the one file the
+ * JVM tests lean on hardest — the journal already spelled the folder by hand for the same reason.
+ * The value is platform API and does not move; the export-folder test pins it either way.
+ */
+const val EXPORT_DIR = "Documents/Steps"
+
+/**
+ * The same folder spelled the way MediaStore takes it on insert, with the trailing separator.
+ * MediaStore is free to store a `RELATIVE_PATH` either way, which is why a lookup matches it back
+ * with a `LIKE` pattern rather than an equality — see StepLog.
+ */
+const val EXPORT_DIR_PATH = "$EXPORT_DIR/"
+
+/**
  * Whether the counting journal has a switch on the Settings screen. False: the journal is a
  * diagnostic for a phone that miscounts, and the app counts. The row is kept in the code rather
  * than deleted — flipping this back is the whole of what it takes to hand it back to the user,

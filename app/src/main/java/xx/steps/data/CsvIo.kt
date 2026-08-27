@@ -3,10 +3,10 @@ package xx.steps.data
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import xx.steps.EXPORT_DIR
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -19,9 +19,6 @@ import java.util.Locale
  * come from wherever the system picker points, so they can also come from a cloud folder or a
  * download.
  */
-
-/** Public subfolder under Documents where exports are written. */
-private val EXPORT_DIR = "${Environment.DIRECTORY_DOCUMENTS}/Steps"
 
 private const val CSV_MIME = "text/csv"
 

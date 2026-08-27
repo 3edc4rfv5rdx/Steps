@@ -37,9 +37,6 @@ object StepLog {
 
     private const val TAG = "Steps"
 
-    /** Where the files land, spelled the way MediaStore spells a public folder. */
-    private const val RELATIVE_PATH = "Documents/Steps/"
-
     /** How long a batch is allowed to gather before it is written. */
     private const val BATCH_MS = 1_000L
 
@@ -145,7 +142,7 @@ object StepLog {
                 // store the path with or without its trailing slash, and a miss here would not fail
                 // loudly — it would quietly start a second file beside the first one every day.
                 "${MediaStore.MediaColumns.DISPLAY_NAME}=? AND ${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?",
-                arrayOf(name, "$RELATIVE_PATH%"),
+                arrayOf(name, "$EXPORT_DIR_PATH%"),
                 null,
             )?.use { cursor ->
                 if (cursor.moveToFirst()) ContentUris.withAppendedId(collection, cursor.getLong(0)) else null
@@ -158,7 +155,7 @@ object StepLog {
                 ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, name)
                     put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, RELATIVE_PATH)
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, EXPORT_DIR_PATH)
                 },
             )
         }.onFailure { Log.w(TAG, "journal file could not be created", it) }.getOrNull()
