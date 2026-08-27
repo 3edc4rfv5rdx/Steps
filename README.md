@@ -6,6 +6,12 @@ Services.
 
 Full behaviour is in [SPEC.md](SPEC.md).
 
+## Screens
+
+| Today | A day taken apart | History | Settings |
+|---|---|---|---|
+| ![The Today tab: a progress ring over the daily goal, the week as bars underneath](docs/screens/today.jpg) | ![A day from midnight to midnight as half-hour bars, with the pointer and the day's figures](docs/screens/day.jpg) | ![The History tab: week, month, year and all-time totals over a year to month to day tree](docs/screens/history.jpg) | ![The Settings tab: goal, step length, background work, theme, colour, language, backup](docs/screens/settings.jpg) |
+
 ## What it shows
 
 **Today** — a ring over the daily goal with the count inside it, the percentage under it counting
