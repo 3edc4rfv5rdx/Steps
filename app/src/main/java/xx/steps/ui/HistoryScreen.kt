@@ -63,8 +63,11 @@ fun HistoryScreen() {
     val repository = remember(context) { StepsRepository.get(context) }
     val recorded by remember(repository) { repository.observeAll() }.collectAsState(initial = emptyList())
 
+    // Re-read on the same tick the Today tab uses: the tree is the day list and does not move at
+    // midnight, but which periods the totals cover and which row wears the band both do.
+    val today by rememberCurrentDate()
     val years = remember(recorded) { buildHistoryTree(recorded) }
-    val totals = remember(recorded) { historyTotals(recorded) }
+    val totals = remember(recorded, today) { historyTotals(recorded, today) }
     val stepLength by AppSettings.stepLengthCm.collectAsState()
 
     // Which nodes are open, by the tree's own stable keys, so rotation does not close the tree.
@@ -73,10 +76,14 @@ fun HistoryScreen() {
     // The day whose hour-by-hour breakdown is open over the tree, if any.
     var opened by remember { mutableStateOf<LocalDate?>(null) }
     val listState = rememberLazyListState()
+    // The command collector below runs for the life of the screen, so what it reads has to be read
+    // through rememberUpdatedState: a tab left open across midnight must open onto the new today,
+    // not the one that was current when the collector started.
     val currentYears by rememberUpdatedState(years)
+    val currentToday by rememberUpdatedState(today)
 
     fun openToday() {
-        val path = pathToDay(LocalDate.now())
+        val path = pathToDay(currentToday)
         expanded.addAll(path.dropLast(1).filterNot(expanded::contains))
     }
 
@@ -92,7 +99,7 @@ fun HistoryScreen() {
                 HistoryCommands.Command.COLLAPSE_ALL -> expanded.clear()
                 HistoryCommands.Command.OPEN_TODAY -> {
                     openToday()
-                    val index = visibleKeys(currentYears, expanded).indexOf(pathToDay(LocalDate.now()).last())
+                    val index = visibleKeys(currentYears, expanded).indexOf(pathToDay(currentToday).last())
                     if (index >= 0) listState.animateScrollToItem(index + HEADER_ITEMS)
                 }
             }
@@ -162,7 +169,7 @@ fun HistoryScreen() {
                             DayRow(
                                 day = day,
                                 stepLengthCm = stepLength,
-                                isToday = day.date == LocalDate.now(),
+                                isToday = day.date == today,
                                 onClick = { opened = day.date },
                             )
                         }

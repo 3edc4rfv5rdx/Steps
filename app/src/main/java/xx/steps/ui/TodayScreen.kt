@@ -22,11 +22,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -38,9 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
-import kotlinx.coroutines.delay
 import xx.steps.R
-import xx.steps.DATE_TICK_MS
 import xx.steps.WEEK_DAYS
 import xx.steps.startOfWeek
 import xx.steps.data.StepsRepository
@@ -184,16 +180,6 @@ private fun PermissionButton(onCountingAllowed: () -> Unit) {
         },
     ) {
         Text(stringResource(if (deniedForGood) R.string.open_settings else R.string.allow))
-    }
-}
-
-/** The current date, re-read every [DATE_TICK_MS] so an open screen survives midnight. */
-@Composable
-private fun rememberCurrentDate(): State<LocalDate> = produceState(initialValue = LocalDate.now()) {
-    while (true) {
-        delay(DATE_TICK_MS)
-        val now = LocalDate.now()
-        if (now != value) value = now
     }
 }
 
