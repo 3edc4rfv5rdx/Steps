@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E An import or a restore whose file cannot be read says so instead of closing the app.
 ## v0.2.20260827+57
 - I The README opens with four screenshots, kept in docs/screens.
 - F Today's label under the week bars is underlined as well as bold.
