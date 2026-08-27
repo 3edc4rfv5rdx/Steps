@@ -189,6 +189,9 @@ app/src/main/java/xx/steps/
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app
   ui/NoticeCircle.kt       amber circle with black text, standing in for the ring
   ui/Distance.kt           distanceLabel(): the one place a distance string is built
+  ui/CurrentDate.kt        rememberCurrentDate(): the one place a screen reads today from, re-read
+                           on the DATE_TICK_MS tick so Today and History never disagree about the
+                           date across midnight
 app/src/test/java/xx/steps/StepSyncTest.kt
 app/src/main/res/values{,-ru,-uk}/strings.xml, values/themes.xml,
                  xml/locales_config.xml, xml/data_extraction_rules.xml
