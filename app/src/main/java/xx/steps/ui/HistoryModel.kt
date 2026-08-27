@@ -27,25 +27,17 @@ data class MonthNode(
     val month: YearMonth,
     val steps: Int,
     val days: List<DayNode>,
-) {
-    /** Averaged over days that have rows — a month is not diluted by days never walked. */
-    val averagePerDay: Int get() = if (days.isEmpty()) 0 else steps / days.size
-}
+)
 
 data class YearNode(
     val key: String,
     val year: Int,
     val steps: Int,
     val months: List<MonthNode>,
-) {
-    val recordedDays: Int get() = months.sumOf { it.days.size }
-    val averagePerDay: Int get() = if (recordedDays == 0) 0 else steps / recordedDays
-}
+)
 
 /** One row of the totals card: what was walked in a period and over how many recorded days. */
-data class PeriodTotal(val steps: Int, val days: Int) {
-    val averagePerDay: Int get() = if (days == 0) 0 else steps / days
-}
+data class PeriodTotal(val steps: Int, val days: Int)
 
 data class HistoryTotals(
     val week: PeriodTotal,

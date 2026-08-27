@@ -72,17 +72,6 @@ class HistoryModelTest {
     }
 
     @Test
-    fun `averages count only days that have rows`() {
-        // Two recorded days in a 31-day month: the average is over the two, not over the month.
-        val tree = buildHistoryTree(
-            listOf(row(LocalDate.of(2026, 8, 24), 3_000), row(LocalDate.of(2026, 8, 25), 5_000)),
-        )
-
-        assertEquals(4_000, tree[0].months[0].averagePerDay)
-        assertEquals(4_000, tree[0].averagePerDay)
-    }
-
-    @Test
     fun `a day is judged by the goal stored on it`() {
         val tree = buildHistoryTree(
             listOf(
@@ -114,7 +103,6 @@ class HistoryModelTest {
         assertEquals(18_000, totals.year.steps)
         assertEquals(25_000, totals.allTime.steps)
         assertEquals(5, totals.allTime.days)
-        assertEquals(5_000, totals.allTime.averagePerDay)
     }
 
     @Test
@@ -128,10 +116,11 @@ class HistoryModelTest {
     }
 
     @Test
-    fun `empty history totals to zero without dividing by it`() {
+    fun `empty history totals to zero`() {
         val totals = historyTotals(emptyList(), today = today)
 
-        assertEquals(0, totals.allTime.averagePerDay)
+        assertEquals(0, totals.allTime.steps)
+        assertEquals(0, totals.allTime.days)
         assertTrue(buildHistoryTree(emptyList()).isEmpty())
     }
 
