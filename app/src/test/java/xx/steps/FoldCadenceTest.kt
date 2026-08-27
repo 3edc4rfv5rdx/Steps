@@ -7,17 +7,47 @@ import xx.steps.steps.shouldFold
 
 /**
  * How often a reading is written to the database. The counter is cumulative, so a reading held back
- * loses nothing — the next one carries its steps — but a screen the user is looking at has to grow
- * as they walk, which is the one case where nothing may be held back.
+ * loses nothing — the next one carries its steps — which is what lets a screen the user is looking
+ * at be written on a floor of its own rather than on every event the sensor sends.
  */
 class FoldCadenceTest {
 
     private val minute = BACKGROUND_FOLD_INTERVAL_MS
+    private val second = FOREGROUND_FOLD_INTERVAL_MS / 2
 
     @Test
-    fun `nothing is held back while a screen is open`() {
-        assertTrue(shouldFold(lastFoldMillis = 0L, now = 1L, screenOpen = true, paused = false))
-        assertTrue(shouldFold(lastFoldMillis = 1_000L, now = 1_001L, screenOpen = true, paused = false))
+    fun `with a screen open a reading inside the short floor is held back`() {
+        assertFalse(shouldFold(lastFoldMillis = 0L, now = 1L, screenOpen = true, paused = false))
+        assertFalse(
+            shouldFold(
+                lastFoldMillis = 1_000L,
+                now = 1_000L + FOREGROUND_FOLD_INTERVAL_MS - 1,
+                screenOpen = true,
+                paused = false,
+            ),
+        )
+    }
+
+    @Test
+    fun `with a screen open the short floor is enough`() {
+        assertTrue(
+            shouldFold(
+                lastFoldMillis = 1_000L,
+                now = 1_000L + FOREGROUND_FOLD_INTERVAL_MS,
+                screenOpen = true,
+                paused = false,
+            ),
+        )
+        assertTrue(shouldFold(lastFoldMillis = 1_000L, now = 1_000L + minute, screenOpen = true, paused = false))
+    }
+
+    @Test
+    fun `an open screen is written far more often than none`() {
+        // The same gap, either side of the two floors: what the screen is for is the number on it
+        // growing as the user walks, and a minute of that is not a live count.
+        val gap = 10 * second
+        assertTrue(shouldFold(lastFoldMillis = 0L, now = gap, screenOpen = true, paused = false))
+        assertFalse(shouldFold(lastFoldMillis = 0L, now = gap, screenOpen = false, paused = false))
     }
 
     @Test
@@ -38,6 +68,9 @@ class FoldCadenceTest {
         // A baseline a minute behind the counter would hand a minute of the bus ride to the walk.
         assertTrue(
             shouldFold(lastFoldMillis = 10 * minute, now = 10 * minute + 1, screenOpen = false, paused = true),
+        )
+        assertTrue(
+            shouldFold(lastFoldMillis = 10 * minute, now = 10 * minute + 1, screenOpen = true, paused = true),
         )
     }
 

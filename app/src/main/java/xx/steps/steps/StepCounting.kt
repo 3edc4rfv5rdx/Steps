@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import xx.steps.BACKGROUND_FOLD_INTERVAL_MS
+import xx.steps.FOREGROUND_FOLD_INTERVAL_MS
 import xx.steps.data.StepsRepository
 import xx.steps.logSteps
 import xx.steps.settings.AppSettings
@@ -107,9 +108,9 @@ object StepCounting {
     private fun watchScreens(app: Context) {
         val application = app as? Application
         if (application == null) {
-            // Nothing to watch it with: fold every reading, which is what the app did before there
-            // was a cadence at all. Wrong on the side of writing too often, never too rarely.
-            logSteps("counting: no application to watch screens on, folding every reading")
+            // Nothing to watch it with: leave the flag saying a screen is open, so readings are
+            // folded at the short cadence. Wrong on the side of writing too often, never too rarely.
+            logSteps("counting: no application to watch screens on, folding at the foreground cadence")
             return
         }
         application.registerActivityLifecycleCallbacks(
@@ -140,10 +141,12 @@ object StepCounting {
 /**
  * Whether a reading taken at [now] is written now or held back for the next one.
  *
- * With a screen in front of the user every reading is written: the count on it grows as they walk,
- * and that is the whole of what the screen is for. With none, once every
- * [BACKGROUND_FOLD_INTERVAL_MS] is enough — the counter is cumulative, so the next reading carries
- * the steps of every one held back, and the quarter-hourly worker closes the day whatever happens.
+ * Both cadences exist for the same reason: an on-change counter reports every step or two, and
+ * every reading written is a transaction. With a screen in front of the user the floor is
+ * [FOREGROUND_FOLD_INTERVAL_MS], short enough that the count on it still grows as they walk; with
+ * none, [BACKGROUND_FOLD_INTERVAL_MS]. Nothing is lost either way — the counter is cumulative, so
+ * the next reading carries the steps of every one held back, and the quarter-hourly worker closes
+ * the day whatever happens.
  *
  * [paused] is the exception to the cadence. A pause throws steps away rather than postponing them,
  * and which steps it throws away is decided by where the baseline stands when it ends: let the
@@ -154,6 +157,8 @@ object StepCounting {
  * [lastFoldMillis] and [now] both come from `uptimeMillis()`, monotonic within one process; a fresh
  * process has no last fold and writes at once.
  */
-fun shouldFold(lastFoldMillis: Long?, now: Long, screenOpen: Boolean, paused: Boolean): Boolean =
-    screenOpen || paused || lastFoldMillis == null ||
-        now - lastFoldMillis >= BACKGROUND_FOLD_INTERVAL_MS
+fun shouldFold(lastFoldMillis: Long?, now: Long, screenOpen: Boolean, paused: Boolean): Boolean {
+    if (paused || lastFoldMillis == null) return true
+    val floor = if (screenOpen) FOREGROUND_FOLD_INTERVAL_MS else BACKGROUND_FOLD_INTERVAL_MS
+    return now - lastFoldMillis >= floor
+}

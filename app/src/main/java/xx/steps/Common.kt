@@ -106,14 +106,25 @@ const val SYNC_INTERVAL_MINUTES = 15L
 /**
  * How often a reading is folded into the database while no screen of this app is in front of the
  * user. The counter is cumulative, so a reading held back costs nothing: the next one carries its
- * steps too. With a screen open nothing is held back at all — the number on it has to grow as the
- * user walks — and the quarter-hourly worker folds whatever the last held-back reading left,
- * so nothing waits longer than that in any case.
+ * steps too, and the quarter-hourly worker folds whatever the last held-back reading left, so
+ * nothing waits longer than that in any case.
  *
  * What it does cost is the reboot window: steps taken between the last fold and a restart are lost
  * whatever happens, and this makes that window up to a minute wide instead of seconds.
  */
 const val BACKGROUND_FOLD_INTERVAL_MS = MILLIS_PER_MINUTE
+
+/**
+ * The same floor with a screen in front of the user, where the number has to grow as they walk.
+ * An on-change counter reports every step or two, and writing each one means a transaction — day,
+ * slots and baseline — several times a second for as long as somebody walks with the app open.
+ * Two seconds bounds that at one write instead of four or five, which is below what the eye reads
+ * as lag on a step count.
+ *
+ * A time floor rather than a step count on purpose: what it has to bound is writes per second, and
+ * how many steps a device packs into one event is the device's business, not ours.
+ */
+const val FOREGROUND_FOLD_INTERVAL_MS = 2_000L
 
 /**
  * How long a background read waits for the sensor to report. Some devices only deliver the counter

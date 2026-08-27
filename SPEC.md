@@ -41,12 +41,15 @@ history tree, MediaStore export, the theme.
 - The first reading (install, cleared data) only sets the baseline and credits nothing.
 - The whole delta is credited to the day the reading happens on. The sensor gives no timing
   breakdown; syncing every 15 minutes keeps the midnight error window short.
-- `shouldFold()` decides how often a reading is written. With a screen in front of the user, every
-  one of them: the count on it has to grow as they walk. With none, once a minute — the counter is
-  cumulative, so a reading held back loses nothing, and the quarter-hourly worker closes the day
-  whatever happens. A pause is the exception and writes every reading whatever is on screen: it
-  throws steps away rather than postponing them, and where the baseline stands when it ends decides
-  which ones. The cost of the cadence is the reboot window, up to a minute wide instead of seconds.
+- `shouldFold()` decides how often a reading is written. An on-change counter reports every step or
+  two and every reading written is a transaction, so both cases have a floor: `FOREGROUND_FOLD_INTERVAL_MS`
+  (2 s) with a screen in front of the user, short enough that the count on it still grows as they
+  walk, and `BACKGROUND_FOLD_INTERVAL_MS` (a minute) with none. The counter is cumulative, so a
+  reading held back loses nothing — the next one carries its steps — and the quarter-hourly worker
+  closes the day whatever happens. A pause is the exception and writes every reading whatever is on
+  screen: it throws steps away rather than postponing them, and where the baseline stands when it
+  ends decides which ones. The cost of the cadence is the reboot window, up to a minute wide instead
+  of seconds.
 
 ### The intra-day breakdown
 
