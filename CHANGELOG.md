@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- R The folder exports, backups and the journal are written to has one definition instead of three.
 - E The History tab follows the date over midnight instead of keeping yesterday's totals and today band.
 - R The History model drops a per-day average that no screen ever showed.
 - E An operation refused because another one is still running says so instead of ending in silence.
