@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Same base theme in its dark form. Only the window the system paints before Compose gets
+         there is at stake here; every colour inside the window still comes from MaterialTheme.
+         Without this the first frame of a dark start is the platform's light background. -->
+    <style name="Theme.Steps" parent="android:Theme.Material.NoActionBar" />
+</resources>

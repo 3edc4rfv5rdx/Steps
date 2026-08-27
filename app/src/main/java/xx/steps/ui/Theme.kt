@@ -33,13 +33,23 @@ private val DarkColors = darkColorScheme(
     onSecondaryContainer = Color.White,
 )
 
-/** True when the app renders dark for the given theme choice. */
-@Composable
-fun isDarkTheme(themeMode: ThemeMode): Boolean = when (themeMode) {
-    ThemeMode.SYSTEM -> isSystemInDarkTheme()
+/**
+ * True when the app renders dark for the given theme choice and system setting.
+ *
+ * Free of Compose so that the window itself can ask the same question: the platform side of the
+ * window — its background before the first frame, and the colour the system bar icons are drawn
+ * for — is decided in `MainActivity.onCreate`, where there is no composition to read the setting
+ * from, and two answers to "is this app dark" is how a dark start comes to flash white.
+ */
+fun isDarkTheme(themeMode: ThemeMode, systemInDark: Boolean): Boolean = when (themeMode) {
+    ThemeMode.SYSTEM -> systemInDark
     ThemeMode.LIGHT -> false
     ThemeMode.DARK -> true
 }
+
+/** The same rule, with the system setting taken from the composition. */
+@Composable
+fun isDarkTheme(themeMode: ThemeMode): Boolean = isDarkTheme(themeMode, isSystemInDarkTheme())
 
 /**
  * Applies the light or dark scheme according to the user's choice, with their accent as the

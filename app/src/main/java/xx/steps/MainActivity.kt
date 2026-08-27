@@ -2,11 +2,13 @@ package xx.steps
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +41,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.drawable.toDrawable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -61,6 +65,9 @@ import xx.steps.ui.HistoryScreen
 import xx.steps.ui.ScreenWork
 import xx.steps.ui.NavLabelStyle
 import xx.steps.ui.StepsTheme
+import xx.steps.ui.WindowDark
+import xx.steps.ui.WindowLight
+import xx.steps.ui.isDarkTheme
 import xx.steps.ui.SettingsScreen
 import xx.steps.ui.TodayScreen
 
@@ -149,10 +156,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Android 15 draws every app edge to edge whether it asks or not; saying so explicitly
-        // means the same layout on 13 and 14, where the system bars would otherwise take their own
-        // space and the two would differ.
-        enableEdgeToEdge()
+        applyWindowTheme()
         StepAccessState.refresh(this)
 
         // The permission is asked for from the Today screen, next to the sentence explaining what
@@ -166,12 +170,44 @@ class MainActivity : ComponentActivity() {
             val themeMode by AppSettings.themeMode.collectAsState()
             val accentIndex by AppSettings.accentIndex.collectAsState()
 
+            // The window is outside the composition and does not follow it: a theme changed in
+            // Settings has to be carried back out to the bars by hand.
+            LaunchedEffect(themeMode) { applyWindowTheme() }
+
             StepsTheme(themeMode = themeMode, accentIndex = accentIndex) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     MainScreen()
                 }
             }
         }
+    }
+
+    /**
+     * The platform side of the window: the background it shows before Compose has drawn anything,
+     * and the colour the system bar icons are drawn for.
+     *
+     * Both used to be decided by the system's night setting alone — `Theme.Steps` named the light
+     * platform theme outright, and `enableEdgeToEdge()` with no arguments styles the bars from the
+     * resource configuration. With the app set to Dark on a phone in light mode that is the wrong
+     * answer twice: a white window ahead of the first frame, and status-bar icons drawn for a light
+     * background over a near-black one. `values-night/themes.xml` settles the platform theme for
+     * the case where the app follows the system; this settles the other two cases.
+     */
+    private fun applyWindowTheme() {
+        val systemInDark = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+        val dark = isDarkTheme(AppSettings.themeMode.value, systemInDark)
+        window.setBackgroundDrawable((if (dark) WindowDark else WindowLight).toArgb().toDrawable())
+        // Android 15 draws every app edge to edge whether it asks or not; saying so explicitly
+        // means the same layout on 13 and 14, where the system bars would otherwise take their own
+        // space and the two would differ. The styles are named rather than left to auto(), which
+        // reads the system setting the app is allowed to override.
+        val style = if (dark) {
+            SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        } else {
+            SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
+        }
+        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
     }
 
     override fun onStart() {
