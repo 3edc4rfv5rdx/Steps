@@ -26,7 +26,7 @@ fun logSteps(message: String) = StepLog.write(message)
 
 /**
  * The counting journal, as a plain text file the user can open in any file manager:
- * `Documents/Steps/steps-<date>.log`, one file per day, one line per event.
+ * `Documents/Steps/steps-<date>.txt`, one file per day, one line per event.
  *
  * It exists because the sensor is the one part of this app that cannot be reasoned about from the
  * code: whether a reading arrives at all is the phone's decision, and nothing else records it.

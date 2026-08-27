@@ -288,10 +288,12 @@ refused, and the stored history is left as it was.
 
 ## Verification
 
-- `./06-Test.sh` — the `StepSyncTest` unit tests (pure logic, JVM, no device)
+- `./06-Test.sh` — the JVM unit tests (pure logic, no device): eighteen classes, from the counting
+  rule and the fold cadence to the history model and the screen jobs. Three more run on a device
+  (`app/src/androidTest`) and are not part of this script
 - `./05-Lint.sh` — Android Lint on the debug variant
-- The user runs the build and the install (`./03-MakeDebug.sh`, `./15-SamsDebug.sh`); nothing is
-  built or installed on their behalf
+- The user runs the build and the install, and the workflow is release-only (`./10-MakeRelease.sh`,
+  `./12-SamsRELEASE.sh`); nothing is built or installed on their behalf
 - Manual check on the phone: walk with the screen open — the number grows; leave it for 20 minutes
   and come back — the number has caught up through the worker; reboot the phone — today's count
   continues from the same figure instead of starting over
