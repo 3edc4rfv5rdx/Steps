@@ -50,6 +50,10 @@ history tree, MediaStore export, the theme.
   screen: it throws steps away rather than postponing them, and where the baseline stands when it
   ends decides which ones. The cost of the cadence is the reboot window, up to a minute wide instead
   of seconds.
+- `creditsSteps()` decides whether a folded reading adds its steps or only moves the baseline. A
+  pause is one case; the other is the first reading of a demo run in a fresh process, since the fake
+  counter starts from the same constant every time while the baseline it left behind persists, and
+  folding one against the other reads as a reboot worth the whole of it.
 
 ### The intra-day breakdown
 
@@ -104,7 +108,8 @@ app/src/main/java/xx/steps/
                            where the framework calls the dismissal receiver, so the readout the two
                            share needs no publishing between threads
   steps/StepCounting.kt    holds the sensor registration for the life of the process and folds the
-                           readings in at the cadence shouldFold() sets; started by StepsApp, not by
+                           readings in at the cadence shouldFold() sets, crediting the ones
+                           creditsSteps() allows; started by StepsApp, not by
                            a screen, because the hardware counter stands still while nobody is
                            registered on it. Watches the activity lifecycle for whether a screen is
                            in front of the user at all
