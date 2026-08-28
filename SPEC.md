@@ -198,7 +198,9 @@ app/src/main/java/xx/steps/
   ui/ScreenWork.kt         the jobs a screen starts — export, import, restore, the demo switch —
                            and the one message they leave behind: both held by the process, since a
                            screen is a branch of a `when` on the tab and its scope goes when the tab
-                           does. One job at a time; no composition owns such work
+                           does. One job at a time; no composition owns such work, and nothing of
+                           the activity goes into one — a job takes the application's Context and
+                           Resources, both of which outlive the screen that started it
   ui/StatusBanner.kt       one banner for every outcome in the app: green when it worked, amber
                            when it worked partly, red when it did not. Composed once, above
                            whichever tab is showing, since the jobs belong to the process and the
