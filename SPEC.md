@@ -248,7 +248,9 @@ rotation and Back collapses one level — the mechanics of `history/HistoryScree
 BikeTracker (`groupByDate`, `orderedItemKeys`, `expanded`), one level shorter. Year and month rows
 carry the total and the distance it comes to. A totals card sits on
 top: week / month / year / all time. Days that met their goal are marked by the color of the
-number — against the goal stored in that day's row. A tap on a day opens its breakdown.
+number — against the goal stored in that day's row. A tap on a day opens its breakdown, and marks
+that day with an outline of the accent until another day is opened; today wears the same band
+filled, whatever is selected.
 
 **A day's breakdown.** A dialog over either screen: the day from midnight to midnight as bars, a
 quarter of an hour, half an hour or a whole one by a drop-down beside the dialog's Close button —

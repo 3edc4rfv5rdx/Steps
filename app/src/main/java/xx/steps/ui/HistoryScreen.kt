@@ -2,6 +2,7 @@ package xx.steps.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -75,6 +76,9 @@ fun HistoryScreen() {
 
     // The day whose hour-by-hour breakdown is open over the tree, if any.
     var opened by remember { mutableStateOf<LocalDate?>(null) }
+    // The day last opened from the tree, marked until another one is. Kept by its row key, which
+    // is a plain string, so the mark survives rotation along with the open nodes.
+    var selectedKey by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     // The command collector below runs for the life of the screen, so what it reads has to be read
     // through rememberUpdatedState: a tab left open across midnight must open onto the new today,
@@ -170,7 +174,11 @@ fun HistoryScreen() {
                                 day = day,
                                 stepLengthCm = stepLength,
                                 isToday = day.date == today,
-                                onClick = { opened = day.date },
+                                isSelected = day.key == selectedKey,
+                                onClick = {
+                                    selectedKey = day.key
+                                    opened = day.date
+                                },
                             )
                         }
                     }
@@ -321,18 +329,35 @@ private fun TreeRow(
 /**
  * A single day. Its number goes green when that day met the goal it was walked against, and a tap
  * takes the day apart hour by hour.
+ *
+ * Two rows can be marked at once, in the same accent and the same shape: today wears the band
+ * filled, the day last looked at wears it as an outline. Today looked at is today still — the fill
+ * says everything the outline would.
  */
 @Composable
-private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean, onClick: () -> Unit) {
+private fun DayRow(
+    day: DayNode,
+    stepLengthCm: Int,
+    isToday: Boolean,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(6.dp)
+    val outlined = isSelected && !isToday
     Row(
         modifier = Modifier
             .fillMaxWidth()
             // Clipped before it is filled, so the tap ripple keeps to the same rounded shape.
-            .clip(RoundedCornerShape(6.dp))
+            .clip(shape)
             // Today is inverted, and the band is the accent: the row reads as the same row turned
             // inside out, and it is the one colour the user chose, so it carries the app's mark
             // instead of a plain black or white block.
             .background(color = if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent)
+            .border(
+                width = if (outlined) SELECTED_BORDER else 0.dp,
+                color = if (outlined) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = shape,
+            )
             .clickable(onClick = onClick)
             .padding(start = 46.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -353,6 +378,9 @@ private fun DayRow(day: DayNode, stepLengthCm: Int, isToday: Boolean, onClick: (
         )
     }
 }
+
+/** The outline that marks the day last opened; thick enough to be seen beside the filled band. */
+private val SELECTED_BORDER = 1.5.dp
 
 /** Keeps the open-node keys across rotation; the list is small and holds plain strings. */
 private val stringListSaver = listSaver<SnapshotStateList<String>, String>(
