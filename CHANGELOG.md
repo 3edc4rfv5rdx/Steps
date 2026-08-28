@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E A distance just under a kilometre reads as 1.0 km instead of 1000 m.
 - E A counting-journal batch that could not be written keeps its oldest line instead of dropping it.
 - E An operation refused or failed from the Today tab says so on that tab instead of nowhere.
 - E After an import raises today's count, the day chart shows no breakdown instead of bars that add up to less than the day.
