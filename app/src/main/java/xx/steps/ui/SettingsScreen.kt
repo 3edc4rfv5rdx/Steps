@@ -61,9 +61,12 @@ import xx.steps.settings.supportedLanguages
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
-    // The jobs outlive this screen, so they carry the application's resources rather than the
-    // activity's: a Resources held past the activity that owned it is a leak with a stale locale.
-    val resources = context.applicationContext.resources
+    // The jobs outlive this screen, so nothing of the activity goes into one: a Resources held past
+    // the activity that owned it is a leak with a stale locale, and the Context it came from is the
+    // activity itself. Both are taken from the application instead — the picker's Uri grant belongs
+    // to the process, so reading it through that Context is what the pickers already assume.
+    val appContext = context.applicationContext
+    val resources = appContext.resources
     val repository = remember(context) { StepsRepository.get(context) }
 
     val goal by AppSettings.goal.collectAsState()
@@ -120,7 +123,7 @@ fun SettingsScreen() {
             failureText = resources.getString(R.string.import_failed),
             busyText = resources.getString(R.string.work_busy),
         ) {
-            val result = importCsv(context, uri, repository, AppSettings.goal.value)
+            val result = importCsv(appContext, uri, repository, AppSettings.goal.value)
             val summary = resources.getString(
                 R.string.import_done_message,
                 result.read,
@@ -155,7 +158,7 @@ fun SettingsScreen() {
             failureText = resources.getString(R.string.export_failed),
             busyText = resources.getString(R.string.work_busy),
         ) {
-            val result = exportCsv(context, repository.allDays())
+            val result = exportCsv(appContext, repository.allDays())
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.export_failed))
             } else {
@@ -173,7 +176,7 @@ fun SettingsScreen() {
             failureText = resources.getString(R.string.backup_failed),
             busyText = resources.getString(R.string.work_busy),
         ) {
-            val result = exportZip(context, AppDatabase.get(context))
+            val result = exportZip(appContext, AppDatabase.get(appContext))
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.backup_failed))
             } else {
@@ -353,7 +356,7 @@ fun SettingsScreen() {
                     failureText = resources.getString(R.string.restore_failed),
                     busyText = resources.getString(R.string.work_busy),
                 ) {
-                    val result = importZip(context, uri, repository)
+                    val result = importZip(appContext, uri, repository)
                     val done = resources.getString(R.string.restore_done_message)
                     // A day the archive held but this app could not read back is the one thing a
                     // restore destroys without being asked to, so it is said out loud.
