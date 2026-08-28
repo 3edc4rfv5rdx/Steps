@@ -200,7 +200,9 @@ app/src/main/java/xx/steps/
                            screen is a branch of a `when` on the tab and its scope goes when the tab
                            does. One job at a time; no composition owns such work
   ui/StatusBanner.kt       one banner for every outcome in the app: green when it worked, amber
-                           when it worked partly, red when it did not
+                           when it worked partly, red when it did not. Composed once, above
+                           whichever tab is showing, since the jobs belong to the process and the
+                           tab one is refused on is not the tab it was started from
   ui/DialogButtons.kt      the two buttons every dialog ends with — the accent one commits, the
                            tonal one backs out, and neither is ever a bare text button
   ui/Dialogs.kt            NumberDialog, ChoiceDialog, ConfirmDialog — every dialog in the app
