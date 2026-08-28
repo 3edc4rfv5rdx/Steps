@@ -40,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.drawable.toDrawable
@@ -48,6 +49,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
@@ -63,6 +65,7 @@ import xx.steps.ui.ConfirmDialog
 import xx.steps.ui.HistoryCommands
 import xx.steps.ui.HistoryScreen
 import xx.steps.ui.ScreenWork
+import xx.steps.ui.StatusBanner
 import xx.steps.ui.NavLabelStyle
 import xx.steps.ui.StepsTheme
 import xx.steps.ui.WindowDark
@@ -286,6 +289,11 @@ private fun MainScreen() {
         if (hasStepPermission(context)) askNotifications()
     }
 
+    // The one banner in the app, and it belongs here rather than to a screen: the jobs are owned by
+    // the process, and the tab the user is on when one of them is refused or fails is not
+    // necessarily the tab it was started from.
+    val banner by ScreenWork.message.collectAsState()
+
     var current by rememberSaveable { mutableStateOf(Tab.TODAY) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var confirmDemo by rememberSaveable { mutableStateOf(false) }
@@ -319,6 +327,13 @@ private fun MainScreen() {
                 Tab.TODAY -> TodayScreen(onCountingAllowed = onCountingAllowed)
                 Tab.HISTORY -> HistoryScreen()
                 Tab.SETTINGS -> SettingsScreen()
+            }
+            banner?.let { message ->
+                StatusBanner(
+                    message = message,
+                    onDismiss = { ScreenWork.clear() },
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
+                )
             }
         }
     }

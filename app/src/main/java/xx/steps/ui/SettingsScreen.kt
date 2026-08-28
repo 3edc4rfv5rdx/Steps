@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -83,8 +82,6 @@ fun SettingsScreen() {
 
     // Saveable: changing the theme or the language recreates the activity under an open dialog.
     var editing by rememberSaveable { mutableStateOf(Editing.NONE) }
-    // Held by the process, not by this screen — see ScreenWork.
-    val banner by ScreenWork.message.collectAsState()
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
     var pendingImport by remember { mutableStateOf<Uri?>(null) }
@@ -189,7 +186,6 @@ fun SettingsScreen() {
         if (started) showBackup = false
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -259,15 +255,6 @@ fun SettingsScreen() {
                 hint = stringResource(R.string.setting_journal_hint),
                 checked = journalEnabled,
                 onChange = { StepLog.setEnabled(context, it) },
-            )
-        }
-    }
-
-        banner?.let { message ->
-            StatusBanner(
-                message = message,
-                onDismiss = { ScreenWork.clear() },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
             )
         }
     }
