@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E A step counter that restarts on its own no longer credits thousands of steps at once.
 ## v0.3.20260828+70
 - N The day you open from History stays marked with an outline of the accent until you open another.
 - F The day chart's pointer stands on the middle of the bar it reads and steps from one bar to the next.

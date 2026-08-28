@@ -33,8 +33,12 @@ history tree, MediaStore export, the theme.
   restarts at zero.
 - A reboot is detected two ways: uptime below the stored one, or `rawCount` below the stored one.
   Wall-clock time is not used — it jumps on clock corrections and would need an empirical tolerance.
-- The credited number is capped at `MAX_STEPS_PER_SECOND` (4) over the interval since the previous
-  reading, plus `STEP_WINDOW_SLACK_MS` (60 s) of grace for sensor batching. Without the cap, vendor
+- The interval a reading is measured over is the time since the previous reading, and is "since
+  boot" only when the uptime clock itself restarted. A counter that starts over while uptime keeps
+  running — a sensor hub reset — is a fresh counter over an ordinary interval, and is bounded like
+  one.
+- The credited number is capped at `MAX_STEPS_PER_SECOND` (4) over that interval, plus
+  `STEP_WINDOW_SLACK_MS` (60 s) of grace for sensor batching. Without the cap, vendor
   firmware that keeps the counter across a reboot would dump its lifetime total onto one day; with
   it, any sensor anomaly is bounded by elapsed time. The slack matters: batched events can arrive
   milliseconds apart carrying real steps, and a cap rounding to zero would lose them for good.
