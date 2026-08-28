@@ -96,7 +96,11 @@ class StepsRepository(private val database: AppDatabase) {
             // from it — see spreadOverSlots for why an even spread is all the sensor supports.
             val toMinute = now.toSecondOfDay() / SECONDS_PER_MINUTE
             val fromMinute = toMinute - (outcome.windowMillis / MILLIS_PER_MINUTE).toInt()
-            addSlots(iso, spreadOverSlots(outcome.addedSteps, fromMinute, toMinute))
+            addSlots(
+                iso,
+                stepsBefore = existing?.steps ?: 0,
+                shares = spreadOverSlots(outcome.addedSteps, fromMinute, toMinute),
+            )
         }
 
         dao.upsertSyncState(
@@ -112,10 +116,22 @@ class StepsRepository(private val database: AppDatabase) {
     /**
      * Adds [shares] onto whatever the day's slots already hold. Called inside the reading's
      * transaction, so a day's breakdown and its total can never land apart.
+     *
+     * A day's breakdown is either complete or absent, never partial. [stepsBefore] is the day's
+     * total as it stood before this reading, and the slots already stored have to account for
+     * exactly that much; when they do not, this day is one an import or a restore left with a total
+     * it did not write a breakdown for, and adding a share would start a second, partial one under
+     * an unrelated number — bars summing to a few hundred beneath a total of thousands. Such a day
+     * loses its slots instead and reads as "no breakdown" until the next day begins.
      */
-    private suspend fun addSlots(iso: String, shares: List<SlotShare>) {
+    private suspend fun addSlots(iso: String, stepsBefore: Int, shares: List<SlotShare>) {
+        val stored = dao.slotsOf(iso)
+        if (stored.sumOf { it.steps } != stepsBefore) {
+            if (stored.isNotEmpty()) dao.deleteSlotsOf(iso)
+            return
+        }
         if (shares.isEmpty()) return
-        val existing = dao.slotsOf(iso).associate { it.slot to it.steps }
+        val existing = stored.associate { it.slot to it.steps }
         dao.upsertSlots(
             shares.map { share ->
                 DaySlot(date = iso, slot = share.slot, steps = (existing[share.slot] ?: 0) + share.steps)

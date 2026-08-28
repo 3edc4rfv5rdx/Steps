@@ -8,10 +8,12 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import xx.steps.data.AppDatabase
+import xx.steps.data.DaySteps
 import xx.steps.data.StepsRepository
 import java.time.LocalDate
 
@@ -142,6 +144,24 @@ class StepsRepositoryTest {
         )
 
         assertEquals(1_000, repository.observeDay(today).first()?.steps)
+    }
+
+    @Test
+    fun anImportThatRaisesTodayLeavesNoPartialBreakdown() = runBlocking {
+        repository.recordReading(1_000, goal = 8_000, today = today, uptimeMillis = nextUptime())
+        repository.recordReading(2_000, goal = 8_000, today = today, uptimeMillis = nextUptime())
+        assertEquals(1_000, repository.observeSlots(today).first().sumOf { it.steps })
+
+        // A file holding a bigger number for today: the total is taken, and the breakdown of the
+        // smaller one goes with it — a file carries day totals only.
+        repository.setDays(listOf(DaySteps(today.toIso(), 5_000, 8_000)))
+
+        // Counting does not stop, and the next reading must not start a second breakdown under a
+        // total it knows nothing about: the day keeps its steps and reads as having no breakdown.
+        repository.recordReading(2_200, goal = 8_000, today = today, uptimeMillis = nextUptime())
+
+        assertEquals(5_200, repository.observeDay(today).first()?.steps)
+        assertTrue(repository.observeSlots(today).first().isEmpty())
     }
 
     @Test
