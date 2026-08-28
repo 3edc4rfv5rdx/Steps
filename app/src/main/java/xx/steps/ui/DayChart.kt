@@ -1,22 +1,40 @@
 package xx.steps.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -24,26 +42,40 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
+import androidx.annotation.StringRes
+import xx.steps.CHART_BUCKET_MINUTES
 import xx.steps.HOURS_PER_DAY
 import xx.steps.MINUTES_PER_DAY
 import xx.steps.MINUTES_PER_HOUR
+import xx.steps.R
+import xx.steps.SLOT_MINUTES
 import xx.steps.formatMinuteOfDay
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 
 /** Height of the bars themselves, and the band under them the hour labels are written in. */
-private val PLOT_HEIGHT = 140.dp
+private val PLOT_HEIGHT = 190.dp
 private val LABEL_BAND = 26.dp
 
 /** Share of a bar's slot taken by the bar; the rest is the gap to the next one. */
-private const val BAR_WIDTH_SHARE = 0.72f
+private const val BAR_WIDTH_SHARE = 0.88f
 
-/** No bar is drawn thinner than this: at half-hour resolution a slot is only a few dp wide. */
-private val MIN_BAR_WIDTH = 2.dp
+/** No bar is drawn thinner than this: at quarter-hour resolution a slot is only a few dp wide. */
+private val MIN_BAR_WIDTH = 3.dp
 private val BAR_CORNER = 2.dp
 
 /** The pointer's dot, sitting on top of the bar it has picked. */
@@ -329,6 +361,133 @@ fun ChartMenuButton(
     }
 }
 
-/** Sized to be hit without aiming; the strip lies over the date, so it can afford the room. */
-private val MENU_BUTTON_SIZE = 46.dp
-private val MENU_ICON_SIZE = 26.dp
+/**
+ * Sized to be hit without aiming, and no larger: five of these and the gaps between them have to
+ * fit across a dialog's title, and a Row that runs out of room squeezes the ⋮ at the end of it.
+ */
+private val MENU_BUTTON_SIZE = 44.dp
+private val MENU_ICON_SIZE = 24.dp
+
+/**
+ * The bar width in force, and the menu that changes it. It stands in the dialog's button row beside
+ * Close rather than on a row of its own under the chart: three buttons cost the dialog a whole
+ * line, and the bars are worth more than that line was.
+ */
+@Composable
+fun ChartBucketMenu(selected: Int, onSelect: (Int) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        FilledTonalButton(
+            onClick = { open = true },
+            contentPadding = BUCKET_BUTTON_PADDING,
+        ) {
+            Text(stringResource(bucketLabel(selected)), maxLines = 1)
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = stringResource(R.string.chart_bucket),
+                modifier = Modifier.size(MENU_ICON_SIZE),
+            )
+        }
+        if (open) {
+            // Material's own DropdownMenu drops downwards whenever there is room below the anchor,
+            // and below this button there is the whole rest of the screen — the menu would cover
+            // the Close button standing next to it. A popup of its own, told where to go, is what
+            // keeps the list above the line it belongs to.
+            val gap = with(LocalDensity.current) { MENU_GAP.roundToPx() }
+            Popup(
+                popupPositionProvider = remember(gap) { AboveAnchor(gap) },
+                onDismissRequest = { open = false },
+                properties = PopupProperties(focusable = true),
+            ) {
+                // The stock menu fill is the container tone the dialog under it already uses, so
+                // the menu would be a shadow's worth of difference from its background. A wash of
+                // the accent over that fill, and a line of the accent around it, tell the two
+                // apart in either theme without a colour of their own.
+                val accent = MaterialTheme.colorScheme.primary
+                Surface(
+                    shape = MenuDefaults.shape,
+                    color = accent.copy(alpha = MENU_TINT).compositeOver(MenuDefaults.containerColor),
+                    tonalElevation = MenuDefaults.TonalElevation,
+                    shadowElevation = MenuDefaults.ShadowElevation,
+                    modifier = Modifier.border(
+                        width = MENU_BORDER,
+                        color = accent.copy(alpha = MENU_BORDER_TINT),
+                        shape = MenuDefaults.shape,
+                    ),
+                ) {
+                    // A menu item fills the width it is given, and the popup is given the whole
+                    // window — so the width has to come from the widest label instead.
+                    Column(
+                        modifier = Modifier
+                            .width(IntrinsicSize.Max)
+                            .padding(vertical = MENU_EDGE),
+                    ) {
+                        CHART_BUCKET_MINUTES.forEach { minutes ->
+                            DropdownMenuItem(
+                                text = {
+                                    // The width in force is named in the accent colour rather than
+                                    // by a tick beside it: the menu is three lines long, and a
+                                    // colour is read faster.
+                                    Text(
+                                        text = stringResource(bucketLabel(minutes)),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = if (minutes == selected) {
+                                            FontWeight.SemiBold
+                                        } else {
+                                            FontWeight.Normal
+                                        },
+                                        color = if (minutes == selected) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        },
+                                    )
+                                },
+                                onClick = {
+                                    onSelect(minutes)
+                                    open = false
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** The menu clears the button by this much, and keeps the same distance inside its own edges. */
+private val MENU_GAP = 4.dp
+private val MENU_EDGE = 8.dp
+
+/** How much of the accent goes into the menu's fill, and into the line around it. */
+private const val MENU_TINT = 0.14f
+private const val MENU_BORDER_TINT = 0.45f
+private val MENU_BORDER = 1.dp
+
+/**
+ * Puts a popup directly above whatever opened it, left edges aligned, pushed back onto the screen
+ * if it would hang off either end of it.
+ */
+private class AboveAnchor(private val gap: Int) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset = IntOffset(
+        x = anchorBounds.left.coerceIn(0, maxOf(0, windowSize.width - popupContentSize.width)),
+        y = (anchorBounds.top - popupContentSize.height - gap).coerceAtLeast(0),
+    )
+}
+
+/** The label carries its own trailing arrow, so the room on its right is the arrow's, not padding. */
+private val BUCKET_BUTTON_PADDING = PaddingValues(start = 14.dp, end = 4.dp)
+
+/** The name of a bar width: an hour, half of one, or the quarter hour the steps are recorded in. */
+@StringRes
+private fun bucketLabel(minutes: Int): Int = when {
+    minutes >= MINUTES_PER_HOUR -> R.string.chart_hour
+    minutes > SLOT_MINUTES -> R.string.chart_half_hour
+    else -> R.string.chart_quarter_hour
+}

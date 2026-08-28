@@ -82,7 +82,7 @@
     <string name="work_busy">Другая операция ещё идёт</string>
     <string name="close">Закрыть</string>
     <!-- Day breakdown -->
-    <string name="chart_hour">1 ч</string>
+    <string name="chart_hour">1 час</string>
     <string name="chart_half_hour">30 мин</string>
     <string name="chart_quarter_hour">15 мин</string>
     <string name="stat_total">Всего</string>
@@ -95,6 +95,7 @@
     <string name="setting_journal">Журнал подсчёта</string>
     <string name="setting_journal_hint">Каждое чтение пишется в Documents/Steps</string>
     <string name="notification_channel">Подсчёт шагов</string>
+    <string name="chart_bucket">Ширина полосы</string>
     <string name="chart_controls">Управление графиком</string>
     <string name="chart_zoom_in">Приблизить</string>
     <string name="chart_zoom_out">Отдалить</string>

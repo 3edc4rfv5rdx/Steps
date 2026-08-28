@@ -3,6 +3,11 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F The chart's bar-width menu is only as wide as its labels, and an accent tint and outline set it apart from the dialog behind it.
+- F The day chart's controls run ‹ › − +.
+- F The day chart opens at quarter-hour bars, the resolution the day is actually stored at.
+- F The day chart's bar width moved into a drop-down beside the dialog's Close button, and the chart grew into the row of buttons it replaced.
+- F The day chart's bars are drawn wider, with a thinner gap between them.
 - I 06-Test.sh clears the previous run's results first, so a build that fails to compile can no longer be summarised as a pass.
 - I SPEC and the journal's own description say what the code does: the .txt extension, the whole test suite, and the release scripts.
 - E A dark start no longer flashes a white window, and the status bar icons follow the theme you picked rather than the phone's.

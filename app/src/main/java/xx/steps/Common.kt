@@ -94,16 +94,18 @@ const val SLOT_MINUTES = 15
 const val SLOTS_PER_DAY = MINUTES_PER_DAY / SLOT_MINUTES
 
 /**
- * Bar widths the day chart can be read at, in minutes, coarsest first. The finest is [SLOT_MINUTES]
- * itself — nothing below it is recorded, so nothing below it can be drawn.
+ * Bar widths the day chart can be read at, in minutes, finest first — the order the chart's menu
+ * lists them in. The finest is [SLOT_MINUTES] itself: nothing below it is recorded, so nothing
+ * below it can be drawn.
  */
-val CHART_BUCKET_MINUTES = listOf(60, DEFAULT_CHART_BUCKET_MINUTES, SLOT_MINUTES)
+val CHART_BUCKET_MINUTES = listOf(SLOT_MINUTES, SLOT_MINUTES * 2, MINUTES_PER_HOUR)
 
 /**
- * Bar width the day chart opens at. Half an hour shows the shape of a day — when it started, where
- * the walks were — without thinning the bars to the point where a quiet stretch is unreadable.
+ * Bar width the day chart opens at: the stored slot itself, which is everything the day is known
+ * at. Anything coarser hides walks by adding them to the quarter hours around them, and the chart
+ * pinches open when the bars get too fine to read.
  */
-const val DEFAULT_CHART_BUCKET_MINUTES = 30
+const val DEFAULT_CHART_BUCKET_MINUTES = SLOT_MINUTES
 
 /** Step length in centimetres until the user measures their own — an average adult stride. */
 const val DEFAULT_STEP_LENGTH_CM = 70

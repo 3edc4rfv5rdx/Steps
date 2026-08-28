@@ -1,6 +1,5 @@
 package xx.steps.ui
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -39,13 +38,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import xx.steps.CHART_BUCKET_MINUTES
 import xx.steps.DEFAULT_CHART_BUCKET_MINUTES
 import xx.steps.MINUTES_PER_DAY
-import xx.steps.MINUTES_PER_HOUR
 import xx.steps.R
 import xx.steps.SECONDS_PER_MINUTE
-import xx.steps.SLOT_MINUTES
 import xx.steps.data.StepsRepository
 import xx.steps.formatDayLabel
 import xx.steps.formatMinuteOfDay
@@ -56,8 +52,8 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 /**
- * One day taken apart: its steps hour by hour, or half hour by half hour, with a pointer to read
- * the chart with and the day's figures under it.
+ * One day taken apart: its steps a quarter hour, half hour or hour at a time — the menu on the
+ * title line picks which — with a pointer to read the chart with and the day's figures under it.
  *
  * Everything is observed rather than passed in, so the dialog opened on today keeps counting while
  * it is up. A day walked before the app recorded a breakdown has bars of zero and says so — its
@@ -143,16 +139,6 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
                 ) {
                 if (controlsOpen) {
                     ChartMenuButton(
-                        icon = Icons.Filled.Add,
-                        label = stringResource(R.string.chart_zoom_in),
-                    ) { moveView(zoom = BUTTON_ZOOM_STEP, pan = 0f) }
-                    Spacer(modifier = Modifier.width(CONTROL_GAP))
-                    ChartMenuButton(
-                        icon = Icons.Filled.Remove,
-                        label = stringResource(R.string.chart_zoom_out),
-                    ) { moveView(zoom = 1f / BUTTON_ZOOM_STEP, pan = 0f) }
-                    Spacer(modifier = Modifier.width(CONTROL_GAP))
-                    ChartMenuButton(
                         icon = Icons.AutoMirrored.Filled.ArrowBack,
                         label = stringResource(R.string.chart_earlier),
                     ) { moveView(zoom = 1f, pan = BUTTON_PAN_STEP) }
@@ -161,6 +147,16 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
                         icon = Icons.AutoMirrored.Filled.ArrowForward,
                         label = stringResource(R.string.chart_later),
                     ) { moveView(zoom = 1f, pan = -BUTTON_PAN_STEP) }
+                    Spacer(modifier = Modifier.width(CONTROL_GAP))
+                    ChartMenuButton(
+                        icon = Icons.Filled.Remove,
+                        label = stringResource(R.string.chart_zoom_out),
+                    ) { moveView(zoom = 1f / BUTTON_ZOOM_STEP, pan = 0f) }
+                    Spacer(modifier = Modifier.width(CONTROL_GAP))
+                    ChartMenuButton(
+                        icon = Icons.Filled.Add,
+                        label = stringResource(R.string.chart_zoom_in),
+                    ) { moveView(zoom = BUTTON_ZOOM_STEP, pan = 0f) }
                     Spacer(modifier = Modifier.width(CONTROL_GAP))
                 }
                 ChartMenuButton(
@@ -176,9 +172,6 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                BucketChoice(selected = bucketMinutes, onSelect = { bucketMinutes = it })
-                Spacer(modifier = Modifier.height(12.dp))
-
                 PointerReadout(bucket = picked, hasBreakdown = stats.steps > 0)
                 DayChart(
                     buckets = buckets,
@@ -213,38 +206,24 @@ fun DayDetailDialog(date: LocalDate, onDismiss: () -> Unit) {
                 }
             }
         },
-        confirmButton = { DialogConfirmButton(stringResource(R.string.close), onDismiss) },
+        // Both go in as the confirm slot, on a row of their own: Material stacks a dismiss button
+        // hard against the confirm one at the right edge, and the width menu is not an answer to
+        // the dialog — it belongs at the far end of the line, away from the button that closes it.
+        confirmButton = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ChartBucketMenu(selected = bucketMinutes, onSelect = { bucketMinutes = it })
+                DialogConfirmButton(stringResource(R.string.close), onDismiss)
+            }
+        },
     )
 }
 
 /** Pointer position meaning "nothing chosen yet"; a real one is a fraction of the day, 0 to 1. */
 private const val UNPLACED_POINTER = -1f
-
-/** How wide a bar is. The width in force is the accent button, the others are tonal beside it. */
-@Composable
-private fun BucketChoice(selected: Int, onSelect: (Int) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-    ) {
-        CHART_BUCKET_MINUTES.forEach { minutes ->
-            val label = stringResource(bucketLabel(minutes))
-            if (minutes == selected) {
-                DialogConfirmButton(label) { onSelect(minutes) }
-            } else {
-                DialogDismissButton(label) { onSelect(minutes) }
-            }
-        }
-    }
-}
-
-/** The name of a bar width: an hour, half of one, or the quarter hour the steps are recorded in. */
-@StringRes
-private fun bucketLabel(minutes: Int): Int = when {
-    minutes >= MINUTES_PER_HOUR -> R.string.chart_hour
-    minutes > SLOT_MINUTES -> R.string.chart_half_hour
-    else -> R.string.chart_quarter_hour
-}
 
 /** What the pointer is standing on: the stretch of the day, and what was walked in it. */
 @Composable
@@ -300,8 +279,8 @@ private fun StatRow(label: String, value: String) {
 private fun timeRange(fromMinute: Int, toMinute: Int): String =
     formatMinuteOfDay(fromMinute) + " – " + formatMinuteOfDay(toMinute)
 
-/** Gap between the fold-out controls, wide enough that neighbours are not caught by a thumb. */
-private val CONTROL_GAP = 12.dp
+/** Gap between the fold-out controls: enough to tell them apart, little enough that all five fit. */
+private val CONTROL_GAP = 10.dp
 
 /** Room kept clear at the end of the date, so the shut ⋮ button never sits on the text. */
 private val MENU_RESERVE = 56.dp

@@ -95,6 +95,7 @@
     <string name="setting_journal">Журнал підрахунку</string>
     <string name="setting_journal_hint">Кожне зчитування пишеться в Documents/Steps</string>
     <string name="notification_channel">Підрахунок кроків</string>
+    <string name="chart_bucket">Ширина смуги</string>
     <string name="chart_controls">Керування графіком</string>
     <string name="chart_zoom_in">Наблизити</string>
     <string name="chart_zoom_out">Віддалити</string>

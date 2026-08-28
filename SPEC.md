@@ -175,8 +175,9 @@ app/src/main/java/xx/steps/
   ui/DayChart.kt           one day as bars from midnight to midnight, with the pointer that reads
                            it. Two fingers stretch the X axis, holding one finger still hands it
                            over to dragging the window, and one gesture handler decides between
-                           tap, scrub, pan and pinch. ChartMenuButton is the fold-out control
-  ui/DayDetailDialog.kt    the day taken apart: hour or half-hour bars, the pointer readout, and the
+                           tap, scrub, pan and pinch. ChartMenuButton is the fold-out control,
+                           ChartBucketMenu the drop-down that picks the bar width
+  ui/DayDetailDialog.kt    the day taken apart: the bar width menu, the pointer readout, and the
                            day's figures
   ui/ScreenWork.kt         the jobs a screen starts — export, import, restore, the demo switch —
                            and the one message they leave behind: both held by the process, since a
@@ -249,9 +250,10 @@ carry the total and the distance it comes to. A totals card sits on
 top: week / month / year / all time. Days that met their goal are marked by the color of the
 number — against the goal stored in that day's row. A tap on a day opens its breakdown.
 
-**A day's breakdown.** A dialog over either screen: the day from midnight to midnight as bars, an
-hour, half an hour or a quarter of one by three buttons — half an hour to begin with — built out of
-the stored quarter hours, every bar the full accent, and ruled in amber every six hours. A pointer
+**A day's breakdown.** A dialog over either screen: the day from midnight to midnight as bars, a
+quarter of an hour, half an hour or a whole one by a drop-down beside the dialog's Close button —
+a quarter of an hour to begin with — built out of the stored quarter hours, every bar the full
+accent, and ruled in amber every six hours. A pointer
 reads it — the line follows the finger while its dot snaps to the top of the bar underneath, a tap
 puts it where it landed, and it stays there to be read; above the chart it names the stretch of the
 day and what was walked in it. It starts on the current hour for today and on the busiest stretch

@@ -81,7 +81,7 @@
     <string name="work_busy">Another operation is still running</string>
     <string name="close">Close</string>
     <!-- Day breakdown -->
-    <string name="chart_hour">1 h</string>
+    <string name="chart_hour">1 hour</string>
     <string name="chart_half_hour">30 min</string>
     <string name="chart_quarter_hour">15 min</string>
     <string name="stat_total">Total</string>
@@ -94,6 +94,7 @@
     <string name="setting_journal">Counting journal</string>
     <string name="setting_journal_hint">Every reading written to Documents/Steps</string>
     <string name="notification_channel">Step counting</string>
+    <string name="chart_bucket">Bar width</string>
     <string name="chart_controls">Chart controls</string>
     <string name="chart_zoom_in">Zoom in</string>
     <string name="chart_zoom_out">Zoom out</string>
