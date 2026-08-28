@@ -25,6 +25,29 @@ import xx.steps.settings.AppSettings
 fun logSteps(message: String) = StepLog.write(message)
 
 /**
+ * Ceiling on the lines held back from failed writes. A journal that cannot be written at all — no
+ * storage, no permission — would otherwise grow in memory for as long as the walk lasts. Past this
+ * the oldest go, since the lines worth having when writing resumes are the recent ones.
+ */
+const val MAX_CARRIED = 64 * 1024
+
+/**
+ * What a batch that could not be written carries to the next attempt: every whole line it held, and
+ * at most [maxChars] of them counted from the end.
+ *
+ * Only a batch actually cut at the ceiling loses a line, and only its first, which the cut has left
+ * half a line long. A batch under the ceiling keeps everything — trimming it too would drop the
+ * oldest line held, the one nearest to whatever went wrong, on every failed write.
+ */
+fun carriedAfterFailure(batch: String, maxChars: Int = MAX_CARRIED): String {
+    if (batch.length <= maxChars) return batch
+    val tail = batch.takeLast(maxChars)
+    // The cut landed exactly on a line break, so the tail already begins at a whole line.
+    if (batch[batch.length - maxChars - 1] == '\n') return tail
+    return tail.substringAfter('\n', "")
+}
+
+/**
  * The counting journal, as a plain text file the user can open in any file manager:
  * `Documents/Steps/steps-<date>.txt`, one file per day, one line per event.
  *
@@ -39,14 +62,6 @@ object StepLog {
 
     /** How long a batch is allowed to gather before it is written. */
     private const val BATCH_MS = 1_000L
-
-    /**
-     * Ceiling on the lines held back from failed writes. A journal that cannot be written at all —
-     * no storage, no permission — would otherwise grow in memory for as long as the walk lasts.
-     * Past this the oldest go, since the lines worth having when writing resumes are the recent
-     * ones.
-     */
-    private const val MAX_CARRIED = 64 * 1024
 
     private val STAMP: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
 
@@ -79,12 +94,8 @@ object StepLog {
                 // Deleting the day's file used to take the batch in flight with it — the lines were
                 // gone before the new file existed. They are carried to the next attempt instead,
                 // which is the one that creates it.
-                carried = if (append(resolver, batch.toString())) {
-                    ""
-                } else {
-                    // Trimmed at a line break, so what is kept is whole lines and never half of one.
-                    batch.toString().takeLast(MAX_CARRIED).substringAfter('\n', "")
-                }
+                // Trimmed at a line break, so what is kept is whole lines and never half of one.
+                carried = if (append(resolver, batch.toString())) "" else carriedAfterFailure(batch.toString())
             }
         }
     }
