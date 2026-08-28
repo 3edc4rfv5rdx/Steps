@@ -87,6 +87,11 @@ carry.
   unattended.
 - Days walked before this table existed simply have no breakdown; a CSV import, which carries day
   totals only, drops the breakdown of any day whose total it changes.
+- A day's breakdown is either complete or absent, never partial. Today keeps counting after such an
+  import, so every reading checks that the slots already stored account for the day's total before
+  adding its own share: when they do not — an import or a restore left a total whose breakdown went
+  with it — the day's slots are dropped and it reads as having none until the next day begins.
+  Without that, the bars would sum to one reading's worth of steps beneath a total of thousands.
 
 Accepted losses, documented in the README: steps between the last reading and a reboot; up to
 15 minutes of evening steps landing on the next day.
