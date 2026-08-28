@@ -3,6 +3,8 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F Today's row in History is filled with the accent colour instead of plain black or white.
+- F The dark theme's tonal buttons are a lighter grey.
 - F The chart's bar-width menu is only as wide as its labels, and an accent tint and outline set it apart from the dialog behind it.
 - F The day chart's controls run ‹ › − +.
 - F The day chart opens at quarter-hour bars, the resolution the day is actually stored at.
