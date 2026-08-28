@@ -58,6 +58,38 @@ class StepSyncTest {
     }
 
     @Test
+    fun `a counter falling while the clock runs on is capped by the real interval`() {
+        // A sensor-hub reset, or a reading that reached the fold out of order: the counter starts
+        // over but the uptime is higher than the stored one, which is proof the phone did not. The
+        // fresh counter is still offered whole, and the minute that actually elapsed is what bounds
+        // it — crediting it against the time since boot would put 20 000 steps on the day.
+        val outcome = foldReading(
+            SyncState(24_000, upFor2h),
+            rawCount = 20_000,
+            uptimeMillis = upFor2h + 60_000,
+        )
+
+        val cap = (60_000L + STEP_WINDOW_SLACK_MS) / 1000L * MAX_STEPS_PER_SECOND
+        assertEquals(cap.toInt(), outcome.addedSteps)
+        assertEquals(60_000L, outcome.windowMillis)
+    }
+
+    @Test
+    fun `a counter falling with the clock is still capped by the time since boot`() {
+        // The mirror case: both restarted, so this really is a fresh boot and the whole counter is
+        // the day's steps — bounded only by how long the phone has been up.
+        val outcome = foldReading(
+            SyncState(24_000, upFor2h),
+            rawCount = 20_000,
+            uptimeMillis = quarterHour,
+        )
+
+        val cap = (quarterHour + STEP_WINDOW_SLACK_MS) / 1000L * MAX_STEPS_PER_SECOND
+        assertEquals(cap.toInt(), outcome.addedSteps)
+        assertEquals(quarterHour, outcome.windowMillis)
+    }
+
+    @Test
     fun `uptime going backwards means a reboot even when the counter is higher`() {
         // Rebooted twice in a day: the fresh counter passed the pre-reboot reading, and only the
         // uptime restart gives it away. Counting the difference would lose the steps before it.

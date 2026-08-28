@@ -18,7 +18,7 @@ data class SyncState(
  * Result of folding one raw reading: steps to add to the current day, and the state to persist.
  *
  * [windowMillis] is the stretch of time those steps had to happen in — since the previous reading,
- * or since boot when the phone restarted in between. The day total does not care, but the
+ * or since boot when the uptime clock itself restarted in between. The day total does not care, but the
  * intra-day breakdown spreads the steps over exactly this window, so it is decided here, next to
  * the reboot rule, rather than guessed at again by the caller.
  */
@@ -61,9 +61,17 @@ fun foldReading(previous: SyncState?, rawCount: Long, uptimeMillis: Long): SyncO
 
     // Uptime runs from zero at every boot, so a value below the last one means the phone restarted
     // and the sensor restarted with it; a counter below its previous value says the same thing.
-    val rebooted = uptimeMillis < previous.lastUptimeMillis || rawCount < previous.lastRaw
-    val rawDelta = if (rebooted) rawCount else rawCount - previous.lastRaw
-    val windowMillis = if (rebooted) uptimeMillis else uptimeMillis - previous.lastUptimeMillis
+    val clockRestarted = uptimeMillis < previous.lastUptimeMillis
+    val counterRestarted = rawCount < previous.lastRaw
+    val rawDelta = if (clockRestarted || counterRestarted) rawCount else rawCount - previous.lastRaw
+
+    // The two restarts are read apart on purpose. A counter that starts over while the clock keeps
+    // running — a sensor-hub reset, or a reading that reached the transaction out of order — is a
+    // fresh counter over the ordinary interval, not over the whole time since boot: only a clock
+    // that restarted proves nothing else could have been measured from. Handing the window the
+    // whole uptime there would raise the ceiling below to thousands of steps and smear them flat
+    // across the day chart, which measures its spread back from the same number.
+    val windowMillis = if (clockRestarted) uptimeMillis else uptimeMillis - previous.lastUptimeMillis
 
     // A counter that survives a reboot (some vendor firmware keeps it) would otherwise be read as
     // millions of fresh steps. Nobody outruns four steps a second, so the elapsed time is the

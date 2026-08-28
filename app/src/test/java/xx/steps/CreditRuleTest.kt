@@ -7,6 +7,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import xx.steps.steps.DemoSteps
+import xx.steps.steps.MAX_STEPS_PER_SECOND
+import xx.steps.steps.STEP_WINDOW_SLACK_MS
 import xx.steps.steps.SyncState
 import xx.steps.steps.creditsSteps
 import xx.steps.steps.foldReading
@@ -37,10 +39,12 @@ class CreditRuleTest {
         val previous = SyncState(lastRaw = 24_000L, lastUptimeMillis = 7_200_000L)
         val firstReading = DemoSteps.readings().first()
 
-        // What the counting rule alone would make of it: two hours of uptime is a wide enough
-        // window for the cap to let the whole of it through.
+        // What the counting rule alone would make of it: a counter below the stored one reads as a
+        // restart, so the whole fake baseline is offered. The cap clips it to the minute that
+        // actually elapsed, which is still hundreds of steps out of nothing.
         val outcome = foldReading(previous, firstReading, uptimeMillis = 7_260_000L)
-        assertEquals(firstReading.toInt(), outcome.addedSteps)
+        val cap = (60_000L + STEP_WINDOW_SLACK_MS) / 1000L * MAX_STEPS_PER_SECOND
+        assertEquals(cap.toInt(), outcome.addedSteps)
         assertTrue(outcome.addedSteps > 0)
 
         // Which is why that one reading is folded without credit — baseline only, as after install.
