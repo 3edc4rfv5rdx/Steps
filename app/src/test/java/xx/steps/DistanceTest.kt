@@ -25,6 +25,27 @@ class DistanceTest {
     }
 
     @Test
+    fun `a distance that rounds up to a kilometre is one`() {
+        // 1 428 steps at the default 70 cm: 999.6 m, which the metre rendering prints as 1000 —
+        // and "1000 m" is a kilometre said wrong.
+        assertTrue(isKilometres(distanceMeters(1_428, 70)))
+        assertFalse(isKilometres(distanceMeters(1_427, 70)))
+    }
+
+    @Test
+    fun `no metre rendering ever prints a thousand`() {
+        var meters = 990.0
+        while (meters <= 1_010.0) {
+            if (!isKilometres(meters)) {
+                // The metre branch carries no grouping separator, so this parses in any locale.
+                assertTrue(formatDistanceValue(meters).toInt() < 1_000)
+                assertTrue(formatDistanceValue(meters, decimals = 0).toInt() < 1_000)
+            }
+            meters += 0.05
+        }
+    }
+
+    @Test
     fun `a step length outside human range is clamped`() {
         assertEquals(MIN_STEP_LENGTH_CM, clampStepLength(0))
         assertEquals(MIN_STEP_LENGTH_CM, clampStepLength(-40))

@@ -7,6 +7,7 @@ import java.time.YearMonth
 import java.time.temporal.WeekFields
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.round
 import kotlin.math.roundToInt
 
 /** Shared constants and helpers. Everything used by more than one screen or layer lives here. */
@@ -202,18 +203,27 @@ fun formatMinuteOfDay(minute: Int): String =
     String.format(Locale.getDefault(), "%02d:%02d", minute / MINUTES_PER_HOUR, minute % MINUTES_PER_HOUR)
 
 /**
+ * Metres as they are about to be printed. Both the number and its unit are decided from this and
+ * never from the exact value behind it: metres are rendered whole, so 999.6 m prints as 1000 — and
+ * "1000 m" is a kilometre said wrong.
+ */
+private fun printedMeters(meters: Double): Double = round(meters)
+
+/**
  * Distance as a bare number, without a unit: metres below a kilometre, kilometres with one decimal
  * above it. The unit is a separate localized string, so the caller pairs the two.
  */
-fun formatDistanceValue(meters: Double, decimals: Int = 1): String =
-    if (meters < 1_000) {
-        String.format(Locale.getDefault(), "%.0f", meters)
+fun formatDistanceValue(meters: Double, decimals: Int = 1): String {
+    val printed = printedMeters(meters)
+    return if (printed < 1_000) {
+        String.format(Locale.getDefault(), "%.0f", printed)
     } else {
-        String.format(Locale.getDefault(), "%,.${decimals}f", meters / 1_000)
+        String.format(Locale.getDefault(), "%,.${decimals}f", printed / 1_000)
     }
+}
 
 /** True when [formatDistanceValue] rendered kilometres rather than metres. */
-fun isKilometres(meters: Double): Boolean = meters >= 1_000
+fun isKilometres(meters: Double): Boolean = printedMeters(meters) >= 1_000
 
 /**
  * Distance walked, with its unit — "4,4 km" or "850 m". One place builds this string, so the ring,
