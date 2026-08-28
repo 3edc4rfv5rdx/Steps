@@ -31,8 +31,15 @@ history tree, MediaStore export, the theme.
   and reset to zero by a reboot.
 - The delta is `rawCount - lastRaw`; after a reboot it is the whole `rawCount`, because the sensor
   restarts at zero.
-- A reboot is detected two ways: uptime below the stored one, or `rawCount` below the stored one.
-  Wall-clock time is not used — it jumps on clock corrections and would need an empirical tolerance.
+- A reading carries the uptime at which it was taken, captured where it is read rather than where
+  it is written: two readers hold their own registrations and nothing orders them, so the value that
+  reaches the fold second is not always the one that was read second.
+- A reboot is detected two ways: the uptime *at the fold* below the stored one, or `rawCount` below
+  the stored one. The fold's own clock is the one asked, because it cannot go backwards without a
+  restart, while a reading can simply be old. Wall-clock time is not used — it jumps on clock
+  corrections and would need an empirical tolerance.
+- A reading taken at or before the stored baseline, carrying a counter at or below it, is dropped
+  whole: everything it saw is already counted, and the baseline stays where it is.
 - The interval a reading is measured over is the time since the previous reading, and is "since
   boot" only when the uptime clock itself restarted. A counter that starts over while uptime keeps
   running — a sensor hub reset — is a fresh counter over an ordinary interval, and is bounded like

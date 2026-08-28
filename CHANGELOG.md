@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- E A step read by the background sync and the open screen at once can no longer take steps off the day.
 - E A step counter that restarts on its own no longer credits thousands of steps at once.
 ## v0.3.20260828+70
 - N The day you open from History stays marked with an outline of the accent until you open another.

@@ -69,9 +69,10 @@ Single `:app` module, package `xx.steps`.
   so it stays covered by plain JVM tests.
 - **`steps/StepSync.kt`** — `foldReading()`, the whole counting rule as one pure function: turn a
   cumulative `TYPE_STEP_COUNTER` reading into "steps to add to today". Reboot detection lives here
-  (uptime or the counter falling below the stored value), as does the physical cap of
-  `MAX_STEPS_PER_SECOND` over the elapsed interval. Covered by `StepSyncTest`; change the rule and
-  the test changes with it, never the other way round.
+  (the fold's own uptime, or the counter, falling below the stored value), as does the physical cap
+  of `MAX_STEPS_PER_SECOND` over the elapsed interval and the dropping of a reading that reached the
+  fold out of order. Covered by `StepSyncTest`; change the rule and the test changes with it, never
+  the other way round.
 - **`steps/StepSensor.kt`** — the only place that talks to `SensorManager`: a flow of readings for
   the open screen, a single timed read for the background worker, and the availability check for
   phones without the sensor. Its flow completes empty when there is no sensor, so collectors need
@@ -112,6 +113,9 @@ Single `:app` module, package `xx.steps`.
 - No reading is trusted beyond what elapsed time allows: the cap of four steps a second is what
   stands between the history and a sensor (or a vendor firmware) that misreports. Any new path that
   credits steps from a raw counter goes through `foldReading()` rather than around it.
+- A reading carries the uptime it was taken at, not the one its transaction ran at: the open screen
+  and the worker read the counter independently, and the older of two readings must never move the
+  baseline back.
 - Steps are credited to the day the reading happens on; the sensor gives no timing breakdown. The
   15-minute sync keeps the midnight error window short, and steps lost to a reboot are accepted.
 - The first reading after install or a data wipe only sets the baseline and credits nothing.
