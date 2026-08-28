@@ -95,10 +95,11 @@ fun bucketAt(buckets: List<DayBucket>, pointer: Float): Int =
 /**
  * One day as bars from midnight to midnight, with a pointer that reads it.
  *
- * The pointer line follows the finger exactly, while its dot snaps to the top of the bar under it:
- * dragging slides along the day and the selection keeps up, a tap puts the pointer where it landed,
- * and lifting the finger leaves it there to be read. Only horizontal drags are taken, so the dialog
- * around the chart can still be scrolled.
+ * The pointer stands on the middle of the bar under the finger, its dot on that bar's top: it is
+ * a whole bar that is read out, so it moves from one to the next rather than sliding between them.
+ * Dragging walks it along the day, a tap puts it on the bar that was hit, and lifting the finger
+ * leaves it there to be read. Only horizontal drags are taken, so the dialog around the chart can
+ * still be scrolled.
  *
  * [onTouch] fires on every touch that lands on the chart, whatever it turns into — the dialog uses
  * it to fold the controls away.
@@ -288,7 +289,9 @@ fun DayChart(
             )
         }
 
-        val pointerX = xOf(pointer.coerceIn(0f, 1f))
+        // Snapped to the middle of the bar it has picked: the readout names one bar, so a line
+        // standing between two of them would name a stretch of the day it is not reading.
+        val pointerX = xOf((picked + 0.5f) / buckets.size)
         drawLine(pointerColor, Offset(pointerX, 0f), Offset(pointerX, plotHeight), hairline)
         drawCircle(
             color = pointerColor,

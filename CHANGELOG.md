@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- F The day chart's pointer stands on the middle of the bar it reads and steps from one bar to the next.
 - F Today's row in History is filled with the accent colour instead of plain black or white.
 - F The dark theme's tonal buttons are a lighter grey.
 - F The chart's bar-width menu is only as wide as its labels, and an accent tint and outline set it apart from the dialog behind it.
