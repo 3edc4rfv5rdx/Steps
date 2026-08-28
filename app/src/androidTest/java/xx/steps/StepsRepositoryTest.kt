@@ -126,6 +126,25 @@ class StepsRepositoryTest {
     }
 
     @Test
+    fun aReadingThatArrivesOutOfOrderChangesNothing() = runBlocking {
+        repository.recordReading(1_000, goal = 8_000, today = today, uptimeMillis = nextUptime())
+        val folded = nextUptime()
+        repository.recordReading(2_000, goal = 8_000, today = today, uptimeMillis = folded)
+
+        // The worker read 1 950 a tenth of a second before that, and only now gets to write it.
+        // Nothing it saw is missing from the baseline, so the day must not move.
+        repository.recordReading(
+            1_950,
+            goal = 8_000,
+            today = today,
+            uptimeMillis = folded - 100,
+            nowMillis = folded + 100,
+        )
+
+        assertEquals(1_000, repository.observeDay(today).first()?.steps)
+    }
+
+    @Test
     fun pausedReadingsAreConsumedButNotCounted() = runBlocking {
         repository.recordReading(1_000, goal = 8_000, today = today, uptimeMillis = nextUptime())
         repository.recordReading(2_000, goal = 8_000, today = today, uptimeMillis = nextUptime())

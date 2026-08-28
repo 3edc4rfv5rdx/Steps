@@ -25,8 +25,8 @@ fun hasStepPermission(context: Context): Boolean =
         PackageManager.PERMISSION_GRANTED
 
 /**
- * The only place that talks to `SensorManager`. Everything it hands out is a raw cumulative
- * counter value; turning that into steps is `foldReading`'s job.
+ * The only place that talks to `SensorManager`. Everything it hands out is a raw cumulative counter
+ * value and the uptime it was read at; turning that into steps is `foldReading`'s job.
  */
 class StepSensor(context: Context) {
 
@@ -42,8 +42,13 @@ class StepSensor(context: Context) {
      *
      * Completes at once when there is no sensor, so a collector needs no separate check. Readings
      * are conflated: only the newest value matters, an older one is already contained in it.
+     *
+     * Each value carries the uptime at which it arrived. That clock is taken here, in the callback,
+     * rather than wherever the reading is finally written: between the two there is a flow hop and
+     * a database transaction, and the counting rule needs to know when the counter said this, not
+     * when the app got round to storing it.
      */
-    fun readings(): Flow<Long> = callbackFlow {
+    fun readings(): Flow<StepReading> = callbackFlow {
         val target = sensor
         if (target == null) {
             logSteps("sensor: no counter on this phone, readings closed")
@@ -61,9 +66,11 @@ class StepSensor(context: Context) {
                 val raw = event.values[0].toLong()
                 lastRaw = raw
                 // The event's own clock, next to ours: both count milliseconds since boot, so the
-                // gap between them is how stale the value being handed over already is.
-                logSteps("sensor: raw=$raw eventAt=${event.timestamp / NANOS_PER_MILLI} now=${uptimeMillis()}")
-                trySend(raw)
+                // gap between them is how stale the value being handed over already is. Ours is the
+                // one carried on — the event's is vendor-supplied and not everywhere the same base.
+                val at = uptimeMillis()
+                logSteps("sensor: raw=$raw eventAt=${event.timestamp / NANOS_PER_MILLI} now=$at")
+                trySend(StepReading(raw, at))
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
@@ -84,7 +91,7 @@ class StepSensor(context: Context) {
      * `firstOrNull`, not `first`: the latter throws on a flow that completes empty, which is
      * exactly what a phone without a step counter produces.
      */
-    suspend fun readOnce(timeoutMillis: Long = SENSOR_READ_TIMEOUT_MS): Long? =
+    suspend fun readOnce(timeoutMillis: Long = SENSOR_READ_TIMEOUT_MS): StepReading? =
         withTimeoutOrNull(timeoutMillis) { readings().firstOrNull() }
             .also { if (it == null) logSteps("sensor: silent for ${timeoutMillis}ms, nothing read") }
 }

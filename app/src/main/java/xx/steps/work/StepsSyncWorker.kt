@@ -60,7 +60,7 @@ class StepsSyncWorker(
 
         // A silent sensor means no step since the last event on devices that do not replay the
         // cached value; the next run picks the counter up, and no steps are lost meanwhile.
-        val raw = sensor.readOnce() ?: run {
+        val reading = sensor.readOnce() ?: run {
             logSteps("worker: sensor said nothing, no steps moved this run")
             return Result.success()
         }
@@ -68,8 +68,11 @@ class StepsSyncWorker(
         // While paused the reading is still consumed, moving the baseline without recording:
         // otherwise the pause would only postpone the steps it is meant to discard.
         val added = StepsRepository.get(applicationContext).recordReading(
-            rawCount = raw,
+            rawCount = reading.rawCount,
             goal = AppSettings.goal.value,
+            // The read above can wait seconds for an event, and the open screen may have folded a
+            // newer value meanwhile: the reading's own clock is what says which came first.
+            uptimeMillis = reading.uptimeMillis,
             credit = !AppSettings.paused.value,
         )
         logSteps("worker: added=$added")

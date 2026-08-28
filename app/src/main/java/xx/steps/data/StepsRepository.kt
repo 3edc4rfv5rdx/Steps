@@ -45,8 +45,12 @@ class StepsRepository(private val database: AppDatabase) {
      * without the steps landing (or the other way round), the next reading would count them twice
      * or drop them. A day's row is created only once it has steps, and is stamped with [goal] then.
      *
-     * [uptimeMillis] must come from the same clock as the stored baseline — see `uptimeMillis()`;
-     * the parameter exists so tests can drive reboots and time windows. [now] is the wall-clock
+     * [uptimeMillis] must come from the same clock as the stored baseline — see `uptimeMillis()` —
+     * and is the uptime at which the reading was *taken*, which the caller captures next to the
+     * value itself; the parameter exists so tests can drive reboots and time windows. [nowMillis]
+     * is that clock read here, on the way into the transaction: a reading can be older than the
+     * baseline when the other reader got there first, but this one cannot go backwards without a
+     * reboot, which is what makes it the one `foldReading` recognises a restart by. [now] is the wall-clock
      * time of the reading, which is what the intra-day breakdown is measured back from. The two
      * defaults are read a moment apart and can land either side of midnight; the day and its slots
      * are then both stamped with the earlier day, so the breakdown still adds up to it.
@@ -61,11 +65,12 @@ class StepsRepository(private val database: AppDatabase) {
         goal: Int,
         today: LocalDate = LocalDate.now(),
         uptimeMillis: Long = uptimeMillis(),
+        nowMillis: Long = uptimeMillis,
         credit: Boolean = true,
         now: LocalTime = LocalTime.now(),
     ): Int = database.withTransaction {
         val previous = dao.syncState(SYNC_STATE_ID)?.let { SyncState(it.lastRaw, it.lastUptimeMillis) }
-        val outcome = foldReading(previous, rawCount, uptimeMillis)
+        val outcome = foldReading(previous, rawCount, uptimeMillis, nowMillis)
 
         // One line per reading, carrying everything the counting rule saw: what the raw delta was,
         // how long it had to happen in, and what survived the cap. A short window under a large
@@ -73,7 +78,7 @@ class StepsRepository(private val database: AppDatabase) {
         logSteps(
             "fold: raw=$rawCount prevRaw=${previous?.lastRaw} " +
                 "delta=${previous?.let { rawCount - it.lastRaw }} " +
-                "uptime=$uptimeMillis prevUptime=${previous?.lastUptimeMillis} " +
+                "uptime=$uptimeMillis now=$nowMillis prevUptime=${previous?.lastUptimeMillis} " +
                 "window=${outcome.windowMillis} added=${outcome.addedSteps} " +
                 "credit=$credit day=$today",
         )

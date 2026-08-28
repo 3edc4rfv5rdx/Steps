@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import xx.steps.BACKGROUND_FOLD_INTERVAL_MS
 import xx.steps.FOREGROUND_FOLD_INTERVAL_MS
@@ -68,14 +69,16 @@ object StepCounting {
                 .flatMapLatest { (access, demo) ->
                     logSteps("counting: access=$access demo=$demo")
                     when {
-                        demo -> DemoSteps.readings()
+                        // The demo's fake counter has no clock of its own, so it is stamped as it
+                        // is drawn — which is the moment it is "read", the flow being unbuffered.
+                        demo -> DemoSteps.readings().map { StepReading(it, uptimeMillis()) }
                         access == StepAccess.READY -> sensor.readings()
                         // Nothing to read yet; the flow restarts by itself once the permission
                         // answer reaches StepAccessState.
                         else -> emptyFlow()
                     }
                 }
-                .collect { raw ->
+                .collect { reading ->
                     val now = uptimeMillis()
                     val paused = AppSettings.paused.value
                     val demo = AppSettings.demoMode.value
@@ -92,8 +95,10 @@ object StepCounting {
                     val credit = creditsSteps(paused, demoFirstOfProcess = demo && demoFoldPending)
                     if (demo) demoFoldPending = false
                     repository.recordReading(
-                        rawCount = raw,
+                        rawCount = reading.rawCount,
                         goal = AppSettings.goal.value,
+                        uptimeMillis = reading.uptimeMillis,
+                        nowMillis = now,
                         credit = credit,
                     )
                 }

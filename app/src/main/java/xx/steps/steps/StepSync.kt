@@ -15,6 +15,15 @@ data class SyncState(
 )
 
 /**
+ * One counter value together with the uptime at which it was observed.
+ *
+ * The two travel as a pair because they are only meaningful together: the value alone says nothing
+ * about how old it is, and two readers with their own registrations can reach the fold out of the
+ * order the sensor spoke in. Captured where the reading is taken, never where it is written.
+ */
+data class StepReading(val rawCount: Long, val uptimeMillis: Long)
+
+/**
  * Result of folding one raw reading: steps to add to the current day, and the state to persist.
  *
  * [windowMillis] is the stretch of time those steps had to happen in — since the previous reading,
@@ -44,9 +53,14 @@ const val STEP_WINDOW_SLACK_MS = 60_000L
 /**
  * Turns a cumulative TYPE_STEP_COUNTER reading into the number of new steps since [previous].
  *
- * [uptimeMillis] is `SystemClock.elapsedRealtime()`: milliseconds since boot, including sleep. It
- * serves two purposes — a value below the previous one is proof of a reboot, and the interval
- * between readings bounds how many steps could physically have happened.
+ * [uptimeMillis] is `SystemClock.elapsedRealtime()` at the moment the reading was *taken*:
+ * milliseconds since boot, including sleep. It is what the interval between readings is measured
+ * with, and that interval bounds how many steps could physically have happened.
+ *
+ * [nowMillis] is the same clock read at the moment of folding, which is the only one that can prove
+ * a reboot: a reading can be older than the stored baseline because another reader got there first,
+ * but the clock the fold itself runs on cannot go backwards without a restart. It defaults to
+ * [uptimeMillis] for callers that read and fold in one breath, tests among them.
  *
  * Every new step is credited to the day the reading happens on. The sensor gives no timing
  * breakdown, so steps taken before midnight but read after it land on the new day; syncing every
@@ -55,13 +69,28 @@ const val STEP_WINDOW_SLACK_MS = 60_000L
  * With no previous state (first run, reinstall, cleared data) nothing is credited — the reading
  * only establishes the baseline, since the counter's accumulated value predates the app.
  */
-fun foldReading(previous: SyncState?, rawCount: Long, uptimeMillis: Long): SyncOutcome {
+fun foldReading(
+    previous: SyncState?,
+    rawCount: Long,
+    uptimeMillis: Long,
+    nowMillis: Long = uptimeMillis,
+): SyncOutcome {
     val newState = SyncState(rawCount, uptimeMillis)
     if (previous == null) return SyncOutcome(0, newState, uptimeMillis)
 
-    // Uptime runs from zero at every boot, so a value below the last one means the phone restarted
-    // and the sensor restarted with it; a counter below its previous value says the same thing.
-    val clockRestarted = uptimeMillis < previous.lastUptimeMillis
+    // Uptime runs from zero at every boot, so a fold running below the stored value means the phone
+    // restarted and the sensor restarted with it; a counter below its previous value says the same
+    // thing. The fold's own clock is asked, not the reading's: the reading may simply be old.
+    val clockRestarted = nowMillis < previous.lastUptimeMillis
+
+    // Two readers hold their own registrations and nothing orders them, so a value read before the
+    // stored one can still arrive after it. Such a reading has nothing left to give — everything it
+    // saw is already in the baseline — and taking it would read the counter as restarted and credit
+    // it whole. It is dropped, baseline and all, rather than moved backwards.
+    if (!clockRestarted && uptimeMillis <= previous.lastUptimeMillis && rawCount <= previous.lastRaw) {
+        return SyncOutcome(0, previous, 0)
+    }
+
     val counterRestarted = rawCount < previous.lastRaw
     val rawDelta = if (clockRestarted || counterRestarted) rawCount else rawCount - previous.lastRaw
 
@@ -71,7 +100,8 @@ fun foldReading(previous: SyncState?, rawCount: Long, uptimeMillis: Long): SyncO
     // that restarted proves nothing else could have been measured from. Handing the window the
     // whole uptime there would raise the ceiling below to thousands of steps and smear them flat
     // across the day chart, which measures its spread back from the same number.
-    val windowMillis = if (clockRestarted) uptimeMillis else uptimeMillis - previous.lastUptimeMillis
+    val windowMillis =
+        if (clockRestarted) uptimeMillis else (uptimeMillis - previous.lastUptimeMillis).coerceAtLeast(0L)
 
     // A counter that survives a reboot (some vendor firmware keeps it) would otherwise be read as
     // millions of fresh steps. Nobody outruns four steps a second, so the elapsed time is the

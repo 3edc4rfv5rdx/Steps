@@ -58,6 +58,40 @@ class StepSyncTest {
     }
 
     @Test
+    fun `a reading taken before the baseline is dropped, baseline and all`() {
+        // Two readers, no order between them: the worker read 9 000, was descheduled, and reached
+        // the fold after the screen had already written 9 050. Everything it saw is in the baseline
+        // already, and the clock the fold runs on has not gone back — so there was no reboot and
+        // there is nothing to credit.
+        val previous = SyncState(9_050, upFor2h)
+
+        val outcome = foldReading(
+            previous,
+            rawCount = 9_000,
+            uptimeMillis = upFor2h - 100,
+            nowMillis = upFor2h + 100,
+        )
+
+        assertEquals(0, outcome.addedSteps)
+        assertEquals(previous, outcome.newState)
+    }
+
+    @Test
+    fun `a reboot is still a reboot when the fold's own clock is behind too`() {
+        // The mirror of the case above: this reading is older than the baseline as well, but the
+        // clock the fold runs on is below it, which only a restart can do.
+        val outcome = foldReading(
+            SyncState(9_050, upFor2h),
+            rawCount = 40,
+            uptimeMillis = 30_000,
+            nowMillis = 30_100,
+        )
+
+        assertEquals(40, outcome.addedSteps)
+        assertEquals(SyncState(40, 30_000), outcome.newState)
+    }
+
+    @Test
     fun `a counter falling while the clock runs on is capped by the real interval`() {
         // A sensor-hub reset, or a reading that reached the fold out of order: the counter starts
         // over but the uptime is higher than the stored one, which is proof the phone did not. The
