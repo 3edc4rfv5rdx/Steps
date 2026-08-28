@@ -261,7 +261,8 @@ demo run and real history must never mix — in one transaction, so the switch e
 not: built whole first, written once. It takes its turn among the long jobs like the import and the
 restore do, so the two cannot write the same table at once, and while it runs an import and a
 restore are refused with a message rather than merged into the made-up days. The background worker
-stands down while it runs, since the fake counter exists only while a screen is open.
+stands down while it runs: the fake counter is already being fed in by StepCounting, and a second
+reader would only fold the same made-up value twice.
 
 **History.** An expandable year → month → day tree (a day is a leaf). Expansion state survives
 rotation and Back collapses one level — the mechanics of `history/HistoryScreen.kt:398` in

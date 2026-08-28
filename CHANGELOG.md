@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I SPEC says why the background sync stands down in demo mode in the terms the code actually works in.
 - R An import, an export or a demo switch no longer holds on to the screen it was started from.
 - E A distance just under a kilometre reads as 1.0 km instead of 1000 m.
 - E A counting-journal batch that could not be written keeps its oldest line instead of dropping it.
