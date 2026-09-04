@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- I: The project docs name the artifact the way the scripts really write it
 - I: Lint reruns instead of reprinting an up-to-date report, and says when the report was written
 - I: A failed test prints its class, its name and the first lines of its message, and the summary links the HTML report
 - I: The tag step refuses an untracked file too, so nothing can go into the APK without going into the tag
