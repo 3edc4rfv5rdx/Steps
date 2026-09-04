@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 #
-# Put the newest arm64 APK into OUT/ as a link under its own name, and sweep
-# whatever else is in that folder:
+# Put the APKs of the newest release build into OUT/ as links under their own
+# names, and sweep everything else out of that folder:
 #
 #   OUT/steps-<version>-<build>-arm64-v8a.apk
+#   OUT/steps-<version>-<build>-universal.apk
 #
-# One place to pick a build up from, instead of a path deep inside app/build.
-# The link is a hard one: the entry here is the file itself, so copying it
-# elsewhere copies a build and not a dangling path, and a clean of app/build
-# leaves it whole. The name carries the version and the build number, so the
-# listing says which build it is. Nothing is built here: 00-MakeAll.sh runs this
-# after a build, and on its own it picks up a build that already exists.
+# One place to copy a build from, instead of a path deep inside app/build/. The
+# x86_64 split is left where it is: it only ever goes to the emulator, which is
+# installed to from 11-EmulRELEASE.sh and never carried anywhere by hand.
 #
-# arm64 only, because that is what the phones take. The x86_64 split belongs to
-# the emulator and the universal APK to the GitHub release; neither is a file to
-# carry off by hand.
+# The links are hard ones: the entry here is the file itself, so copying it
+# elsewhere copies a build and not a dangling path, and a gradle clean leaves it
+# whole. The name carries the version and the build number, so the listing says
+# which build it is. Nothing is built here: 00-MakeAll.sh runs this after a
+# build, and on its own it picks up a build that already exists.
 #
 cd "$(dirname "$0")"
 
@@ -26,8 +26,8 @@ fi
 APK_DIR="app/build/outputs/apk/release"
 
 MISSING=""
-# An array, not a string of names: a name with a space in it would turn the
-# membership test in the sweep into a match on halves of two different names.
+# An array, not a string of names, so a name with a space in it cannot turn the
+# membership test below into a match on halves of two different names.
 LINKED=()
 
 link_latest() { # link_latest <candidate files...>
@@ -47,11 +47,15 @@ link_latest() { # link_latest <candidate files...>
 }
 
 link_latest "$APK_DIR"/*arm64-v8a*.apk
+link_latest "$APK_DIR"/*universal*.apk
 
-# Everything else goes: the previous build's name, a copy left behind. Only
-# files and links — a directory somebody made here is not ours to remove. And
-# only once there is something to replace them with, so a run that found no APK
-# leaves the last good one alone instead of emptying the folder.
+# Everything else goes: the previous build's names, an ABI no longer built, a
+# copy left behind. Only files and links — a directory somebody made here is not
+# ours to remove.
+#
+# And only when every artifact was linked. A run that could not find one of them
+# would otherwise sweep anyway and delete the previous good build, leaving OUT/
+# with half a release.
 if [ -z "$MISSING" ] && [ -d OUT ]; then
     for entry in OUT/* ; do
         [ -d "$entry" ] && continue
@@ -67,7 +71,7 @@ if [ -z "$MISSING" ] && [ -d OUT ]; then
 fi
 
 if [ -n "$MISSING" ]; then
-    echo ">>> no arm64 APK: OUT left as it was"
+    echo ">>> incomplete set: OUT left as it was"
     exit 1
 fi
 exit 0

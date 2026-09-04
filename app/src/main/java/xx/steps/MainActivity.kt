@@ -50,6 +50,8 @@ import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.updater.Updater
+import dev.updater.UpdaterConfig
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
@@ -159,6 +161,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Looks for a newer build on the home server and asks before it downloads
+        // anything. Silent when there is nothing newer or the server is not there.
+        Updater.checkOnStart(
+            this,
+            UpdaterConfig(appKey = "steps"),
+        )
         applyWindowTheme()
         StepAccessState.refresh(this)
 

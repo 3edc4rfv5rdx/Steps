@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Everything in one run: build the signed release, install it on the emulator and
-# on the phone, and link the arm64 APK into OUT/.
+# on the phone, publish it to the update server, and link the build into OUT/.
 #
 # The icons are not part of it. 02-MakeIcons.sh rewrites tracked files, which
 # would leave the tree dirty in the middle of a build and stop 10-MakeRelease.sh
@@ -51,8 +51,11 @@ run() { # run <script> <fatal|optional>
 run 10-MakeRelease.sh fatal
 run 11-EmulRELEASE.sh optional
 run 12-SamsRELEASE.sh optional
-# The arm64 APK of this build, linked into OUT/ under its own name. Its own
-# script, so the same step also works on a build that already exists.
+# The arm64 build published to the update server, so the app's own updater can
+# offer it. Optional: a machine without the server is not a failed build.
+run 18-ToUpdate.sh optional
+# The APKs of this build, linked into OUT/ under their own names. Its own script,
+# so the same step also works on a build that already exists.
 run 19-LinkOut.sh optional
 
 echo
@@ -61,7 +64,7 @@ if [ -n "$FAILED" ]; then
 elif [ -n "$SKIPPED" ]; then
     echo "Done, without:$SKIPPED"
 else
-    echo "Done: APK built, installed on both, linked into OUT"
+    echo "Done: APK installed on both, published, build linked into OUT/"
 fi
 # Only a step that tried and failed makes the run itself a failure.
 [ -z "$FAILED" ] || exit 1

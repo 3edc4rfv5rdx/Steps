@@ -3,6 +3,9 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- I: OUT/ carries the universal APK beside the arm64 one, as it does in the other projects
+- N: The app checks the home server for a newer build on start and offers it, the same updater the other projects here use
+- I: 18-ToUpdate.sh publishes the arm64 release to the update server
 - E: The version line looks only at release tags, so a tag like "duplex" can no longer answer which line the last release went out on
 - I: The project docs name the artifact the way the scripts really write it
 - I: Lint reruns instead of reprinting an up-to-date report, and says when the report was written

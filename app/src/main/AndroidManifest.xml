@@ -18,6 +18,10 @@
     <!-- A restart leaves the app installed and scheduled but not running, and nothing counts until
          something starts it. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- The in-app updater: it fetches a manifest from the home server and hands
+         the downloaded APK to the system installer. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- The app is useless without the counter, but it must still install on devices that lack
          it: the UI says so instead of the store hiding the app. -->
@@ -28,6 +32,7 @@
     <!-- Platform backup is off: the step history moves between phones through the app's own
          CSV and ZIP export, which the user triggers and can inspect. -->
     <application
+        android:networkSecurityConfig="@xml/updater_network_security_config"
         android:name=".StepsApp"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -71,5 +76,17 @@
             </intent-filter>
         </receiver>
 
+
+        <!-- Hands the downloaded APK to the installer. Its own class rather than
+             androidx FileProvider, so an app that already declares one keeps it. -->
+        <provider
+            android:name="dev.updater.UpdaterFileProvider"
+            android:authorities="${applicationId}.updater.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/updater_file_paths" />
+        </provider>
     </application>
 </manifest>
