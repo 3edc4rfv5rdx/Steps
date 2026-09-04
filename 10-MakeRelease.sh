@@ -16,13 +16,14 @@ CHANGELOG_FILE="CHANGELOG.md"
 # Whether anything waiting for release is a new feature. 20-MakeTag.sh empties
 # Unreleased when it stamps a version, so this reads exactly what has landed
 # since the last tag. Continuation lines are indented, so only the first line of
-# an entry can match.
+# an entry can match, and both dialects of the marker — "- N:" and "- N " —
+# count.
 unreleased_has_feature() {
     [ -f "$CHANGELOG_FILE" ] || return 1
     awk '
         /^## Unreleased$/ { inside = 1; next }
         /^## / { inside = 0 }
-        inside && /^- N / { found = 1 }
+        inside && /^- N[: ]/ { found = 1 }
         END { exit !found }
     ' "$CHANGELOG_FILE"
 }

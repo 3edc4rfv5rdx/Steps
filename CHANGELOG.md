@@ -1,115 +1,118 @@
-# Changelog
-
-> N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
+# CHANGELOG
+> Newest entries on top.
+> N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
-- I Every artifact carries one name — steps-<version>-<build>-<abi>.apk, with -debug on the end of a debug build — and the tag it goes out under is v<version>-<build>.
-- I SPEC says why the background sync stands down in demo mode in the terms the code actually works in.
-- R An import, an export or a demo switch no longer holds on to the screen it was started from.
-- E A distance just under a kilometre reads as 1.0 km instead of 1000 m.
-- E A counting-journal batch that could not be written keeps its oldest line instead of dropping it.
-- E An operation refused or failed from the Today tab says so on that tab instead of nowhere.
-- E After an import raises today's count, the day chart shows no breakdown instead of bars that add up to less than the day.
-- E A step read by the background sync and the open screen at once can no longer take steps off the day.
-- E A step counter that restarts on its own no longer credits thousands of steps at once.
+- I: One CHANGELOG legend across every project here — N/E/F/R/I, newest on top, the type letter always followed by a colon
+- I: Every changelog entry carries the colon after its type letter
+- I: The waiting-feature check reads both "- N:" and "- N ", so a changelog entry moves the version line whichever way it was written
+- I: Every artifact carries one name — steps-<version>-<build>-<abi>.apk, with -debug on the end of a debug build — and the tag it goes out under is v<version>-<build>.
+- I: SPEC says why the background sync stands down in demo mode in the terms the code actually works in.
+- R: An import, an export or a demo switch no longer holds on to the screen it was started from.
+- E: A distance just under a kilometre reads as 1.0 km instead of 1000 m.
+- E: A counting-journal batch that could not be written keeps its oldest line instead of dropping it.
+- E: An operation refused or failed from the Today tab says so on that tab instead of nowhere.
+- E: After an import raises today's count, the day chart shows no breakdown instead of bars that add up to less than the day.
+- E: A step read by the background sync and the open screen at once can no longer take steps off the day.
+- E: A step counter that restarts on its own no longer credits thousands of steps at once.
 ## v0.3.20260828+70
-- N The day you open from History stays marked with an outline of the accent until you open another.
-- F The day chart's pointer stands on the middle of the bar it reads and steps from one bar to the next.
-- F Today's row in History is filled with the accent colour instead of plain black or white.
-- F The dark theme's tonal buttons are a lighter grey.
-- F The chart's bar-width menu is only as wide as its labels, and an accent tint and outline set it apart from the dialog behind it.
-- F The day chart's controls run ‹ › − +.
-- F The day chart opens at quarter-hour bars, the resolution the day is actually stored at.
-- F The day chart's bar width moved into a drop-down beside the dialog's Close button, and the chart grew into the row of buttons it replaced.
-- F The day chart's bars are drawn wider, with a thinner gap between them.
-- I 06-Test.sh clears the previous run's results first, so a build that fails to compile can no longer be summarised as a pass.
-- I SPEC and the journal's own description say what the code does: the .txt extension, the whole test suite, and the release scripts.
-- E A dark start no longer flashes a white window, and the status bar icons follow the theme you picked rather than the phone's.
-- R The folder exports, backups and the journal are written to has one definition instead of three.
-- E The History tab follows the date over midnight instead of keeping yesterday's totals and today band.
-- R The History model drops a per-day average that no screen ever showed.
-- E An operation refused because another one is still running says so instead of ending in silence.
-- E Restarting the app during a demo run no longer drops the demo's whole starting count onto today.
-- E An import or a restore is refused while the demo runs, and says so, instead of mixing real days into the made-up ones.
-- E An import or a restore whose file cannot be read says so instead of closing the app.
+- N: The day you open from History stays marked with an outline of the accent until you open another.
+- F: The day chart's pointer stands on the middle of the bar it reads and steps from one bar to the next.
+- F: Today's row in History is filled with the accent colour instead of plain black or white.
+- F: The dark theme's tonal buttons are a lighter grey.
+- F: The chart's bar-width menu is only as wide as its labels, and an accent tint and outline set it apart from the dialog behind it.
+- F: The day chart's controls run ‹ › − +.
+- F: The day chart opens at quarter-hour bars, the resolution the day is actually stored at.
+- F: The day chart's bar width moved into a drop-down beside the dialog's Close button, and the chart grew into the row of buttons it replaced.
+- F: The day chart's bars are drawn wider, with a thinner gap between them.
+- I: 06-Test.sh clears the previous run's results first, so a build that fails to compile can no longer be summarised as a pass.
+- I: SPEC and the journal's own description say what the code does: the .txt extension, the whole test suite, and the release scripts.
+- E: A dark start no longer flashes a white window, and the status bar icons follow the theme you picked rather than the phone's.
+- R: The folder exports, backups and the journal are written to has one definition instead of three.
+- E: The History tab follows the date over midnight instead of keeping yesterday's totals and today band.
+- R: The History model drops a per-day average that no screen ever showed.
+- E: An operation refused because another one is still running says so instead of ending in silence.
+- E: Restarting the app during a demo run no longer drops the demo's whole starting count onto today.
+- E: An import or a restore is refused while the demo runs, and says so, instead of mixing real days into the made-up ones.
+- E: An import or a restore whose file cannot be read says so instead of closing the app.
 ## v0.2.20260827+57
-- I The README opens with four screenshots, kept in docs/screens.
-- F Today's label under the week bars is underlined as well as bold.
-- F Every bar of the week and of the day chart is the full accent colour, and the goal line and baseline are drawn brighter.
-- F The counting journal is off by default and its switch is gone from Settings — a diagnostic, not a setting.
-- I The README describes the write cadence, the journal setting and the new default goal as they now are.
-- F The daily goal starts at 10 000 steps instead of 8 000.
-- F The count is written at most twice a second while a screen is open, instead of on every event the sensor sends.
+- I: The README opens with four screenshots, kept in docs/screens.
+- F: Today's label under the week bars is underlined as well as bold.
+- F: Every bar of the week and of the day chart is the full accent colour, and the goal line and baseline are drawn brighter.
+- F: The counting journal is off by default and its switch is gone from Settings — a diagnostic, not a setting.
+- I: The README describes the write cadence, the journal setting and the new default goal as they now are.
+- F: The daily goal starts at 10 000 steps instead of 8 000.
+- F: The count is written at most twice a second while a screen is open, instead of on every event the sensor sends.
 ## v0.2.20260826+46
-- I SPEC's file list names every source file, including the eight it had never mentioned.
-- E Switching the demo happens whole or not at all, instead of being able to stop halfway with the history already gone.
-- I SPEC describes the pause control, the week bars, the tables and the backup file as they actually are.
-- E A notification put back after being swiped away always shows the current count.
-- F Today's day label under the week bars is set in bold, so the highlighted bar is not the only thing saying which day it is.
-- I The instrumentation test for the counting state checks the rule the app follows, not the one it replaced.
-- E The counting journal names the real reason a background run did not count, instead of blaming a missing sensor.
-- E An import or backup finishes even if you leave the Settings tab, and tells you what it did when you come back.
-- I The README describes the foreground service the app actually runs, instead of claiming it has none.
-- F The count is written once a minute while nothing is on screen, instead of on every step the sensor reports.
-- E Restoring a backup from elsewhere no longer breaks the History tab, and says how many days it could not read.
-- E Counting starts the moment the permission is allowed, and the notification is asked for right after the battery screen.
-- E Demo mode seeds its history at any daily goal instead of wiping the history and stopping.
-- I `10-MakeRelease.sh` raises the `major.minor` line by itself when a feature is waiting: an `N`
+- I: SPEC's file list names every source file, including the eight it had never mentioned.
+- E: Switching the demo happens whole or not at all, instead of being able to stop halfway with the history already gone.
+- I: SPEC describes the pause control, the week bars, the tables and the backup file as they actually are.
+- E: A notification put back after being swiped away always shows the current count.
+- F: Today's day label under the week bars is set in bold, so the highlighted bar is not the only thing saying which day it is.
+- I: The instrumentation test for the counting state checks the rule the app follows, not the one it replaced.
+- E: The counting journal names the real reason a background run did not count, instead of blaming a missing sensor.
+- E: An import or backup finishes even if you leave the Settings tab, and tells you what it did when you come back.
+- I: The README describes the foreground service the app actually runs, instead of claiming it has none.
+- F: The count is written once a minute while nothing is on screen, instead of on every step the sensor reports.
+- E: Restoring a backup from elsewhere no longer breaks the History tab, and says how many days it could not read.
+- E: Counting starts the moment the permission is allowed, and the notification is asked for right after the battery screen.
+- E: Demo mode seeds its history at any daily goal instead of wiping the history and stopping.
+- I: `10-MakeRelease.sh` raises the `major.minor` line by itself when a feature is waiting: an `N`
   entry under `Unreleased` is the whole decision, already made when the entry was written. It fires
   once per feature, since after the line moves the last tag still names the old one.
-- I `00-MakeAll.sh` no longer redraws the icons. The step rewrites tracked files, which left the
+- I: `00-MakeAll.sh` no longer redraws the icons. The step rewrites tracked files, which left the
   tree dirty mid-build and stopped the version bump being folded into the previous commit — the
   very thing `02-MakeIcons.sh` says it stays out of a build to avoid.
 ## v0.2.20260826+45
-- F The launcher icon drops the road bar under the pedestrian. At icon size it was one more thing
+- F: The launcher icon drops the road bar under the pedestrian. At icon size it was one more thing
   to read beside a figure that is already small.
-- N The day chart can be driven without pinching: a ⋮ button on the dialog's date line unfolds
+- N: The day chart can be driven without pinching: a ⋮ button on the dialog's date line unfolds
   zoom and step-along controls beside it. Holding a finger still on the chart hands it over to
   dragging the window, with a tap of haptic feedback to say so. Touching the chart folds the
   controls away again.
-- E A batch of journal lines whose write fails is kept for the next attempt rather than dropped.
+- E: A batch of journal lines whose write fails is kept for the next attempt rather than dropped.
   Deleting the day's file used to take the lines in flight with it.
-- E Counting starts again by itself after a restart or an app update. Both leave the app installed
+- E: Counting starts again by itself after a restart or an app update. Both leave the app installed
   and scheduled but not running, and nothing counted until the quarter-hourly worker next came
   round — a reboot cost up to fifteen minutes of walking.
-- N The day chart stretches: two fingers zoom its axis, up to three hours across, and the moment
+- N: The day chart stretches: two fingers zoom its axis, up to three hours across, and the moment
   under them stays under them. The hour rules follow the zoom, so a stretched chart is still
   labelled, and the bar width can be changed without losing the zoom.
-- F The paused circle gives its play glyph the room it deserves and puts the word under it instead
+- F: The paused circle gives its play glyph the room it deserves and puts the word under it instead
   of beside it, so the one thing there is to tap reads at arm's length.
-- N Counting survives a locked screen: a foreground service keeps the app active, and its
+- N: Counting survives a locked screen: a foreground service keeps the app active, and its
   notification shows the app's name, today's steps and the distance on one line, under the walking
   figure from the Today tab, and does not expand. Swiping it away puts it straight back: Android 14 allows the
   swipe whatever the notification asks for, and losing the card would hide both the count and the
   one visible sign that the app is holding the sensor open.
   Without it Android stops handing sensor events to an app it considers idle — the registration
   stays in place, marked disabled, and a walk in a pocket is simply never delivered.
-- N A switch in Settings turns the counting journal off. It stays on by default, since a walk that
+- N: A switch in Settings turns the counting journal off. It stays on by default, since a walk that
   went uncounted leaves nothing to look at unless it was recorded while it happened, and the file
   notes its own switching on and off so a gap in it is never unexplained.
-- E Steps taken with the phone in a pocket are counted again. The hardware counter is not
+- E: Steps taken with the phone in a pocket are counted again. The hardware counter is not
   free-running: it advances only while some app holds a registration on it, so listening only while
   the screen was on recorded just the steps taken in front of the app — about six per quarter hour
   against a real several hundred. The registration now lives as long as the process does. This was
   hidden for as long as another pedometer was installed and kept the sensor awake for everybody.
-- I A counting journal as a plain text file, `Documents/Steps/steps-<date>.txt`, one per day:
+- I: A counting journal as a plain text file, `Documents/Steps/steps-<date>.txt`, one per day:
   every sensor event with its own timestamp, every reading with its raw delta, window and what
   survived the cap, and every background run that read nothing. Whether the sensor answers at all
   is the phone's decision, and this is the only place it is written down.
-- E A fresh install asks for the permission instead of claiming the phone has no step counter.
+- E: A fresh install asks for the permission instead of claiming the phone has no step counter.
   Android hides the counter from an app that has not been allowed activity data, so the app was
   reading its own missing permission as missing hardware and offering nothing to fix it.
-- F Granting the activity permission leads straight into the battery exemption dialog, so both
+- F: Granting the activity permission leads straight into the battery exemption dialog, so both
   questions are asked in one go instead of the second one waiting on a system screen nobody
   opens by themselves. A phone already exempt, or with no such screen, is not asked.
-- I `02-DebugWiFiConn.sh` is gone: it held one hardcoded address, and its number now belongs to
+- I: `02-DebugWiFiConn.sh` is gone: it held one hardcoded address, and its number now belongs to
   the icons.
-- I `00-MakeAll.sh` does a whole release in one run — icons, build, both installs, the `OUT/`
+- I: `00-MakeAll.sh` does a whole release in one run — icons, build, both installs, the `OUT/`
   link — and `19-LinkOut.sh` hard-links the newest arm64 APK into `OUT/` under its own name,
   sweeping what was there before. `bash 02-MakeIcons.sh` redraws the icons only when the
   drawing is newer than them. A missing emulator or phone now exits 3, so a full run counts it
   as skipped rather than failed.
-- I `22-RelUpload.sh`, taken from BikeTracker: it creates the GitHub Release for the newest tag out
+- I: `22-RelUpload.sh`, taken from BikeTracker: it creates the GitHub Release for the newest tag out
   of that tag's `CHANGELOG.md` section and uploads the arm64 and universal APKs to it.
 ## v0.1.20260825+29
 - The README says what the app now does: the three screens, the day taken apart, why the periods
