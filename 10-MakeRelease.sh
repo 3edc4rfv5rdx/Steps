@@ -34,7 +34,9 @@ unreleased_has_feature() {
 # function that returns non-zero would end the script under set -e.
 released_line() {
     local tag
-    tag=$(git tag --sort=-v:refname 2>/dev/null | head -1) || true
+    # Release tags only: a tag like "duplex" sorts ahead of them and would answer
+    # this question with a name that carries no version at all.
+    tag=$(git tag --list 'v*' --sort=-v:refname 2>/dev/null | head -1) || true
     if [[ "$tag" =~ ^v([0-9]+\.[0-9]+)\. ]]; then
         echo "${BASH_REMATCH[1]}"
     fi
