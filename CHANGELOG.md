@@ -3,6 +3,11 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- I: Lint reruns instead of reprinting an up-to-date report, and says when the report was written
+- I: A failed test prints its class, its name and the first lines of its message, and the summary links the HTML report
+- I: The tag step refuses an untracked file too, so nothing can go into the APK without going into the tag
+- I: The release uploads the exact APKs built for its tag, never the newest file of that ABI lying around
+- I: A debug install with no phone connected exits 3 like every other step that had nothing to work on
 - E: A test run that produced no results is reported as a failure instead of a clean pass
 - E: An emulator install that failed makes the run fail, instead of being hidden by the pause after it
 - E: The release push names the branch, and looks up the pushed tag by its full ref, so a tag whose name is a prefix of another is no longer taken for pushed
