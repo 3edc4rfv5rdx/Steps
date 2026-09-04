@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## Unreleased
+- I Every artifact carries one name — steps-<version>-<build>-<abi>.apk, with -debug on the end of a debug build — and the tag it goes out under is v<version>-<build>.
 - I SPEC says why the background sync stands down in demo mode in the terms the code actually works in.
 - R An import, an export or a demo switch no longer holds on to the screen it was started from.
 - E A distance just under a kilometre reads as 1.0 km instead of 1000 m.

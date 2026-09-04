@@ -3,7 +3,7 @@
 # Put the newest arm64 APK into OUT/ as a link under its own name, and sweep
 # whatever else is in that folder:
 #
-#   OUT/steps-<version>+<build>-release-arm64-v8a.apk
+#   OUT/steps-<version>-<build>-arm64-v8a.apk
 #
 # One place to pick a build up from, instead of a path deep inside app/build.
 # The link is a hard one: the entry here is the file itself, so copying it
