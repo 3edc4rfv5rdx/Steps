@@ -33,8 +33,10 @@ projects:
   had no device to work on exits 3 and is reported as skipped rather than failed.
 - `bash 02-MakeIcons.sh` — runs `tools/make_icon.py`, but only when `ADD/images/znak.png` is
   newer than the generated PNGs. No execute bit, so a build can never pull it in.
-- `18-ToUpdate.sh` — publishes the arm64 release to the update server, with the manifest
-  the in-app updater reads. Its presence means the updater is wired into the app.
+- `23-ToUpdate.sh` — writes `latest.json` for the newest GitHub release and uploads it as an
+  asset, so the in-app updater can offer it; each device picks its own ABI out of that one
+  manifest. Run by hand after `22-RelUpload.sh`. Its presence means the updater is wired
+  into the app.
 - `19-LinkOut.sh` — hard-links the newest arm64 APK into `OUT/` under its own name and sweeps
   the rest of that folder, so there is one path to copy a build from.
 - `20-MakeTag.sh` / `21-PushTag.sh` — release tag and its push. `22-RelUpload.sh` — creates the

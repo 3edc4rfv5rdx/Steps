@@ -51,9 +51,6 @@ run() { # run <script> <fatal|optional>
 run 10-MakeRelease.sh fatal
 run 11-EmulRELEASE.sh optional
 run 12-SamsRELEASE.sh optional
-# The arm64 build published to the update server, so the app's own updater can
-# offer it. Optional: a machine without the server is not a failed build.
-run 18-ToUpdate.sh optional
 # The APKs of this build, linked into OUT/ under their own names. Its own script,
 # so the same step also works on a build that already exists.
 run 19-LinkOut.sh optional
