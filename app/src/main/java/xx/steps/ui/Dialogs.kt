@@ -1,14 +1,9 @@
 package xx.steps.ui
 
-import xx.steps.BuildConfig
-import dev.updater.Updater
-import xx.steps.UPDATER_CONFIG
-import androidx.activity.compose.LocalActivity
 
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Row
@@ -29,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
@@ -137,60 +131,6 @@ fun ConfirmDialog(
     )
 }
 
-/** App name, version and build date — reached from the Info button in the top bar. */
-@Composable
-fun AboutDialog(onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    // The updater draws its own dialogs, so it needs the activity, not a context.
-    val activity = LocalActivity.current
-    val info = remember(context) { context.packageManager.getPackageInfo(context.packageName, 0) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.about_title)) },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = "${stringResource(R.string.about_version)} ${info.versionName}",
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                // The build number is the version's last component, so what is
-                // worth a line of its own is the day it was built.
-                Text(
-                    text = "${stringResource(R.string.about_build_date)} ${BuildConfig.BUILD_DATE}",
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        },
-        // Both buttons in the confirm slot: Update belongs at the far left, away
-        // from Ok, and Material would otherwise cluster the two on the right.
-        confirmButton = {
-            DialogButtonRow(
-                start = {
-                    // The start-up check keeps six hours between two looks at the
-                    // server, which is right for a phone and useless for a build
-                    // published a minute ago. This one ignores the interval and
-                    // answers either way; the dialog closes first, or the
-                    // updater's own would sit on top of it.
-                    if (activity != null) {
-                        DialogDismissButton(stringResource(R.string.about_update)) {
-                            onDismiss()
-                            Updater.checkNow(activity, UPDATER_CONFIG)
-                        }
-                    } else {
-                        Spacer(Modifier)
-                    }
-                },
-                end = { DialogConfirmButton(stringResource(R.string.action_ok), onDismiss) },
-            )
-        },
-    )
-}
 
 
 /**

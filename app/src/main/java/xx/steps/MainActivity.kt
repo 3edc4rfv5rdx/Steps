@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,8 +51,11 @@ import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.about.About
+import dev.about.AboutConfig
 import dev.updater.Updater
 import dev.updater.UpdaterConfig
+import xx.steps.BuildConfig
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
@@ -62,7 +66,6 @@ import xx.steps.steps.StepAccessState
 import xx.steps.steps.hasStepPermission
 import xx.steps.steps.nextPermissionAsk
 import xx.steps.work.StepsService
-import xx.steps.ui.AboutDialog
 import xx.steps.ui.ConfirmDialog
 import xx.steps.ui.HistoryCommands
 import xx.steps.ui.HistoryScreen
@@ -238,6 +241,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainScreen() {
     val context = LocalContext.current
+    // The About dialog is the platform's, drawn by the shared module, so it needs
+    // the activity rather than a context.
+    val activity = LocalActivity.current
     // The demo switch outlives this composition, so neither the activity's resources nor the
     // activity itself goes into it — the same reason SettingsScreen's jobs take both from the
     // application.
@@ -307,7 +313,6 @@ private fun MainScreen() {
     val banner by ScreenWork.message.collectAsState()
 
     var current by rememberSaveable { mutableStateOf(Tab.TODAY) }
-    var showAbout by rememberSaveable { mutableStateOf(false) }
     var confirmDemo by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -316,7 +321,20 @@ private fun MainScreen() {
                 tab = current,
                 demo = demo,
                 onDemo = { confirmDemo = true },
-                onAbout = { showAbout = true },
+                // The shared About dialog: it reads the name and the version off
+                // the package and the GitHub address out of the updater config,
+                // so only the build date is handed over.
+                onAbout = {
+                    activity?.let {
+                        About.show(
+                            it,
+                            AboutConfig(
+                                updater = UPDATER_CONFIG,
+                                buildDate = BuildConfig.BUILD_DATE,
+                            ),
+                        )
+                    }
+                },
             )
         },
         bottomBar = {
@@ -350,9 +368,6 @@ private fun MainScreen() {
         }
     }
 
-    if (showAbout) {
-        AboutDialog(onDismiss = { showAbout = false })
-    }
 
     // Either direction wipes the database, so either direction asks first.
     if (confirmDemo) {
