@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+## v0.4.74 (2026-09-08)
 - E: 10-MakeRelease.sh printed the build date twice
 - E: The release build failed to configure: the BUILD_DATE field needs buildFeatures.buildConfig, which was off
 - N: The About screen shows the build date on a line of its own, where the build number used to be — the version already ends in that number
