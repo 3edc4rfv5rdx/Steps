@@ -83,7 +83,6 @@ EOF
 
 echo "Version: $NEW_VERSION"
 echo "Date:    $BUILD_DATE"
-echo "Date:    $BUILD_DATE"
 echo ">>> Build: $NEW_BUILD <<<"
 
 ./gradlew assembleRelease

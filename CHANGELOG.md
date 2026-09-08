@@ -3,6 +3,8 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- E: 10-MakeRelease.sh printed the build date twice
+- E: The release build failed to configure: the BUILD_DATE field needs buildFeatures.buildConfig, which was off
 - N: The About screen shows the build date on a line of its own, where the build number used to be — the version already ends in that number
 - I: The version is major.minor.build — the date left it — so the tag is v0.4.73 and an artifact steps-0.4.73-arm64-v8a.apk, each number written once; 20-MakeTag.sh puts the build date after the tag in the CHANGELOG heading, for the reader
 - N: The app checks its own GitHub release for a newer build on start and offers it, the same updater the other projects here use — one manifest names every ABI split, so the phone takes arm64 and an armeabi-v7a box takes v7a, wherever either of them is
