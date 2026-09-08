@@ -1,10 +1,14 @@
 package xx.steps.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
@@ -30,5 +34,20 @@ fun DialogConfirmButton(text: String, onClick: () -> Unit) {
 fun DialogDismissButton(text: String, onClick: () -> Unit) {
     FilledTonalButton(onClick = onClick, contentPadding = DIALOG_BUTTON_PADDING) {
         Text(text, maxLines = 1)
+    }
+}
+
+/**
+ * Two dialog buttons pushed to opposite corners. Use it in the AlertDialog confirmButton slot with
+ * no dismissButton, or Material clusters both against the right edge.
+ */
+@Composable
+fun DialogButtonRow(start: @Composable () -> Unit, end: @Composable () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        start()
+        end()
     }
 }

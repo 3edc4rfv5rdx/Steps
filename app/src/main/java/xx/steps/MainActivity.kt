@@ -157,6 +157,10 @@ private fun TabIcon(tab: Tab) {
     }
 }
 
+// One description of this app's release, for the silent check at start-up and
+// the About dialog's button alike.
+val UPDATER_CONFIG = UpdaterConfig(appKey = "steps", repo = "Steps")
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -164,10 +168,7 @@ class MainActivity : ComponentActivity() {
         // Looks for a newer build in this app's own GitHub release and asks
         // before it downloads anything. Silent when there is nothing newer or
         // GitHub cannot be reached.
-        Updater.checkOnStart(
-            this,
-            UpdaterConfig(appKey = "steps", repo = "Steps"),
-        )
+        Updater.checkOnStart(this, UPDATER_CONFIG)
         applyWindowTheme()
         StepAccessState.refresh(this)
 

@@ -53,6 +53,7 @@
     <string name="about_title">О программе</string>
     <string name="about_version">Версия</string>
     <string name="about_build_date">Дата сборки</string>
+    <string name="about_update">Обновить</string>
     <string name="action_ok">OK</string>
     <!-- Export and import -->
     <string name="setting_export_csv">Экспорт CSV</string>

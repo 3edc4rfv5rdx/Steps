@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- N: The About dialog has an Update button, so a new build can be looked for at once instead of waiting out the updater's six-hour interval; it answers even when there is nothing newer
 ## v0.4.74 (2026-09-08)
 - E: 10-MakeRelease.sh printed the build date twice
 - E: The release build failed to configure: the BUILD_DATE field needs buildFeatures.buildConfig, which was off

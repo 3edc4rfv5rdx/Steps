@@ -53,6 +53,7 @@
     <string name="about_title">About</string>
     <string name="about_version">Version</string>
     <string name="about_build_date">Build date</string>
+    <string name="about_update">Update</string>
     <string name="action_ok">OK</string>
     <!-- Export and import -->
     <string name="setting_export_csv">Export CSV</string>
