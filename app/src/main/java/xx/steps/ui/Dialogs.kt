@@ -1,5 +1,7 @@
 package xx.steps.ui
 
+import xx.steps.BuildConfig
+
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
@@ -151,8 +153,10 @@ fun AboutDialog(onDismiss: () -> Unit) {
                     text = "${stringResource(R.string.about_version)} ${info.versionName}",
                     color = MaterialTheme.colorScheme.onSurface,
                 )
+                // The build number is the version's last component, so what is
+                // worth a line of its own is the day it was built.
                 Text(
-                    text = "${stringResource(R.string.about_build)} ${info.longVersionCode}",
+                    text = "${stringResource(R.string.about_build_date)} ${BuildConfig.BUILD_DATE}",
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             }

@@ -52,7 +52,7 @@
     <string name="action_collapse">Згорнути все</string>
     <string name="about_title">Про програму</string>
     <string name="about_version">Версія</string>
-    <string name="about_build">Збірка</string>
+    <string name="about_build_date">Дата збірки</string>
     <string name="action_ok">OK</string>
     <!-- Export and import -->
     <string name="setting_export_csv">Експорт CSV</string>
