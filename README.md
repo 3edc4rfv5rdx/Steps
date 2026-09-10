@@ -86,6 +86,17 @@ launch and on demand from the About dialog, and offers the build for its own ABI
 `latest.json` that `23-ToUpdate.sh` uploads beside the APKs. Nothing else leaves the phone, and the
 switch in Settings turns the launch check off — the About button stays.
 
+## Shared modules
+
+Three folders beside this one are compiled into the app from source rather than pulled in as
+modules or AARs — one copy of each serves every project here (the `sourceSets` block in
+`app/build.gradle.kts` wires them):
+
+- `../updater` — the update check, its configuration and its dialogs
+- `../about` — the About dialog, drawn in code so the resource shrinker cannot drop its strings
+- `../backups` — when a daily copy is made, what it is named, where it lands and how many survive;
+  this app only fills the archive
+
 ## Requirements
 
 - Android 13+ (minSdk 33) and a hardware step counter
@@ -101,6 +112,7 @@ Release-only workflow, driven by the scripts in the repository root:
 |---|---|
 | `./00-MakeAll.sh` | release, both installs and the OUT link in one run — not the icons |
 | `bash 02-MakeIcons.sh` | redraw the icons when `ADD/images/znak.png` is newer |
+| `./03-MakeDebug.sh` | debug APK; `./15-SamsDebug.sh` installs it on the phone |
 | `./10-MakeRelease.sh` | signed release with ABI splits, bumping the build number |
 | `./12-SamsRELEASE.sh` | install on the connected phone |
 | `./11-EmulRELEASE.sh` | install on the emulator |
@@ -110,6 +122,7 @@ Release-only workflow, driven by the scripts in the repository root:
 | `./20-MakeTag.sh`, `./21-PushTag.sh` | release tag and its push |
 | `./22-RelUpload.sh` | GitHub Release for the newest tag, with the arm64 and universal APKs |
 | `./23-ToUpdate.sh` | `latest.json` for that release, so the in-app updater can find it |
+| `./99-CopyToAPKX.sh` | the arm64 APK under an `.apkx` name, for messengers that mangle `.apk` |
 
 Release signing reads `~/.my-safe/key.properties`; the build number lives in `build_number.txt`.
 
