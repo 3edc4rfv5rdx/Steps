@@ -74,15 +74,38 @@ class StepsService : Service() {
     private var line: String = ""
 
     /**
-     * Android 14 lets the user swipe away a foreground service's notification whatever ONGOING and
-     * NO_CLEAR say. Only the card goes; the service keeps running and the steps keep being counted
-     * — but the count is then invisible, and this notification is also the one honest sign that the
-     * app is holding a sensor open. So it goes back up.
+     * The pause as the notification last showed it, kept beside [line] and for the same reason: a
+     * card that has to be rebuilt outside the collector needs the whole state, not half of it.
+     *
+     * Confined to the main thread, exactly as [line] is.
      */
-    private val dismissed = object : BroadcastReceiver() {
+    private var paused: Boolean = false
+
+    /**
+     * The two things the notification itself can send back.
+     *
+     * ACTION_TOGGLE_PAUSE is the pause button. It only writes the setting — the collector in
+     * [watchToday] watches that same flow and rebuilds the card, so the button and the ring on the
+     * Today screen can never disagree about which state the app is in.
+     *
+     * ACTION_DISMISSED is a swipe. Android 14 lets the user swipe away a foreground service's
+     * notification whatever ONGOING and NO_CLEAR say. Only the card goes; the service keeps running
+     * and the steps keep being counted — but the count is then invisible, and this notification is
+     * also the one honest sign that the app is holding a sensor open. So it goes back up.
+     */
+    private val actions = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            logSteps("service: notification dismissed, posting it again")
-            notificationManager()?.notify(NOTIFICATION_ID, notification(line))
+            when (intent?.action) {
+                ACTION_TOGGLE_PAUSE -> {
+                    val next = !AppSettings.paused.value
+                    logSteps("service: notification " + (if (next) "paused" else "resumed") + " counting")
+                    AppSettings.setPaused(this@StepsService, next)
+                }
+                ACTION_DISMISSED -> {
+                    logSteps("service: notification dismissed, posting it again")
+                    notificationManager()?.notify(NOTIFICATION_ID, notification(line, paused))
+                }
+            }
         }
     }
 
@@ -94,25 +117,26 @@ class StepsService : Service() {
         // day, whichever of the two asks first.
         Backups.checkOnStart(this, backupsConfig(this))
         line = readout(steps = 0, stepLengthCm = AppSettings.stepLengthCm.value)
+        paused = AppSettings.paused.value
         createChannel()
         // Posted before anything else can go wrong: a foreground service that has not called
         // startForeground in time is killed by the system with an ANR-shaped crash. The type is
         // named explicitly because Android 14 refuses a foreground service that does not declare
         // one; "health" is what a step count is, and it is what the manifest declares.
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(line), foregroundType())
+        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(line, paused), foregroundType())
         ContextCompat.registerReceiver(
             this,
-            dismissed,
-            IntentFilter(ACTION_DISMISSED),
+            actions,
+            IntentFilter(ACTION_DISMISSED).apply { addAction(ACTION_TOGGLE_PAUSE) },
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         watchToday()
     }
 
     /**
-     * Keeps the notification showing today's total. The day is re-read on a tick rather than fixed
-     * at start, so a service running through midnight follows the date over instead of going on
-     * showing yesterday.
+     * Keeps the notification showing today's total and the state of the pause. The day is re-read
+     * on a tick rather than fixed at start, so a service running through midnight follows the date
+     * over instead of going on showing yesterday.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun watchToday() {
@@ -125,14 +149,18 @@ class StepsService : Service() {
         }.distinctUntilChanged()
 
         scope.launch {
-            days.flatMapLatest { day -> repository.observeDay(day) }
-                .combine(AppSettings.stepLengthCm) { day, stepLength ->
-                    readout(steps = day?.steps ?: 0, stepLengthCm = stepLength)
-                }
+            combine(
+                days.flatMapLatest { day -> repository.observeDay(day) },
+                AppSettings.stepLengthCm,
+                AppSettings.paused,
+            ) { day, stepLength, isPaused ->
+                readout(steps = day?.steps ?: 0, stepLengthCm = stepLength) to isPaused
+            }
                 .distinctUntilChanged()
-                .collect { current ->
+                .collect { (current, isPaused) ->
                     line = current
-                    notificationManager()?.notify(NOTIFICATION_ID, notification(current))
+                    paused = isPaused
+                    notificationManager()?.notify(NOTIFICATION_ID, notification(current, isPaused))
                 }
         }
     }
@@ -144,7 +172,7 @@ class StepsService : Service() {
 
     override fun onDestroy() {
         logSteps("service: stopping")
-        unregisterReceiver(dismissed)
+        unregisterReceiver(actions)
         scope.cancel()
         super.onDestroy()
     }
@@ -171,18 +199,23 @@ class StepsService : Service() {
         }
 
     /**
-     * [line] carries the whole readout, steps and distance together. There is no second line and no
-     * style attached to the builder: a notification with nothing below the title has nothing to
-     * expand into, so it stays the one row it is meant to be.
+     * [line] carries the whole readout, steps and distance together, and no style is attached to
+     * the builder: a notification with nothing below the title has nothing to expand into, so a
+     * running app stays the one row it is meant to be. A pause adds the second line, because the
+     * button alone says what will happen next, not what is happening now.
+     *
+     * The button is here so a bus or a bicycle can be paused without unlocking the phone, which is
+     * the only moment the pause is worth anything: steps thrown away are thrown away for good, so
+     * one that has to be reached for after the ride has nothing left to save.
      */
-    private fun notification(line: String): Notification {
+    private fun notification(line: String, paused: Boolean): Notification {
         val open = PendingIntent.getActivity(
             this,
             0,
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE,
         )
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_walker)
             .setContentTitle(line)
             .setContentIntent(open)
@@ -194,13 +227,24 @@ class StepsService : Service() {
                     PendingIntent.FLAG_IMMUTABLE,
                 ),
             )
+            .addAction(
+                if (paused) R.drawable.ic_resume else R.drawable.ic_pause,
+                getString(if (paused) R.string.resume else R.string.pause),
+                PendingIntent.getBroadcast(
+                    this,
+                    TOGGLE_REQUEST,
+                    Intent(ACTION_TOGGLE_PAUSE).setPackage(packageName),
+                    PendingIntent.FLAG_IMMUTABLE,
+                ),
+            )
             // Ongoing and silent: it is a readout, not an event. Without setShowWhen(false) it
             // would also carry the time it was posted, which means nothing here.
             .setOngoing(true)
             .setSilent(true)
             .setShowWhen(false)
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
+        if (paused) builder.setContentText(getString(R.string.counting_paused))
+        return builder.build()
     }
 
     private fun createChannel() {
@@ -223,6 +267,15 @@ class StepsService : Service() {
 
         /** Broadcast to ourselves when the notification is swiped away; nothing else may send it. */
         private const val ACTION_DISMISSED = "xx.steps.NOTIFICATION_DISMISSED"
+
+        /** Broadcast to ourselves by the notification's pause button; nothing else may send it. */
+        private const val ACTION_TOGGLE_PAUSE = "xx.steps.NOTIFICATION_TOGGLE_PAUSE"
+
+        /**
+         * Its own request code, so the button's PendingIntent can never be mistaken for the
+         * dismissal one and overwrite it.
+         */
+        private const val TOGGLE_REQUEST = 1
         private const val NOTIFICATION_ID = 1
 
         /**

@@ -14,7 +14,7 @@ history tree, MediaStore export, the theme.
 |---|---|
 | Step source | hardware `TYPE_STEP_COUNTER` |
 | Storage | Room: a table of day → steps, one of day → quarter hour → steps, and a one-row sync state holding the counter baseline |
-| Background | a foreground service holds the app active so sensor delivery continues with the screen off; its notification is today's count. A WorkManager job every 15 minutes restarts what the system killed |
+| Background | a foreground service holds the app active so sensor delivery continues with the screen off; its notification is today's count and the pause button. A WorkManager job every 15 minutes restarts what the system killed |
 | Screens | Today / History / Settings (three tabs) |
 | Metrics | steps, the goal, and distance from a step length set in Settings — no calories |
 | Widget | none |
@@ -119,10 +119,12 @@ app/src/main/java/xx/steps/
   work/StepsBootReceiver.kt starts the service again after a reboot or an app update, neither of
                            which leaves the app running
   work/StepsService.kt     foreground service: keeps the UID active so sensor delivery continues,
-                           and shows today's steps and distance in its notification. Does not read
-                           the sensor itself. Its collector runs on the main thread, which is also
-                           where the framework calls the dismissal receiver, so the readout the two
-                           share needs no publishing between threads
+                           and shows today's steps and distance in its notification, with a button
+                           that pauses and resumes counting and a second line naming the pause while
+                           it holds. Does not read the sensor itself. Its collector runs on the main
+                           thread, which is also where the framework calls the receiver behind the
+                           button and the dismissal, so the state the two share needs no publishing
+                           between threads
   steps/StepCounting.kt    holds the sensor registration for the life of the process and folds the
                            readings in at the cadence shouldFold() sets, crediting the ones
                            creditsSteps() allows; started by StepsApp, not by
