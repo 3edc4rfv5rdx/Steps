@@ -63,6 +63,8 @@
     <string name="import_confirm_message">Days merge by date and the fuller record wins, and a day that changes loses its hourly breakdown</string>
     <string name="import_breakdown_dropped">Hourly breakdown dropped</string>
     <string name="setting_backup">Backup</string>
+    <string name="setting_backup_auto">Daily backup, three kept</string>
+    <string name="setting_update_check">Check for updates at launch</string>
     <string name="backup_export_zip">Full backup</string>
     <string name="backup_import_zip">Restore from backup</string>
     <string name="restore_confirm_title">Replace everything</string>

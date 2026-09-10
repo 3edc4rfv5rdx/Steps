@@ -63,6 +63,10 @@ android {
             // are in AboutStrings.kt, where a release build's resource shrinker
             // cannot drop them.
             kotlin.directories.add("$rootDir/../about/android/src")
+            // The shared daily backup, likewise: it owns when a copy is made, what
+            // it is called, where it lands and how many are kept; this app only
+            // says what goes inside one.
+            kotlin.directories.add("$rootDir/../backups/android/src")
         }
     }
 

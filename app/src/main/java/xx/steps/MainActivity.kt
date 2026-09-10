@@ -53,9 +53,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.about.About
 import dev.about.AboutConfig
+import dev.backups.Backups
 import dev.updater.Updater
 import dev.updater.UpdaterConfig
 import xx.steps.BuildConfig
+import xx.steps.data.backupsConfig
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
@@ -172,6 +174,9 @@ class MainActivity : ComponentActivity() {
         // before it downloads anything. Silent when there is nothing newer or
         // GitHub cannot be reached.
         Updater.checkOnStart(this, UPDATER_CONFIG)
+        // One copy of the database a calendar day, kept by ../backups. Silent, off the caller's
+        // thread, and its own switch decides whether it runs at all.
+        Backups.checkOnStart(this, backupsConfig(this))
         applyWindowTheme()
         StepAccessState.refresh(this)
 

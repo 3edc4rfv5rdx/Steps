@@ -3,6 +3,8 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- N: A copy of the database once a calendar day, made at launch and by the counting service, so days the app is never opened on get one too; the shared ../backups module keeps the newest three and a manual backup counts as the day's
+- N: Two switches in Settings, both on by default: the daily backup, and the start-up update check — the latter is ../updater's own flag now, so it stops the check at launch and leaves the About dialog's button alone
 - F: The About dialog's update button no longer promises an update that is not there: it opens as a check, asks the server as the card comes up, and turns into an inverted Update only when a newer build is published
 - R: The About screen is the shared module's now — one dialog for every project here, with the version, build date, GitHub page, mailbox and the update check on it
 - N: The About dialog has an Update button, so a new build can be looked for at once instead of waiting out the updater's six-hour interval; it answers even when there is nothing newer

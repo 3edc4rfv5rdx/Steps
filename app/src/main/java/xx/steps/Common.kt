@@ -18,6 +18,9 @@ const val DATABASE_NAME = "steps.db"
 /** SharedPreferences file holding the daily goal; the sensor baseline lives in the database. */
 const val PREFS_NAME = "steps_prefs"
 
+/** The folder name on its own, which is all ../backups is given. */
+const val BACKUP_DIR_NAME = "Steps"
+
 /**
  * The public folder every file this app writes lands in: the CSV export, the ZIP backup and the
  * counting journal. One definition, so moving it moves all three.
@@ -27,7 +30,7 @@ const val PREFS_NAME = "steps_prefs"
  * JVM tests lean on hardest — the journal already spelled the folder by hand for the same reason.
  * The value is platform API and does not move; the export-folder test pins it either way.
  */
-const val EXPORT_DIR = "Documents/Steps"
+const val EXPORT_DIR = "Documents/$BACKUP_DIR_NAME"
 
 /**
  * The same folder spelled the way MediaStore takes it on insert, with the trailing separator.

@@ -64,6 +64,8 @@
     <string name="import_confirm_message">Дні зливаються за датою, перемагає повніший запис, а змінений день втрачає погодинну розкладку</string>
     <string name="import_breakdown_dropped">Погодинну розкладку скинуто</string>
     <string name="setting_backup">Резервні копії</string>
+    <string name="setting_backup_auto">Щоденна копія, зберігається три</string>
+    <string name="setting_update_check">Перевіряти оновлення при старті</string>
     <string name="backup_export_zip">Повна копія</string>
     <string name="backup_import_zip">Відновлення з копії</string>
     <string name="restore_confirm_title">Замінити все</string>

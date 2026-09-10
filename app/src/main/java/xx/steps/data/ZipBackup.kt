@@ -1,18 +1,16 @@
 package xx.steps.data
 
-import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
-import android.provider.MediaStore
+import dev.backups.Backups
+import dev.backups.BackupsConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import xx.steps.BACKUP_DIR_NAME
 import xx.steps.DATABASE_NAME
-import xx.steps.EXPORT_DIR
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -24,18 +22,22 @@ import java.util.zip.ZipOutputStream
  *
  * This is deliberately distinct from the CSV export: CSV is readable and merges, a ZIP is an exact
  * snapshot that replaces. Restoring one is therefore destructive, and the UI asks first.
+ *
+ * When a copy is made, what it is called and how many are kept is not decided here: ../backups
+ * decides that for every project at once. This file says what goes inside one, and restores it.
  */
 
-private const val ZIP_MIME = "application/zip"
+/**
+ * Backup file names: steps-YYYYMMDD-HHMMSS.zip, the timestamp appended by the module. Changing
+ * this orphans every copy already on the phone — rotation would no longer recognise them.
+ */
+private const val BACKUP_FILE_PREFIX = "steps-"
 
 /** Name of the single SQLite entry inside the archive. */
 private const val DB_ENTRY_NAME = DATABASE_NAME
 
 /** A corrupt or malicious archive must not fill internal storage while being unpacked. */
 private const val MAX_RESTORE_BYTES = 64L * 1024L * 1024L
-
-private fun backupFileName(now: Long = System.currentTimeMillis()): String =
-    "steps-${SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date(now))}.zip"
 
 /** Where a backup landed, for telling the user. */
 data class BackupResult(val fileName: String)
@@ -51,47 +53,46 @@ enum class RestoreFailure { NOT_AN_ARCHIVE, NO_DATABASE_INSIDE, TOO_LARGE, NOT_A
 data class RestoreResult(val failure: RestoreFailure?, val daysDropped: Int)
 
 /**
- * Zips the live database into `Documents/Steps`. The write-ahead log is checkpointed first, or the
- * copy would miss everything recorded since the last checkpoint.
+ * What ../backups needs to know about this app: the folder, the file names it owns and how to fill
+ * one. [BackupsConfig.keepCount] is left at the module's three — a day history is small and the
+ * copies are of a file that changes a little every day, not of irreplaceable recordings.
  */
-suspend fun exportZip(context: Context, database: AppDatabase): BackupResult? =
-    withContext(Dispatchers.IO) {
-        database.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
+fun backupsConfig(context: Context): BackupsConfig {
+    val appContext = context.applicationContext
+    return BackupsConfig(
+        dirName = BACKUP_DIR_NAME,
+        filePrefix = BACKUP_FILE_PREFIX,
+        write = { out -> writeArchive(appContext, out) },
+    )
+}
 
-        val dbFile = context.getDatabasePath(DATABASE_NAME)
-        if (!dbFile.exists()) return@withContext null
+/**
+ * Fills one archive with the whole database. Called on the module's own thread, never twice at
+ * once, and it throws rather than let half a copy be published. The write-ahead log is
+ * checkpointed first, or the copy would miss everything recorded since the last checkpoint.
+ */
+private fun writeArchive(context: Context, out: OutputStream) {
+    AppDatabase.get(context).openHelper.writableDatabase
+        .query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
 
-        val name = backupFileName()
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, ZIP_MIME)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, EXPORT_DIR)
-            put(MediaStore.MediaColumns.IS_PENDING, 1)
-        }
+    val dbFile = context.getDatabasePath(DATABASE_NAME)
+    check(dbFile.exists()) { "There is no database to back up" }
 
-        val resolver = context.contentResolver
-        val target: Uri = resolver.insert(MediaStore.Files.getContentUri("external"), values)
-            ?: return@withContext null
-
-        try {
-            resolver.openOutputStream(target)?.use { out ->
-                ZipOutputStream(out).use { zip ->
-                    zip.putNextEntry(ZipEntry(DB_ENTRY_NAME))
-                    dbFile.inputStream().use { it.copyTo(zip) }
-                    zip.closeEntry()
-                }
-            } ?: run {
-                resolver.delete(target, null, null)
-                return@withContext null
-            }
-        } catch (e: Exception) {
-            resolver.delete(target, null, null)
-            throw e
-        }
-
-        resolver.update(target, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
-        BackupResult(fileName = name)
+    ZipOutputStream(out).use { zip ->
+        zip.putNextEntry(ZipEntry(DB_ENTRY_NAME))
+        dbFile.inputStream().use { it.copyTo(zip) }
+        zip.closeEntry()
     }
+}
+
+/**
+ * The backup button: makes a copy now whatever the daily check thinks, and returns its file name.
+ * It counts as the day's copy and takes part in the same rotation — a manual backup is a backup.
+ * Null when it could not be written.
+ */
+suspend fun exportZip(context: Context): BackupResult? = withContext(Dispatchers.IO) {
+    Backups.runNow(context, backupsConfig(context)).getOrNull()?.let { BackupResult(fileName = it) }
+}
 
 /**
  * Replaces the database with the one inside [source]. Returns null on success, or the reason it

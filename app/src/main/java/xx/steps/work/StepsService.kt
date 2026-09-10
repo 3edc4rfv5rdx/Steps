@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import dev.backups.Backups
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
 import xx.steps.DATE_TICK_MS
 import xx.steps.MainActivity
 import xx.steps.R
+import xx.steps.data.backupsConfig
 import xx.steps.data.StepsRepository
 import xx.steps.distanceLabel
 import xx.steps.formatSteps
@@ -87,6 +89,10 @@ class StepsService : Service() {
     override fun onCreate() {
         super.onCreate()
         logSteps("service: starting")
+        // The steps of a day the user never opens the app on are still a day worth keeping, and
+        // this service is the only thing running then. The module still makes at most one copy a
+        // day, whichever of the two asks first.
+        Backups.checkOnStart(this, backupsConfig(this))
         line = readout(steps = 0, stepLengthCm = AppSettings.stepLengthCm.value)
         createChannel()
         // Posted before anything else can go wrong: a foreground service that has not called

@@ -64,6 +64,8 @@
     <string name="import_confirm_message">Дни сливаются по дате, побеждает более полная запись, а изменённый день теряет почасовую раскладку</string>
     <string name="import_breakdown_dropped">Почасовая раскладка сброшена</string>
     <string name="setting_backup">Резервные копии</string>
+    <string name="setting_backup_auto">Ежедневная копия, хранится три</string>
+    <string name="setting_update_check">Проверять обновления при старте</string>
     <string name="backup_export_zip">Полная копия</string>
     <string name="backup_import_zip">Восстановление из копии</string>
     <string name="restore_confirm_title">Заменить всё</string>

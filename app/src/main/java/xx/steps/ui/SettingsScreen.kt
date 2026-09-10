@@ -37,10 +37,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import xx.steps.R
 import xx.steps.SHOW_JOURNAL_SETTING
-import xx.steps.data.AppDatabase
 import xx.steps.data.RestoreFailure
 import xx.steps.data.StepsRepository
 import xx.steps.data.exportCsv
+import dev.backups.Backups
+import dev.updater.Updater
 import xx.steps.data.exportZip
 import xx.steps.data.importCsv
 import xx.steps.data.importZip
@@ -86,6 +87,11 @@ fun SettingsScreen() {
     // Saveable: changing the theme or the language recreates the activity under an open dialog.
     var editing by rememberSaveable { mutableStateOf(Editing.NONE) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
+    // The daily-copy flag lives in ../backups and in its own preferences file, so it is read here
+    // rather than through AppSettings; nothing outside this switch ever changes it.
+    var dailyBackup by remember { mutableStateOf(Backups.isEnabled(context)) }
+    // Likewise the start-up update check: ../updater keeps that flag, in its own file.
+    var updateCheck by remember { mutableStateOf(Updater.isEnabled(context)) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
     var pendingImport by remember { mutableStateOf<Uri?>(null) }
 
@@ -176,7 +182,7 @@ fun SettingsScreen() {
             failureText = resources.getString(R.string.backup_failed),
             busyText = resources.getString(R.string.work_busy),
         ) {
-            val result = exportZip(appContext, AppDatabase.get(appContext))
+            val result = exportZip(appContext)
             if (result == null) {
                 BannerMessage(BannerKind.ERROR, resources.getString(R.string.backup_failed))
             } else {
@@ -246,6 +252,22 @@ fun SettingsScreen() {
         ActionRow(
             label = stringResource(R.string.setting_backup),
             onClick = { showBackup = true },
+        )
+        SwitchRow(
+            label = stringResource(R.string.setting_backup_auto),
+            checked = dailyBackup,
+            onChange = {
+                dailyBackup = it
+                Backups.setEnabled(context, it)
+            },
+        )
+        SwitchRow(
+            label = stringResource(R.string.setting_update_check),
+            checked = updateCheck,
+            onChange = {
+                updateCheck = it
+                Updater.setEnabled(context, it)
+            },
         )
         // Last on the screen: a diagnostic, wanted rarely, and nothing above it should be scrolled
         // past to reach a setting used more often. Hidden altogether unless SHOW_JOURNAL_SETTING
