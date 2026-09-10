@@ -1,8 +1,9 @@
 # Steps
 
 A personal pedometer for Android. It reads the phone's hardware `TYPE_STEP_COUNTER`, keeps a
-per-day history, and shows progress towards a daily goal. No network, no accounts, no Play
-Services.
+per-day history, and shows progress towards a daily goal. No accounts and no Play Services; the
+one thing it reaches the network for is its own GitHub release, to say when a newer build is out,
+and that check has a switch in Settings.
 
 Full behaviour is in [SPEC.md](SPEC.md).
 
@@ -26,9 +27,13 @@ from midnight to midnight: bars an hour wide, half an hour, or a quarter, with a
 follows the finger and names the stretch it stands on, and the day's figures under it.
 
 Settings hold the goal (10 000 steps until you pick your own), the step length the distance is
-figured from, the theme and accent, the language (English, Russian, Ukrainian), and the backups —
-made by hand or once a calendar day by the shared `../backups` module, the newest three kept. A demo mode seeds plausible history and
-fakes a walking counter, offered on an emulator only.
+figured from, the theme and accent, the language (English, Russian, Ukrainian), the backups — made
+by hand or once a calendar day by the shared `../backups` module, the newest three kept — and the
+switch for the update check. A demo mode seeds plausible history and fakes a walking counter,
+offered on an emulator only.
+
+The title bar's **i** opens About: the version, the build date, the GitHub page, the mailbox, and a
+button that asks for a newer build there and then.
 
 ## How it counts
 
@@ -40,8 +45,9 @@ counter is not free-running: it advances while some app holds a registration on 
 otherwise, and Android stops delivering to a registration whose UID has gone idle. So the
 registration lives as long as the process does, and a foreground service keeps the process in a
 state where that registration is still fed. Its notification is today's count and the distance it
-comes to, and swiping it away puts it straight back. A WorkManager job every 15 minutes reads the
-counter again and starts back whatever the system killed.
+comes to, with a button that pauses and resumes counting — the ride to pause is over by the time
+the phone is unlocked — and swiping it away puts it straight back. A WorkManager job every 15
+minutes reads the counter again and starts back whatever the system killed.
 
 Not every reading is written. The counter reports every step or two, and each write is a database
 transaction, so there is a floor: two seconds with a screen open, which still reads as live, and a
@@ -73,11 +79,19 @@ Documents/Steps holds both: a CSV of `date,steps,goal` and a ZIP of the whole da
 import asks first — the ZIP replaces everything, the CSV merges by date and keeps the fuller record
 of each day — and the CSV import says afterwards what it wrote and what it cost.
 
+## Updates
+
+The app asks GitHub for the newest release of this repository, at most every six hours after a
+launch and on demand from the About dialog, and offers the build for its own ABI out of the
+`latest.json` that `23-ToUpdate.sh` uploads beside the APKs. Nothing else leaves the phone, and the
+switch in Settings turns the launch check off — the About button stays.
+
 ## Requirements
 
 - Android 13+ (minSdk 33) and a hardware step counter
 - the `ACTIVITY_RECOGNITION` permission — without it the system withholds the counter's readings
 - permission to post notifications, which is where the count shows while the app is closed
+- for the updater only: `INTERNET`, and the permission to install an APK it has downloaded
 
 ## Build
 
@@ -95,6 +109,7 @@ Release-only workflow, driven by the scripts in the repository root:
 | `./19-LinkOut.sh` | hard-link the newest arm64 APK into `OUT/` |
 | `./20-MakeTag.sh`, `./21-PushTag.sh` | release tag and its push |
 | `./22-RelUpload.sh` | GitHub Release for the newest tag, with the arm64 and universal APKs |
+| `./23-ToUpdate.sh` | `latest.json` for that release, so the in-app updater can find it |
 
 Release signing reads `~/.my-safe/key.properties`; the build number lives in `build_number.txt`.
 
