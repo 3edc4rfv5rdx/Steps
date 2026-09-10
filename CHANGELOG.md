@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+## v0.5.78 (2026-09-10)
 - I: The README says what the app now does: it reaches the network for its own release, the notification pauses counting, and Settings and About carry the update check
 - N: A pause button on the counting notification, so a bus or a bicycle can be paused without unlocking the phone; the card names the pause while it holds
 - N: A copy of the database once a calendar day, made at launch and by the counting service, so days the app is never opened on get one too; the shared ../backups module keeps the newest three and a manual backup counts as the day's
