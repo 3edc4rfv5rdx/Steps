@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+## v0.5.81 (2026-09-11)
 ## v0.5.80 (2026-09-10)
 - I: The README names the three shared modules compiled in from beside the project, and the debug and .apkx steps its build table was missing
 ## v0.5.78 (2026-09-10)
