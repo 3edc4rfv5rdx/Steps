@@ -3,7 +3,11 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- E: A build published just after the app last looked is offered on the next launch instead of up to six hours later
+- E: The start-up update check is no longer silenced for six hours by the About screen's own check button
+
 ## v0.5.81 (2026-09-11)
+- I: test release
 ## v0.5.80 (2026-09-10)
 - I: The README names the three shared modules compiled in from beside the project, and the debug and .apkx steps its build table was missing
 ## v0.5.78 (2026-09-10)
