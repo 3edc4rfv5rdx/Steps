@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import xx.steps.R
-import xx.steps.SHOW_JOURNAL_SETTING
 import xx.steps.data.RestoreFailure
 import xx.steps.data.StepsRepository
 import xx.steps.data.exportCsv
@@ -46,7 +45,6 @@ import xx.steps.data.exportZip
 import xx.steps.data.importCsv
 import xx.steps.data.importZip
 import xx.steps.formatSteps
-import xx.steps.StepLog
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
 import xx.steps.settings.isIgnoringBatteryOptimizations
@@ -74,7 +72,6 @@ fun SettingsScreen() {
     val stepLength by AppSettings.stepLengthCm.collectAsState()
     val themeMode by AppSettings.themeMode.collectAsState()
     val accentIndex by AppSettings.accentIndex.collectAsState()
-    val journalEnabled by AppSettings.journalEnabled.collectAsState()
 
     // Both come from the platform: the shipped locales from locales_config.xml, the current one
     // from the per-app locale. Re-read whenever this screen is built, since choosing a language
@@ -269,19 +266,6 @@ fun SettingsScreen() {
                 Updater.setEnabled(context, it)
             },
         )
-        // Last on the screen: a diagnostic, wanted rarely, and nothing above it should be scrolled
-        // past to reach a setting used more often. Hidden altogether unless SHOW_JOURNAL_SETTING
-        // says otherwise, divider and all — a separator under the last row would be a line under
-        // nothing.
-        if (SHOW_JOURNAL_SETTING) {
-            HorizontalDivider()
-            SwitchRow(
-                label = stringResource(R.string.setting_journal),
-                hint = stringResource(R.string.setting_journal_hint),
-                checked = journalEnabled,
-                onChange = { StepLog.setEnabled(context, it) },
-            )
-        }
     }
 
     when (editing) {

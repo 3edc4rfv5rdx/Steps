@@ -103,7 +103,7 @@ Single `:app` module, package `xx.steps`.
 - **`work/StepsBootReceiver.kt`** — the same job for the two events that stop counting silently: a
   reboot and an app update. Both leave the app installed and scheduled but not running.
 - **`settings/AppSettings`** — the only other persisted state, in `SharedPreferences`: goal, theme,
-  accent, and whether the counting journal is written. Language uses the framework `LocaleManager` (API 33+).
+  and accent. Language uses the framework `LocaleManager` (API 33+).
 - **`ui/`** — Compose only. Three tabs: Today (progress ring plus the past week), History
   (year → month → day tree), Settings. `HistoryModel.kt` holds the grouping and the period totals
   as plain functions, free of Compose, so both are covered by JVM tests; the screen only renders

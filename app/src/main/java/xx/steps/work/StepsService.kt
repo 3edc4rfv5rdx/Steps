@@ -34,7 +34,6 @@ import xx.steps.data.backupsConfig
 import xx.steps.data.StepsRepository
 import xx.steps.distanceLabel
 import xx.steps.formatSteps
-import xx.steps.logSteps
 import xx.steps.settings.AppSettings
 import xx.steps.steps.hasStepPermission
 import java.time.LocalDate
@@ -96,22 +95,14 @@ class StepsService : Service() {
     private val actions = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                ACTION_TOGGLE_PAUSE -> {
-                    val next = !AppSettings.paused.value
-                    logSteps("service: notification " + (if (next) "paused" else "resumed") + " counting")
-                    AppSettings.setPaused(this@StepsService, next)
-                }
-                ACTION_DISMISSED -> {
-                    logSteps("service: notification dismissed, posting it again")
-                    notificationManager()?.notify(NOTIFICATION_ID, notification(line, paused))
-                }
+                ACTION_TOGGLE_PAUSE -> AppSettings.setPaused(this@StepsService, !AppSettings.paused.value)
+                ACTION_DISMISSED -> notificationManager()?.notify(NOTIFICATION_ID, notification(line, paused))
             }
         }
     }
 
     override fun onCreate() {
         super.onCreate()
-        logSteps("service: starting")
         // The steps of a day the user never opens the app on are still a day worth keeping, and
         // this service is the only thing running then. The module still makes at most one copy a
         // day, whichever of the two asks first.
@@ -171,7 +162,6 @@ class StepsService : Service() {
     override fun onBind(intent: Intent?) = null
 
     override fun onDestroy() {
-        logSteps("service: stopping")
         unregisterReceiver(actions)
         scope.cancel()
         super.onDestroy()
@@ -285,10 +275,7 @@ class StepsService : Service() {
         fun start(context: Context) {
             // A health-typed foreground service without the activity permission is a SecurityException
             // at startForeground, so the one check lives here rather than at each call site.
-            if (!hasStepPermission(context)) {
-                logSteps("service: not started, no permission")
-                return
-            }
+            if (!hasStepPermission(context)) return
             // Starting a foreground service from the background is allowed here because the app is
             // exempt from battery optimisation; revoke that exemption and the same call throws.
             // Losing the service is bad, but taking the worker down with it is worse — it is the
@@ -298,7 +285,7 @@ class StepsService : Service() {
                     context.applicationContext,
                     Intent(context.applicationContext, StepsService::class.java),
                 )
-            }.onFailure { logSteps("service: could not start — $it") }
+            }
         }
     }
 }

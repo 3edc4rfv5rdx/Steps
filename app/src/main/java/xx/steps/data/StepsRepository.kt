@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import xx.steps.MILLIS_PER_MINUTE
 import xx.steps.SECONDS_PER_MINUTE
 import xx.steps.SYNC_STATE_ID
-import xx.steps.logSteps
 import xx.steps.steps.SlotShare
 import xx.steps.steps.SyncState
 import xx.steps.steps.foldReading
@@ -71,17 +70,6 @@ class StepsRepository(private val database: AppDatabase) {
     ): Int = database.withTransaction {
         val previous = dao.syncState(SYNC_STATE_ID)?.let { SyncState(it.lastRaw, it.lastUptimeMillis) }
         val outcome = foldReading(previous, rawCount, uptimeMillis, nowMillis)
-
-        // One line per reading, carrying everything the counting rule saw: what the raw delta was,
-        // how long it had to happen in, and what survived the cap. A short window under a large
-        // delta is the signature of steps being clipped, and nothing else in the app records it.
-        logSteps(
-            "fold: raw=$rawCount prevRaw=${previous?.lastRaw} " +
-                "delta=${previous?.let { rawCount - it.lastRaw }} " +
-                "uptime=$uptimeMillis now=$nowMillis prevUptime=${previous?.lastUptimeMillis} " +
-                "window=${outcome.windowMillis} added=${outcome.addedSteps} " +
-                "credit=$credit day=$today",
-        )
 
         if (credit && outcome.addedSteps > 0) {
             val iso = today.toIso()

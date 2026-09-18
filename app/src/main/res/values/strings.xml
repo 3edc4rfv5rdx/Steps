@@ -91,8 +91,6 @@
     <!-- Background work -->
     <string name="setting_battery">Background work</string>
     <string name="setting_battery_hint">Battery optimisation delays the counter read</string>
-    <string name="setting_journal">Counting journal</string>
-    <string name="setting_journal_hint">Every reading written to Documents/Steps</string>
     <string name="notification_channel">Step counting</string>
     <string name="chart_bucket">Bar width</string>
     <string name="chart_controls">Chart controls</string>

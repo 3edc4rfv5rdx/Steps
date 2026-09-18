@@ -8,7 +8,7 @@ import xx.steps.steps.stepAccessOf
 
 /**
  * Whether the app can count, and if not, why. One rule: the background worker used to answer the
- * same question in the opposite order and journal the wrong reason for it.
+ * same question in the opposite order and report the wrong reason for it.
  */
 class StepAccessRuleTest {
 

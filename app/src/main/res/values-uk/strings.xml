@@ -92,8 +92,6 @@
     <!-- Background work -->
     <string name="setting_battery">Робота у фоні</string>
     <string name="setting_battery_hint">Оптимізація батареї затримує зняття показань</string>
-    <string name="setting_journal">Журнал підрахунку</string>
-    <string name="setting_journal_hint">Кожне зчитування пишеться в Documents/Steps</string>
     <string name="notification_channel">Підрахунок кроків</string>
     <string name="chart_bucket">Ширина смуги</string>
     <string name="chart_controls">Керування графіком</string>

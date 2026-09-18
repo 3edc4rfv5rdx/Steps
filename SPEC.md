@@ -106,13 +106,6 @@ app/src/main/java/xx/steps/
                            owns the chain of questions that follows a granted permission. It does
                            not read the sensor
   Common.kt                done
-  StepLog.kt               the counting journal, off by default and with no switch on the Settings
-                           screen — SHOW_JOURNAL_SETTING hides the row rather than deleting it, so
-                           a phone that miscounts is one flag away from recording why:
-                           logSteps() queues a line, a background writer
-                           appends it to Documents/Steps/steps-<date>.txt through MediaStore, one
-                           file per day. Whether the sensor answers a registration at all is the
-                           phone's decision and nothing else in the app records it
   steps/StepSync.kt        done
   steps/StepSensor.kt      readings(): Flow<Long> over callbackFlow; readOnce(timeout) for the
                            worker; isAvailable for phones without the sensor; hasStepPermission()
@@ -166,7 +159,7 @@ app/src/main/java/xx/steps/
                            Backup.kt and DatabaseRestoreCoordinator. Restores the days and their
                            breakdown, keeping only the rows usableRows() can prove are readable
   settings/AppSettings.kt  object with StateFlows: goal, step length, paused, demo, themeMode,
-                           accentIndex, journalEnabled
+                           accentIndex
   settings/PowerSettings.kt whether the app is exempt from battery optimisation, and the intent
                            that asks for it or gives it back. Nothing here counts steps; what the
                            restrictions bear on is how often the app is woken to read the counter

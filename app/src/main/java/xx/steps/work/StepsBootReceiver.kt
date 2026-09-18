@@ -3,7 +3,6 @@ package xx.steps.work
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import xx.steps.logSteps
 
 /**
  * Puts counting back on its feet after the two things that stop it without anybody noticing: the
@@ -18,7 +17,6 @@ class StepsBootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action !in HANDLED) return
-        logSteps("boot: ${intent.action}, starting the service")
         StepsService.start(context)
         // The schedule survives both events on its own, but asking again costs nothing and covers
         // the case where it did not: the policy is KEEP, so an existing schedule is left alone.

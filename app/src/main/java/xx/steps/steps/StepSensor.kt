@@ -14,9 +14,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withTimeoutOrNull
-import xx.steps.NANOS_PER_MILLI
 import xx.steps.SENSOR_READ_TIMEOUT_MS
-import xx.steps.logSteps
 import xx.steps.uptimeMillis
 
 /** True when the user has granted the permission the step counter is gated behind. */
@@ -51,36 +49,21 @@ class StepSensor(context: Context) {
     fun readings(): Flow<StepReading> = callbackFlow {
         val target = sensor
         if (target == null) {
-            logSteps("sensor: no counter on this phone, readings closed")
             close()
             return@callbackFlow
         }
-        // The last value handed over, kept only so the line written when the listener goes away can
-        // carry it: what the counter read at unsubscribe, next to what it reads at the following
-        // subscribe, is the whole question of whether the hardware counts while nobody listens.
-        var lastRaw: Long? = null
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 // The framework types the counter as a float; above ~16.7M steps it would start
                 // losing single steps, which is decades of walking without a reboot.
                 val raw = event.values[0].toLong()
-                lastRaw = raw
-                // The event's own clock, next to ours: both count milliseconds since boot, so the
-                // gap between them is how stale the value being handed over already is. Ours is the
-                // one carried on — the event's is vendor-supplied and not everywhere the same base.
-                val at = uptimeMillis()
-                logSteps("sensor: raw=$raw eventAt=${event.timestamp / NANOS_PER_MILLI} now=$at")
-                trySend(StepReading(raw, at))
+                trySend(StepReading(raw, uptimeMillis()))
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
         }
-        logSteps("sensor: listening from ${uptimeMillis()}")
         manager?.registerListener(listener, target, SensorManager.SENSOR_DELAY_NORMAL)
-        awaitClose {
-            logSteps("sensor: stopped listening at ${uptimeMillis()}, last raw=$lastRaw")
-            manager?.unregisterListener(listener)
-        }
+        awaitClose { manager?.unregisterListener(listener) }
     }.conflate()
 
     /**
@@ -93,5 +76,4 @@ class StepSensor(context: Context) {
      */
     suspend fun readOnce(timeoutMillis: Long = SENSOR_READ_TIMEOUT_MS): StepReading? =
         withTimeoutOrNull(timeoutMillis) { readings().firstOrNull() }
-            .also { if (it == null) logSteps("sensor: silent for ${timeoutMillis}ms, nothing read") }
 }

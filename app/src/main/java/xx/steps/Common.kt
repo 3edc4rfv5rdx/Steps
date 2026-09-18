@@ -22,30 +22,14 @@ const val PREFS_NAME = "steps_prefs"
 const val BACKUP_DIR_NAME = "Steps"
 
 /**
- * The public folder every file this app writes lands in: the CSV export, the ZIP backup and the
- * counting journal. One definition, so moving it moves all three.
+ * The public folder every file this app writes lands in: the CSV export and the ZIP backup. One
+ * definition, so moving it moves both.
  *
  * Spelled out rather than built from `Environment.DIRECTORY_DOCUMENTS`: that field is not final, so
  * it is no compile-time constant, and reading it would put a device dependency in the one file the
- * JVM tests lean on hardest — the journal already spelled the folder by hand for the same reason.
- * The value is platform API and does not move; the export-folder test pins it either way.
+ * JVM tests lean on hardest. The value is platform API and does not move; the export-folder test pins it either way.
  */
 const val EXPORT_DIR = "Documents/$BACKUP_DIR_NAME"
-
-/**
- * The same folder spelled the way MediaStore takes it on insert, with the trailing separator.
- * MediaStore is free to store a `RELATIVE_PATH` either way, which is why a lookup matches it back
- * with a `LIKE` pattern rather than an equality — see StepLog.
- */
-const val EXPORT_DIR_PATH = "$EXPORT_DIR/"
-
-/**
- * Whether the counting journal has a switch on the Settings screen. False: the journal is a
- * diagnostic for a phone that miscounts, and the app counts. The row is kept in the code rather
- * than deleted — flipping this back is the whole of what it takes to hand it back to the user,
- * which is what a diagnostic has to stay one flag away from.
- */
-const val SHOW_JOURNAL_SETTING = false
 
 /** Daily step goal used until the user picks their own. */
 const val DEFAULT_GOAL = 10_000
@@ -79,9 +63,6 @@ fun startOfWeek(date: LocalDate): LocalDate =
 const val SECONDS_PER_MINUTE = 60
 const val MINUTES_PER_HOUR = 60
 const val MILLIS_PER_MINUTE = 60_000L
-
-/** Sensor event timestamps arrive in nanoseconds; the rest of the app counts milliseconds. */
-const val NANOS_PER_MILLI = 1_000_000L
 
 /** Hours in a day — the span the intra-day chart is ruled along. */
 const val HOURS_PER_DAY = 24

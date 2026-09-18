@@ -39,7 +39,7 @@ object StepAccessState {
 
 /**
  * Which of the three states a set of facts adds up to. The one place that decision is made — the
- * background worker used to make it again, in the opposite order, and journal "no sensor" for a
+ * background worker used to make it again, in the opposite order, and report "no sensor" for a
  * phone that simply had not been allowed one yet.
  *
  * The demo feeds its own readings, so neither the hardware nor the permission matters to it.

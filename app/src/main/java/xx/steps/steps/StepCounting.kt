@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import xx.steps.BACKGROUND_FOLD_INTERVAL_MS
 import xx.steps.FOREGROUND_FOLD_INTERVAL_MS
 import xx.steps.data.StepsRepository
-import xx.steps.logSteps
 import xx.steps.settings.AppSettings
 import xx.steps.uptimeMillis
 
@@ -58,16 +57,13 @@ object StepCounting {
         watchScreens(app)
 
         CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-            // When the last reading was written, how many arrived meanwhile without being, and
-            // whether the demo has yet had a reading folded in this process. All three are read and
-            // written only by this collector, on one coroutine.
+            // When the last reading was written, and whether the demo has yet had a reading folded
+            // in this process. Both are read and written only by this collector, on one coroutine.
             var lastFold: Long? = null
-            var heldBack = 0
             var demoFoldPending = true
 
             combine(StepAccessState.access, AppSettings.demoMode, ::Pair)
                 .flatMapLatest { (access, demo) ->
-                    logSteps("counting: access=$access demo=$demo")
                     when {
                         // The demo's fake counter has no clock of its own, so it is stamped as it
                         // is drawn — which is the moment it is "read", the flow being unbuffered.
@@ -82,16 +78,8 @@ object StepCounting {
                     val now = uptimeMillis()
                     val paused = AppSettings.paused.value
                     val demo = AppSettings.demoMode.value
-                    if (!shouldFold(lastFold, now, screenOpen.value, paused)) {
-                        heldBack++
-                        return@collect
-                    }
-                    // Said once per fold rather than once per reading: a line for every held-back
-                    // reading would cost exactly what holding them back is meant to save, and the
-                    // sensor's own line is written for every event either way.
-                    if (heldBack > 0) logSteps("counting: $heldBack readings held back since the last fold")
+                    if (!shouldFold(lastFold, now, screenOpen.value, paused)) return@collect
                     lastFold = now
-                    heldBack = 0
                     val credit = creditsSteps(paused, demoFirstOfProcess = demo && demoFoldPending)
                     if (demo) demoFoldPending = false
                     repository.recordReading(
@@ -120,7 +108,6 @@ object StepCounting {
         if (application == null) {
             // Nothing to watch it with: leave the flag saying a screen is open, so readings are
             // folded at the short cadence. Wrong on the side of writing too often, never too rarely.
-            logSteps("counting: no application to watch screens on, folding at the foreground cadence")
             return
         }
         application.registerActivityLifecycleCallbacks(
