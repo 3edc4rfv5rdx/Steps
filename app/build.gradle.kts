@@ -52,21 +52,21 @@ android {
     }
 
     sourceSets {
-        // The shared in-app updater, compiled from ../updater instead of pulled in
+        // The shared in-app updater, compiled from ../shared/updater instead of pulled in
         // as a module: one copy of those sources serves every project here, with no
         // AAR to rebuild. The kotlin set and not the java one: the Kotlin source
         // set no longer inherits java, so .kt files put there are never compiled.
         getByName("main") {
-            kotlin.directories.add("$rootDir/../updater/android/src")
-            res.directories.add("$rootDir/../updater/android/res")
+            kotlin.directories.add("$rootDir/../shared/updater/android/src")
+            res.directories.add("$rootDir/../shared/updater/android/res")
             // The shared About dialog, on the same terms. No res set: its strings
             // are in AboutStrings.kt, where a release build's resource shrinker
             // cannot drop them.
-            kotlin.directories.add("$rootDir/../about/android/src")
+            kotlin.directories.add("$rootDir/../shared/about/android/src")
             // The shared daily backup, likewise: it owns when a copy is made, what
             // it is called, where it lands and how many are kept; this app only
             // says what goes inside one.
-            kotlin.directories.add("$rootDir/../backups/android/src")
+            kotlin.directories.add("$rootDir/../shared/backups/android/src")
         }
     }
 

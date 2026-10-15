@@ -28,7 +28,7 @@ follows the finger and names the stretch it stands on, and the day's figures und
 
 Settings hold the goal (10 000 steps until you pick your own), the step length the distance is
 figured from, the theme and accent, the language (English, Russian, Ukrainian), the backups — made
-by hand or once a calendar day by the shared `../backups` module, the newest three kept — and the
+by hand or once a calendar day by the shared `../shared/backups` module, the newest three kept — and the
 switch for the update check. A demo mode seeds plausible history and fakes a walking counter,
 offered on an emulator only.
 
@@ -92,9 +92,9 @@ Three folders beside this one are compiled into the app from source rather than 
 modules or AARs — one copy of each serves every project here (the `sourceSets` block in
 `app/build.gradle.kts` wires them):
 
-- `../updater` — the update check, its configuration and its dialogs
-- `../about` — the About dialog, drawn in code so the resource shrinker cannot drop its strings
-- `../backups` — when a daily copy is made, what it is named, where it lands and how many survive;
+- `../shared/updater` — the update check, its configuration and its dialogs
+- `../shared/about` — the About dialog, drawn in code so the resource shrinker cannot drop its strings
+- `../shared/backups` — when a daily copy is made, what it is named, where it lands and how many survive;
   this app only fills the archive
 
 ## Requirements
