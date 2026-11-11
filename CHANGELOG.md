@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+## v0.5.85 (2026-11-11)
 - I: One universal APK instead of ABI splits — the only native code is a few KB, so the splits saved nothing
 - I: 24-ToLocalUpdates.sh, the shared script that publishes the newest build to the local update server
 - N: A sound once a day at 85% of the goal, with a switch in Settings
