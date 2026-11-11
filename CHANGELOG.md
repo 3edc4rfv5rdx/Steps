@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- I: 24-ToLocalUpdates.sh, the shared script that publishes the newest build to the local update server
 - N: A sound once a day at 85% of the goal, with a switch in Settings
 - I: The shared modules are compiled from ../shared, the one repository that holds updater, about and backups
 ## v0.5.83 (2026-09-18)
