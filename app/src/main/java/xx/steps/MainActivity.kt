@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import dev.about.About
 import dev.about.AboutConfig
 import dev.backups.Backups
+import dev.updater.AboutUpdater
 import dev.updater.Updater
 import dev.updater.UpdaterConfig
 import xx.steps.BuildConfig
@@ -69,6 +70,7 @@ import xx.steps.steps.hasStepPermission
 import xx.steps.steps.nextPermissionAsk
 import xx.steps.work.StepsService
 import xx.steps.ui.ConfirmDialog
+import xx.steps.ui.accentAt
 import xx.steps.ui.HistoryCommands
 import xx.steps.ui.HistoryScreen
 import xx.steps.ui.ScreenWork
@@ -166,10 +168,17 @@ private fun TabIcon(tab: Tab) {
 // the About dialog's button alike.
 val UPDATER_CONFIG = UpdaterConfig(appKey = "steps", repo = "Steps")
 
+/** The accent the shared About and update dialogs are drawn in: the one picked in Settings. */
+private fun applyDialogAccent() {
+    About.accent = accentAt(AppSettings.accentIndex.value).toArgb()
+}
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Before the start-up check, so an update dialog is already in the app's accent.
+        applyDialogAccent()
         // Looks for a newer build in this app's own GitHub release and asks
         // before it downloads anything. Silent when there is nothing newer or
         // GitHub cannot be reached.
@@ -194,6 +203,8 @@ class MainActivity : ComponentActivity() {
             // The window is outside the composition and does not follow it: a theme changed in
             // Settings has to be carried back out to the bars by hand.
             LaunchedEffect(themeMode) { applyWindowTheme() }
+            // The shared dialogs are outside it too, and read the accent when they open.
+            LaunchedEffect(accentIndex) { applyDialogAccent() }
 
             StepsTheme(themeMode = themeMode, accentIndex = accentIndex) {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -327,15 +338,16 @@ private fun MainScreen() {
                 demo = demo,
                 onDemo = { confirmDemo = true },
                 // The shared About dialog: it reads the name and the version off
-                // the package and the GitHub address out of the updater config,
-                // so only the build date is handed over.
+                // the package; the repository, the build date and the update
+                // button are handed over.
                 onAbout = {
                     activity?.let {
                         About.show(
                             it,
                             AboutConfig(
-                                updater = UPDATER_CONFIG,
+                                repo = UPDATER_CONFIG.repoName,
                                 buildDate = BuildConfig.BUILD_DATE,
+                                updates = AboutUpdater(UPDATER_CONFIG),
                             ),
                         )
                     }
