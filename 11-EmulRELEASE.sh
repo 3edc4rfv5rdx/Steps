@@ -1,10 +1,9 @@
 #!/bin/sh
 
-# Emulator is x86_64 — pick that split, fall back to universal, then anything
+# The one universal APK, then anything
 
 cd "$(dirname "$0")"
-apk=$(ls -t app/build/outputs/apk/release/*-x86_64.apk 2>/dev/null | head -1)
-[ -z "$apk" ] && apk=$(ls -t app/build/outputs/apk/release/*-universal.apk 2>/dev/null | head -1)
+apk=$(ls -t app/build/outputs/apk/release/*-universal.apk 2>/dev/null | head -1)
 [ -z "$apk" ] && apk=$(ls -t app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
 
 if [ -z "$apk" ]; then

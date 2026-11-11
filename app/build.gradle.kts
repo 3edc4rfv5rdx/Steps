@@ -97,15 +97,6 @@ android {
         }
     }
 
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "x86_64")
-            isUniversalApk = true
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -136,15 +127,15 @@ ksp {
 
 // ---------- APK names the scripts can read ----------
 //
-// Gradle writes app-<abi>-<type>.apk, which says nothing about which build it
+// Gradle writes app-<type>.apk, which says nothing about which build it
 // is. Everything downstream — 19-LinkOut.sh, 22-RelUpload.sh, 23-ToUpdate.sh,
 // the .apkx link — reads the version and the build number out of the file name
 // instead, so the rename happens here, once, right after the assemble.
 //
 // One shape for every artifact of every project here:
 //
-//   <project>-<version>-<build>-<abi>.apk         a release
-//   <project>-<version>-<build>-<abi>-debug.apk   a debug build
+//   <project>-<version>-<build>-universal.apk         a release
+//   <project>-<version>-<build>-universal-debug.apk   a debug build
 //
 // A release says nothing about its build type: that is what an artifact is
 // unless it says otherwise, and the word in every name only makes the listing
@@ -163,9 +154,6 @@ abstract class RenameApks : DefaultTask() {
     @get:org.gradle.api.tasks.Input
     abstract val buildType: Property<String>
 
-    @get:org.gradle.api.tasks.Input
-    abstract val abis: ListProperty<String>
-
     @get:org.gradle.api.tasks.Internal
     abstract val outputDir: DirectoryProperty
 
@@ -182,11 +170,9 @@ abstract class RenameApks : DefaultTask() {
             src.renameTo(dst)
         }
 
-        abis.get().forEach { abi ->
-            move(File(outDir, "app-$abi-$type.apk"), File(outDir, "$prefix-$abi$tail.apk"))
-        }
-        // The unsplit output, for a variant the ABI splits do not apply to.
-        move(File(outDir, "app-$type.apk"), File(outDir, "$prefix$tail.apk"))
+        // One APK for every ABI: the only native code is a few KB of androidx, so per-ABI
+        // splits saved nothing. "universal" stays in the name — the updater manifest keys on it.
+        move(File(outDir, "app-$type.apk"), File(outDir, "$prefix-universal$tail.apk"))
     }
 }
 
@@ -194,20 +180,18 @@ val renameReleaseApks by tasks.registering(RenameApks::class) {
     projectName.set("steps")
     versionName.set(releaseVersionName)
     buildType.set("release")
-    abis.set(listOf("universal", "arm64-v8a", "x86_64"))
     outputDir.set(layout.buildDirectory.dir("outputs/apk/release"))
 }
 
 // Not a finalizer of assembleDebug, the way the release one is: the debug APK is
 // also what an instrumented test run installs, and that install reads the name
 // out of Gradle's own output metadata. The debug build step asks for this task
-// by name instead, so a test run from the IDE still finds app-<abi>-debug.apk.
+// by name instead, so a test run from the IDE still finds app-debug.apk.
 val renameDebugApks by tasks.registering(RenameApks::class) {
     dependsOn("assembleDebug")
     projectName.set("steps")
     versionName.set(releaseVersionName)
     buildType.set("debug")
-    abis.set(listOf("universal", "arm64-v8a", "x86_64"))
     outputDir.set(layout.buildDirectory.dir("outputs/apk/debug"))
 }
 

@@ -1,11 +1,10 @@
 #!/bin/sh
 set -e
 
-# Samsung is arm64-v8a — pick that split, fall back to universal, then anything
+# The one universal APK, then anything
 
 cd "$(dirname "$0")"
-apk=$(ls -t app/build/outputs/apk/release/*-arm64-v8a.apk 2>/dev/null | head -1)
-[ -z "$apk" ] && apk=$(ls -t app/build/outputs/apk/release/*-universal.apk 2>/dev/null | head -1)
+apk=$(ls -t app/build/outputs/apk/release/*-universal.apk 2>/dev/null | head -1)
 [ -z "$apk" ] && apk=$(ls -t app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
 
 if [ -z "$apk" ]; then

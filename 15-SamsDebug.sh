@@ -2,11 +2,10 @@
 set -e
 cd "$(dirname "$0")"
 
-# Samsung is arm64-v8a — pick that split, fall back to universal, then anything.
+# The one universal APK, then anything.
 # Debug APKs carry the same name as a release with -debug on the end, so match as
 # substrings and take the newest.
-apk=$(ls -t app/build/outputs/apk/debug/*arm64-v8a*.apk 2>/dev/null | head -1)
-[ -z "$apk" ] && apk=$(ls -t app/build/outputs/apk/debug/*universal*.apk 2>/dev/null | head -1)
+apk=$(ls -t app/build/outputs/apk/debug/*universal*.apk 2>/dev/null | head -1)
 [ -z "$apk" ] && apk=$(ls -t app/build/outputs/apk/debug/*.apk 2>/dev/null | head -1)
 
 if [ -z "$apk" ]; then

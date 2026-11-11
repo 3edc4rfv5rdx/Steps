@@ -9,10 +9,10 @@ APK_DIR="app/build/outputs/apk/release"
 
 # The name comes from the APK itself — the version and the build number are
 # already in it — so nothing here reads build_number.txt.
-apk=$(ls -t "$APK_DIR"/*arm64-v8a*.apk 2>/dev/null | head -1)
+apk=$(ls -t "$APK_DIR"/*universal*.apk 2>/dev/null | head -1)
 
 if [[ -z "$apk" || ! -f "$apk" ]]; then
-    echo "ERROR: Release arm64 APK not found. Build first: ./10-MakeRelease.sh"
+    echo "ERROR: Release universal APK not found. Build first: ./10-MakeRelease.sh"
     exit 1
 fi
 

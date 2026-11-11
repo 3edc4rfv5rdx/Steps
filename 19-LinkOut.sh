@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 #
-# Put the APKs of the newest release build into OUT/ as links under their own
-# names, and sweep everything else out of that folder:
+# Put the APK of the newest release build into OUT/ as a link under its own
+# name, and sweep everything else out of that folder:
 #
-#   OUT/steps-<version>-arm64-v8a.apk
 #   OUT/steps-<version>-universal.apk
 #
-# One place to copy a build from, instead of a path deep inside app/build/. The
-# x86_64 split is left where it is: it only ever goes to the emulator, which is
-# installed to from 11-EmulRELEASE.sh and never carried anywhere by hand.
+# One place to copy a build from, instead of a path deep inside app/build/.
 #
 # The links are hard ones: the entry here is the file itself, so copying it
 # elsewhere copies a build and not a dangling path, and a gradle clean leaves it
@@ -19,7 +16,7 @@
 cd "$(dirname "$0")"
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    sed -n '2,18p' "$0"
+    sed -n '2,15p' "$0"
     exit 0
 fi
 
@@ -46,7 +43,6 @@ link_latest() { # link_latest <candidate files...>
     echo "OUT/$name"
 }
 
-link_latest "$APK_DIR"/*arm64-v8a*.apk
 link_latest "$APK_DIR"/*universal*.apk
 
 # Everything else goes: the previous build's names, an ABI no longer built, a

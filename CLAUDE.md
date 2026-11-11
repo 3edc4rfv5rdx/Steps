@@ -18,11 +18,12 @@ The user builds and installs release APKs only — never suggest a debug build o
 Scripts are shared in shape with the sibling `../BikeTracker`, `../WalkieTalkie` and `../myplayer`
 projects:
 
-- `10-MakeRelease.sh` — bumps `build_number.txt`, runs `assembleRelease`, renames the ABI splits to
-  `steps-<version>-<abi>.apk`. The `major.minor` line moves by itself when `CHANGELOG.md`
+- `10-MakeRelease.sh` — bumps `build_number.txt`, runs `assembleRelease`, and renames the one
+  universal APK to `steps-<version>-universal.apk` (no ABI splits: the native code is a few KB, so
+  they saved nothing). The `major.minor` line moves by itself when `CHANGELOG.md`
   has an `N` entry waiting under `Unreleased` and the last tag went out on the current line — so a
   feature raises it once, not on every build after it.
-- `11-EmulRELEASE.sh` (emulator, x86_64) / `12-SamsRELEASE.sh` (device, arm64) — install.
+- `11-EmulRELEASE.sh` (emulator) / `12-SamsRELEASE.sh` (device) — install the universal APK.
 - `03-MakeDebug.sh` and `15-SamsDebug.sh` exist for completeness and are not part of the workflow.
 - `05-Lint.sh` — Android Lint on the debug variant, findings printed as plain text.
 - `06-Test.sh` — JVM unit tests with a per-class summary. One class:
@@ -34,14 +35,14 @@ projects:
 - `bash 02-MakeIcons.sh` — runs `tools/make_icon.py`, but only when `ADD/images/znak.png` is
   newer than the generated PNGs. No execute bit, so a build can never pull it in.
 - `23-ToUpdate.sh` — writes `latest.json` for the newest GitHub release and uploads it as an
-  asset, so the in-app updater can offer it; each device picks its own ABI out of that one
-  manifest. Run by hand after `22-RelUpload.sh`. Its presence means the updater is wired
+  asset, so the in-app updater can offer it; the manifest has one `universal` entry, which the
+  updater falls back to from any ABI. Run by hand after `22-RelUpload.sh`. Its presence means the updater is wired
   into the app.
-- `19-LinkOut.sh` — hard-links the newest arm64 APK into `OUT/` under its own name and sweeps
+- `19-LinkOut.sh` — hard-links the newest universal APK into `OUT/` under its own name and sweeps
   the rest of that folder, so there is one path to copy a build from.
 - `20-MakeTag.sh` / `21-PushTag.sh` — release tag and its push. `22-RelUpload.sh` — creates the
-  GitHub Release for the newest tag out of its `CHANGELOG.md` section and uploads the arm64 and
-  universal APKs to it (the x86_64 split is emulator-only and stays local).
+  GitHub Release for the newest tag out of its `CHANGELOG.md` section and uploads the universal
+  APK to it.
 - `tools/make_icon.py` — regenerates the launcher icon from `ADD/images/znak.png` (that whole folder is git-ignored). Its output,
   `mipmap-*/ic_launcher_foreground.png`, is committed, so the build itself never runs Python.
 

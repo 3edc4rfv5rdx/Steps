@@ -29,7 +29,7 @@ echo "Date:    $BUILD_DATE"
 echo ">>> Build: $NEW_BUILD <<<"
 
 # renameDebugApks depends on assembleDebug, so this builds and then names what it
-# built: <project>-<version>-<abi>-debug.apk
+# built: <project>-<version>-universal-debug.apk
 ./gradlew assembleDebug renameDebugApks
 
 echo

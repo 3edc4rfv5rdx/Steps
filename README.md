@@ -82,8 +82,8 @@ of each day — and the CSV import says afterwards what it wrote and what it cos
 ## Updates
 
 The app asks GitHub for the newest release of this repository, at most every six hours after a
-launch and on demand from the About dialog, and offers the build for its own ABI out of the
-`latest.json` that `23-ToUpdate.sh` uploads beside the APKs. Nothing else leaves the phone, and the
+launch and on demand from the About dialog, and offers the build named in the
+`latest.json` that `23-ToUpdate.sh` uploads beside the APK. Nothing else leaves the phone, and the
 switch in Settings turns the launch check off — the About button stays.
 
 ## Shared modules
@@ -113,16 +113,16 @@ Release-only workflow, driven by the scripts in the repository root:
 | `./00-MakeAll.sh` | release, both installs and the OUT link in one run — not the icons |
 | `bash 02-MakeIcons.sh` | redraw the icons when `ADD/images/znak.png` is newer |
 | `./03-MakeDebug.sh` | debug APK; `./15-SamsDebug.sh` installs it on the phone |
-| `./10-MakeRelease.sh` | signed release with ABI splits, bumping the build number |
+| `./10-MakeRelease.sh` | one signed universal release APK, bumping the build number |
 | `./12-SamsRELEASE.sh` | install on the connected phone |
 | `./11-EmulRELEASE.sh` | install on the emulator |
 | `./05-Lint.sh` | Android Lint, findings as plain text |
 | `./06-Test.sh` | JVM unit tests with a per-class summary |
-| `./19-LinkOut.sh` | hard-link the newest arm64 APK into `OUT/` |
+| `./19-LinkOut.sh` | hard-link the newest APK into `OUT/` |
 | `./20-MakeTag.sh`, `./21-PushTag.sh` | release tag and its push |
-| `./22-RelUpload.sh` | GitHub Release for the newest tag, with the arm64 and universal APKs |
+| `./22-RelUpload.sh` | GitHub Release for the newest tag, with the APK |
 | `./23-ToUpdate.sh` | `latest.json` for that release, so the in-app updater can find it |
-| `./99-CopyToAPKX.sh` | the arm64 APK under an `.apkx` name, for messengers that mangle `.apk` |
+| `./99-CopyToAPKX.sh` | the APK under an `.apkx` name, for messengers that mangle `.apk` |
 
 Release signing reads `~/.my-safe/key.properties`; the build number lives in `build_number.txt`.
 
