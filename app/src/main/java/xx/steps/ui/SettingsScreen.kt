@@ -44,7 +44,9 @@ import dev.updater.Updater
 import xx.steps.data.exportZip
 import xx.steps.data.importCsv
 import xx.steps.data.importZip
+import xx.steps.NEAR_GOAL_PERCENT
 import xx.steps.formatSteps
+import xx.steps.nearGoalMark
 import xx.steps.settings.AppSettings
 import xx.steps.settings.batteryExemptionIntent
 import xx.steps.settings.isIgnoringBatteryOptimizations
@@ -72,6 +74,7 @@ fun SettingsScreen() {
     val stepLength by AppSettings.stepLengthCm.collectAsState()
     val themeMode by AppSettings.themeMode.collectAsState()
     val accentIndex by AppSettings.accentIndex.collectAsState()
+    val nearGoalSound by AppSettings.nearGoalSound.collectAsState()
 
     // Both come from the platform: the shipped locales from locales_config.xml, the current one
     // from the per-app locale. Re-read whenever this screen is built, since choosing a language
@@ -200,6 +203,12 @@ fun SettingsScreen() {
             label = stringResource(R.string.setting_goal),
             value = formatSteps(goal),
             onClick = { editing = Editing.GOAL },
+        )
+        SwitchRow(
+            label = stringResource(R.string.setting_near_goal_sound),
+            hint = stringResource(R.string.setting_near_goal_sound_hint, NEAR_GOAL_PERCENT, formatSteps(nearGoalMark(goal))),
+            checked = nearGoalSound,
+            onChange = { AppSettings.setNearGoalSound(context, it) },
         )
         HorizontalDivider()
 

@@ -9,6 +9,7 @@ import androidx.work.WorkerParameters
 import xx.steps.SYNC_INTERVAL_MINUTES
 import xx.steps.data.StepsRepository
 import xx.steps.settings.AppSettings
+import xx.steps.steps.NearGoalSound
 import xx.steps.steps.StepAccess
 import xx.steps.steps.StepAccessState
 import xx.steps.steps.StepSensor
@@ -55,7 +56,7 @@ class StepsSyncWorker(
 
         // While paused the reading is still consumed, moving the baseline without recording:
         // otherwise the pause would only postpone the steps it is meant to discard.
-        StepsRepository.get(applicationContext).recordReading(
+        val recorded = StepsRepository.get(applicationContext).recordReading(
             rawCount = reading.rawCount,
             goal = AppSettings.goal.value,
             // The read above can wait seconds for an event, and the open screen may have folded a
@@ -63,6 +64,7 @@ class StepsSyncWorker(
             uptimeMillis = reading.uptimeMillis,
             credit = !AppSettings.paused.value,
         )
+        NearGoalSound.onReading(applicationContext, recorded)
         return Result.success()
     }
 

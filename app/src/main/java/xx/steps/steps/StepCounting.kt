@@ -82,13 +82,14 @@ object StepCounting {
                     lastFold = now
                     val credit = creditsSteps(paused, demoFirstOfProcess = demo && demoFoldPending)
                     if (demo) demoFoldPending = false
-                    repository.recordReading(
+                    val recorded = repository.recordReading(
                         rawCount = reading.rawCount,
                         goal = AppSettings.goal.value,
                         uptimeMillis = reading.uptimeMillis,
                         nowMillis = now,
                         credit = credit,
                     )
+                    NearGoalSound.onReading(app, recorded)
                 }
         }
     }

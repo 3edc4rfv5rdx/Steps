@@ -27,6 +27,7 @@ object AppSettings {
     private const val KEY_STEP_LENGTH = "step_length_cm"
     private const val KEY_THEME = "theme_mode"
     private const val KEY_ACCENT = "accent_index"
+    private const val KEY_NEAR_GOAL_SOUND = "near_goal_sound"
 
     private val _goal = MutableStateFlow(DEFAULT_GOAL)
 
@@ -57,6 +58,11 @@ object AppSettings {
     /** Index into the accent palette; the ring, the bars and the buttons all take their color from it. */
     val accentIndex: StateFlow<Int> = _accentIndex.asStateFlow()
 
+    private val _nearGoalSound = MutableStateFlow(true)
+
+    /** Whether a sound plays once a day as the steps come within reach of the goal. */
+    val nearGoalSound: StateFlow<Boolean> = _nearGoalSound.asStateFlow()
+
     private val _demoMode = MutableStateFlow(false)
 
     /**
@@ -72,6 +78,7 @@ object AppSettings {
         _goal.value = clampGoal(stored)
         _paused.value = prefs.getBoolean(KEY_PAUSED, false)
         _demoMode.value = prefs.getBoolean(KEY_DEMO, false)
+        _nearGoalSound.value = prefs.getBoolean(KEY_NEAR_GOAL_SOUND, true)
         _stepLengthCm.value = clampStepLength(prefs.getInt(KEY_STEP_LENGTH, DEFAULT_STEP_LENGTH_CM))
         _themeMode.value = prefs.getString(KEY_THEME, null)
             ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() } ?: ThemeMode.SYSTEM
@@ -108,6 +115,11 @@ object AppSettings {
         val clamped = index.coerceIn(AccentPalette.indices)
         _accentIndex.value = clamped
         prefs(context).edit { putInt(KEY_ACCENT, clamped) }
+    }
+
+    fun setNearGoalSound(context: Context, enabled: Boolean) {
+        _nearGoalSound.value = enabled
+        prefs(context).edit { putBoolean(KEY_NEAR_GOAL_SOUND, enabled) }
     }
 
     fun setDemoMode(context: Context, enabled: Boolean) {

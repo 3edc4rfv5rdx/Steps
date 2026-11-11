@@ -10,10 +10,17 @@ import xx.steps.steps.SlotShare
 import xx.steps.steps.SyncState
 import xx.steps.steps.foldReading
 import xx.steps.steps.spreadOverSlots
+import xx.steps.reachesNearGoal
 import xx.steps.toIso
 import xx.steps.uptimeMillis
 import java.time.LocalDate
 import java.time.LocalTime
+
+/**
+ * What one folded reading did to the day: the steps credited, and whether they were the ones that
+ * brought the day within reach of its goal — see `reachesNearGoal`.
+ */
+data class RecordedReading(val addedSteps: Int, val nearGoalReached: Boolean)
 
 /** Reads and writes the step history. The counting rule itself is in `steps/StepSync.kt`. */
 class StepsRepository(private val database: AppDatabase) {
@@ -38,7 +45,7 @@ class StepsRepository(private val database: AppDatabase) {
         dao.observeRange(first.toIso(), first.plusDays(days - 1L).toIso())
 
     /**
-     * Folds one cumulative counter reading into [today]'s row and returns the steps credited.
+     * Folds one cumulative counter reading into [today]'s row and returns what it did to the day.
      *
      * The day and the new baseline are written in one transaction: were the baseline to move
      * without the steps landing (or the other way round), the next reading would count them twice
@@ -67,13 +74,17 @@ class StepsRepository(private val database: AppDatabase) {
         nowMillis: Long = uptimeMillis,
         credit: Boolean = true,
         now: LocalTime = LocalTime.now(),
-    ): Int = database.withTransaction {
+    ): RecordedReading = database.withTransaction {
         val previous = dao.syncState(SYNC_STATE_ID)?.let { SyncState(it.lastRaw, it.lastUptimeMillis) }
         val outcome = foldReading(previous, rawCount, uptimeMillis, nowMillis)
 
+        var nearGoal = false
         if (credit && outcome.addedSteps > 0) {
             val iso = today.toIso()
             val existing = dao.dayRow(iso)
+            val before = existing?.steps ?: 0
+            // The day's own goal, which is the one its ring is drawn against.
+            nearGoal = reachesNearGoal(before, before + outcome.addedSteps, existing?.goal ?: goal)
             dao.upsertDay(
                 existing?.copy(steps = existing.steps + outcome.addedSteps)
                     ?: DaySteps(date = iso, steps = outcome.addedSteps, goal = goal),
@@ -86,7 +97,7 @@ class StepsRepository(private val database: AppDatabase) {
             val fromMinute = toMinute - (outcome.windowMillis / MILLIS_PER_MINUTE).toInt()
             addSlots(
                 iso,
-                stepsBefore = existing?.steps ?: 0,
+                stepsBefore = before,
                 shares = spreadOverSlots(outcome.addedSteps, fromMinute, toMinute),
             )
         }
@@ -98,7 +109,7 @@ class StepsRepository(private val database: AppDatabase) {
                 lastUptimeMillis = outcome.newState.lastUptimeMillis,
             ),
         )
-        outcome.addedSteps
+        RecordedReading(outcome.addedSteps, nearGoal)
     }
 
     /**

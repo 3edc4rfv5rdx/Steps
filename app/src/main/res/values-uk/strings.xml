@@ -33,6 +33,8 @@
     <string name="unit_m">м</string>
     <!-- Settings -->
     <string name="setting_goal">Денна ціль, кроків</string>
+    <string name="setting_near_goal_sound">Звук перед ціллю</string>
+    <string name="setting_near_goal_sound_hint">При %1$d%% цілі, %2$s кроків</string>
     <string name="setting_step_length">Довжина кроку, см</string>
     <string name="setting_theme">Тема</string>
     <string name="setting_accent">Колір</string>

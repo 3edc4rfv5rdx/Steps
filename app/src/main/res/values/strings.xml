@@ -33,6 +33,8 @@
     <string name="unit_m">m</string>
     <!-- Settings -->
     <string name="setting_goal">Daily goal, steps</string>
+    <string name="setting_near_goal_sound">Sound before the goal</string>
+    <string name="setting_near_goal_sound_hint">At %1$d%% of the goal, %2$s steps</string>
     <string name="setting_step_length">Step length, cm</string>
     <string name="setting_theme">Theme</string>
     <string name="setting_accent">Color</string>

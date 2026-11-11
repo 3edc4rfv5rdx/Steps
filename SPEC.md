@@ -158,7 +158,7 @@ app/src/main/java/xx/steps/
   data/ZipBackup.kt        ZIP holding the database file, plus restore; a port of BikeTracker's
                            Backup.kt and DatabaseRestoreCoordinator. Restores the days and their
                            breakdown, keeping only the rows usableRows() can prove are readable
-  settings/AppSettings.kt  object with StateFlows: goal, step length, paused, demo, themeMode,
+  settings/AppSettings.kt  object with StateFlows: goal, step length, paused, near-goal sound, demo, themeMode,
                            accentIndex
   settings/PowerSettings.kt whether the app is exempt from battery optimisation, and the intent
                            that asks for it or gives it back. Nothing here counts steps; what the
@@ -279,7 +279,10 @@ for a past day. Under the chart: the day's total with its distance, the goal and
 it, the busiest stretch, and the hours between the first steps and the last. A day recorded before
 the breakdown existed shows its total and says it has none.
 
-**Settings.** Daily goal (a row plus an input dialog, 500–100 000); background work, a row showing
+**Settings.** Daily goal (a row plus an input dialog, 500–100 000); a switch, on by default, for
+the one sound the app makes — the phone's notification sound, played once a day on the reading
+that takes the steps past 85 % of that day's goal (1 500 short of 10 000), on the notification
+stream so volume and silent mode apply, and not at all when one reading jumps past the goal itself; background work, a row showing
 whether the app is exempt from battery optimisation and leading to the system dialog that grants it
 or the list that takes it back — a restricted app is woken to read the counter less often, which
 costs the day its shape rather than its steps; step length in centimetres,

@@ -48,6 +48,23 @@ fun clampGoal(steps: Int): Int = steps.coerceIn(MIN_GOAL, MAX_GOAL)
 fun percentOfGoal(steps: Int, goal: Int): Int =
     if (goal > 0) (steps.toFloat() / goal * 100).roundToInt() else 0
 
+/** Share of the goal walked when the "almost there" sound plays: 1 500 steps short of 10 000. */
+const val NEAR_GOAL_PERCENT = 85
+
+/** The step count at which [goal] counts as almost reached. */
+fun nearGoalMark(goal: Int): Int = goal * NEAR_GOAL_PERCENT / 100
+
+/**
+ * Whether a reading that took the day from [before] to [after] steps is the one that came within
+ * reach of [goal]. Crossing the mark is what counts, so a day sounds once however many readings
+ * follow; a reading that jumps past the goal itself stays silent, since nothing is left to announce.
+ */
+fun reachesNearGoal(before: Int, after: Int, goal: Int): Boolean {
+    if (goal <= 0) return false
+    val mark = nearGoalMark(goal)
+    return before < mark && after >= mark && after < goal
+}
+
 /** Days in a week — the bars under the ring show the current one, Monday through Sunday. */
 const val WEEK_DAYS = 7
 
