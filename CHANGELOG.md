@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- F: History's Today button lays the tree out by month and the Weeks button shows this year's weeks closed; the week span reads 09–15.08 inside one month
 - R: The unused action_ok string is gone from all three locales
 - N: A week button beside Today in History opens each year onto its weeks, the current one included, with each week's number, dates and total
 - E: History's Today and Collapse all buttons no longer go dead after a touch interrupts the scroll to today

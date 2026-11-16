@@ -8,7 +8,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
  * flow rather than lifting the whole tree state up.
  */
 object HistoryCommands {
-    enum class Command { OPEN_TODAY, COLLAPSE_ALL }
+    /**
+     * OPEN_TODAY lays the tree out by month and opens today's month; SHOW_WEEKS lays it out by
+     * week with this year's weeks closed; COLLAPSE_ALL closes everything in whichever layout.
+     */
+    enum class Command { OPEN_TODAY, SHOW_WEEKS, COLLAPSE_ALL }
 
     val commands = MutableSharedFlow<Command>(extraBufferCapacity = 1)
 

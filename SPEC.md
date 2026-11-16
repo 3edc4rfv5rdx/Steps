@@ -176,7 +176,7 @@ app/src/main/java/xx/steps/
   ui/HistoryModel.kt       buildHistoryTree(), historyTotals() and visibleKeys(): the grouping, the
                            calendar-period totals and the rows on show, free of Compose and covered
                            by JVM tests
-  ui/HistoryCommands.kt    the top bar's Today and Collapse buttons reach the tree through this, since the
+  ui/HistoryCommands.kt    the top bar's History buttons reach the tree through this, since the
                            buttons live in the activity and the expansion state in the screen
   ui/SettingsScreen.kt     goal, step length, background work, theme, accent, language, CSV and ZIP
   ui/DayModel.kt           ChartView, zoomedView() and gridHours(): the stretch of the day on
@@ -262,12 +262,12 @@ reader would only fold the same made-up value twice.
 **History.** An expandable year → month → day tree (a day is a leaf). Expansion state survives
 rotation and Back collapses one level — the mechanics of `history/HistoryScreen.kt:398` in
 BikeTracker (`groupByDate`, `orderedItemKeys`, `expanded`), one level shorter. Year and month rows
-carry the total and the distance it comes to. A week button beside Today in the top bar, lit while
-on and remembered in the settings, swaps the month level for weeks: year → week → day, each week
-row its number, its first and last date, and its total — the current week included, over the days
-it has so far. Weeks start and are numbered as the locale has it, and are filed under their
-week-based year, so a week across New Year is never cut in two. Switching reopens the tree on
-today. A totals card sits on
+carry the total and the distance it comes to. Two top-bar buttons pick the layout: Today lays the tree
+out by month and opens today's month, Weeks lays it out year → week → day with this year's weeks
+all closed. Each week row is its number, its dates ("09–15.08", or "29.09–05.10" across a month
+end), and its total — the current week included, over the days it has so far. Weeks start and are
+numbered as the locale has it, and are filed under their week-based year, so a week across New
+Year is never cut in two. The layout is not remembered: History opens by month. A totals card sits on
 top: week / month / year / all time. Days that met their goal are marked by the color of the
 number — against the goal stored in that day's row. A tap on a day opens its breakdown, and marks
 that day with an outline of the accent until another day is opened; today wears the same band

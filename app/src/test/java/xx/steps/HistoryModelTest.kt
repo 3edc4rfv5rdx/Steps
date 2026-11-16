@@ -188,4 +188,10 @@ class HistoryModelTest {
         assertEquals(listOf("y2026", "y2026-w35", "y2026-w35-m8-d25"), path)
         assertEquals(listOf(tree[0].key, tree[0].groups[0].key, tree[0].groups[0].days[0].key), path)
     }
+
+    @Test
+    fun `a week span names the month once unless the week crosses into the next`() {
+        assertEquals("09–15.08", formatWeekSpan(LocalDate.of(2027, 8, 9)))
+        assertEquals("29.09–05.10", formatWeekSpan(LocalDate.of(2025, 9, 29)))
+    }
 }

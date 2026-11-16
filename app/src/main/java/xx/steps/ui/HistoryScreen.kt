@@ -71,7 +71,9 @@ fun HistoryScreen() {
     // Re-read on the same tick the Today tab uses: the tree is the day list and does not move at
     // midnight, but which periods the totals cover and which row wears the band both do.
     val today by rememberCurrentDate()
-    val byWeek by AppSettings.historyByWeek.collectAsState()
+    // Months or weeks under each year. Set by the top bar's Today and Weeks buttons, and saved with
+    // the open nodes, so a rotation keeps both the layout and what is open in it.
+    var byWeek by rememberSaveable { mutableStateOf(false) }
     val years = remember(recorded, byWeek) { buildHistoryTree(recorded, byWeek) }
     val totals = remember(recorded, today) { historyTotals(recorded, today) }
     val stepLength by AppSettings.stepLengthCm.collectAsState()
@@ -88,12 +90,11 @@ fun HistoryScreen() {
     // The command collector below runs for the life of the screen, so what it reads has to be read
     // through rememberUpdatedState: a tab left open across midnight must open onto the new today,
     // not the one that was current when the collector started.
-    val currentYears by rememberUpdatedState(years)
+    val currentRecorded by rememberUpdatedState(recorded)
     val currentToday by rememberUpdatedState(today)
-    val currentByWeek by rememberUpdatedState(byWeek)
 
     fun openToday() {
-        val path = pathToDay(currentToday, currentByWeek)
+        val path = pathToDay(currentToday, byWeek)
         expanded.addAll(path.dropLast(1).filterNot(expanded::contains))
     }
 
@@ -102,23 +103,16 @@ fun HistoryScreen() {
         if (years.isNotEmpty() && expanded.isEmpty()) openToday()
     }
 
-    // Switching between months and weeks starts the tree over on today's branch: the open nodes of
-    // the other layout would only linger unseen, and Back would spend its presses closing them.
-    // The layout last shown is saved with the open nodes, so a rotation is not taken for a switch.
-    var shownByWeek by rememberSaveable { mutableStateOf(byWeek) }
-    LaunchedEffect(byWeek) {
-        if (byWeek != shownByWeek) {
-            shownByWeek = byWeek
-            expanded.clear()
-            openToday()
-        }
-    }
-
     // The scroll to today runs beside the collector, never inside it: a finger on the list cancels
     // the animation by throwing CancellationException, and thrown from inside collect that ended the
     // collector for good, leaving both top-bar buttons dead until the tab was left.
     val scrollScope = rememberCoroutineScope()
     var scrollJob by remember { mutableStateOf<Job?>(null) }
+
+    fun scrollTo(index: Int) {
+        scrollJob?.cancel()
+        scrollJob = scrollScope.launch { listState.animateScrollToItem(index) }
+    }
 
     // The top bar owns the buttons; the tree owns the state, so taps arrive as commands.
     LaunchedEffect(Unit) {
@@ -126,13 +120,25 @@ fun HistoryScreen() {
             when (command) {
                 HistoryCommands.Command.COLLAPSE_ALL -> expanded.clear()
                 HistoryCommands.Command.OPEN_TODAY -> {
-                    openToday()
-                    val todayKey = pathToDay(currentToday, currentByWeek).last()
-                    val index = visibleKeys(currentYears, expanded).indexOf(todayKey)
-                    if (index >= 0) {
-                        scrollJob?.cancel()
-                        scrollJob = scrollScope.launch { listState.animateScrollToItem(index + HEADER_ITEMS) }
+                    // Leaving the weeks starts the months over: open week keys would only linger
+                    // unseen, and Back would spend its presses closing them.
+                    if (byWeek) {
+                        byWeek = false
+                        expanded.clear()
                     }
+                    openToday()
+                    // Built here rather than read from the screen: a switch out of the weeks has
+                    // not been composed yet, and the index has to be the one about to be laid out.
+                    val tree = buildHistoryTree(currentRecorded, byWeek = false)
+                    val index = visibleKeys(tree, expanded).indexOf(pathToDay(currentToday).last())
+                    if (index >= 0) scrollTo(index + HEADER_ITEMS)
+                }
+                HistoryCommands.Command.SHOW_WEEKS -> {
+                    byWeek = true
+                    expanded.clear()
+                    // The year of the current week, open onto its weeks, every week closed.
+                    expanded.add(pathToDay(currentToday, byWeek = true).first())
+                    scrollTo(0)
                 }
             }
         }

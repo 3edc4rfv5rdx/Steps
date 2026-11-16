@@ -257,11 +257,18 @@ fun formatDayLabel(date: LocalDate): String =
  */
 private val MONTH_LABEL: DateTimeFormatter = DateTimeFormatter.ofPattern("LLLL")
 
-/** A week's span in the history tree, e.g. "10.11–16.11": short enough to share a row with its total. */
+/**
+ * A week's span in the history tree, short enough to share a row with its total: "09–15.08" inside
+ * one month, "29.09–05.10" across two, where the first day needs its own month.
+ */
 private val WEEK_EDGE_LABEL: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM")
+private val WEEK_START_DAY_LABEL: DateTimeFormatter = DateTimeFormatter.ofPattern("dd")
 
-fun formatWeekSpan(start: LocalDate): String =
-    start.format(WEEK_EDGE_LABEL) + "–" + start.plusDays(WEEK_DAYS - 1L).format(WEEK_EDGE_LABEL)
+fun formatWeekSpan(start: LocalDate): String {
+    val end = start.plusDays(WEEK_DAYS - 1L)
+    val first = if (start.month == end.month) WEEK_START_DAY_LABEL else WEEK_EDGE_LABEL
+    return start.format(first) + "–" + end.format(WEEK_EDGE_LABEL)
+}
 
 fun formatMonthName(month: YearMonth): String =
     month.format(MONTH_LABEL.withLocale(Locale.getDefault()))
