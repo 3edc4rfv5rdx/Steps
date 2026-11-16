@@ -30,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.listSaver
@@ -46,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import xx.steps.R
 import xx.steps.data.StepsRepository
 import xx.steps.formatDayLabel
@@ -96,6 +99,12 @@ fun HistoryScreen() {
         if (years.isNotEmpty() && expanded.isEmpty()) openToday()
     }
 
+    // The scroll to today runs beside the collector, never inside it: a finger on the list cancels
+    // the animation by throwing CancellationException, and thrown from inside collect that ended the
+    // collector for good, leaving both top-bar buttons dead until the tab was left.
+    val scrollScope = rememberCoroutineScope()
+    var scrollJob by remember { mutableStateOf<Job?>(null) }
+
     // The top bar owns the buttons; the tree owns the state, so taps arrive as commands.
     LaunchedEffect(Unit) {
         HistoryCommands.commands.collect { command ->
@@ -104,7 +113,10 @@ fun HistoryScreen() {
                 HistoryCommands.Command.OPEN_TODAY -> {
                     openToday()
                     val index = visibleKeys(currentYears, expanded).indexOf(pathToDay(currentToday).last())
-                    if (index >= 0) listState.animateScrollToItem(index + HEADER_ITEMS)
+                    if (index >= 0) {
+                        scrollJob?.cancel()
+                        scrollJob = scrollScope.launch { listState.animateScrollToItem(index + HEADER_ITEMS) }
+                    }
                 }
             }
         }

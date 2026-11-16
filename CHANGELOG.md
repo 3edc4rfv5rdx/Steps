@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- E: History's Today and Collapse all buttons no longer go dead after a touch interrupts the scroll to today
 - F: The About and update dialogs take the accent picked in Settings instead of a fixed colour
 ## v0.5.85 (2026-11-11)
 - I: One universal APK instead of ABI splits — the only native code is a few KB, so the splits saved nothing
