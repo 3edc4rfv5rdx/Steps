@@ -55,7 +55,6 @@
     <string name="history_week">Нед</string>
     <string name="action_collapse">Свернуть все</string>
     <string name="about_title">О программе</string>
-    <string name="action_ok">OK</string>
     <!-- Export and import -->
     <string name="setting_export_csv">Экспорт CSV</string>
     <string name="setting_import_csv">Импорт CSV</string>

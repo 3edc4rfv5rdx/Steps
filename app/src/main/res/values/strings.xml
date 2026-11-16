@@ -55,7 +55,6 @@
     <string name="history_week">Wk</string>
     <string name="action_collapse">Collapse all</string>
     <string name="about_title">About</string>
-    <string name="action_ok">OK</string>
     <!-- Export and import -->
     <string name="setting_export_csv">Export CSV</string>
     <string name="setting_import_csv">Import CSV</string>
