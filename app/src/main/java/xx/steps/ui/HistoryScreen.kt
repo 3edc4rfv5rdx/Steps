@@ -54,13 +54,14 @@ import xx.steps.data.StepsRepository
 import xx.steps.formatDayLabel
 import xx.steps.formatMonthName
 import xx.steps.formatSteps
+import xx.steps.formatWeekSpan
 import xx.steps.settings.AppSettings
 import java.time.LocalDate
 
 /** Items the list renders before the tree starts — the totals card. Scrolling offsets by this. */
 private const val HEADER_ITEMS = 1
 
-/** Expandable year > month > day tree of past days, with period totals on top. */
+/** Expandable year > month (or week) > day tree of past days, with period totals on top. */
 @Composable
 fun HistoryScreen() {
     val context = LocalContext.current
@@ -70,7 +71,8 @@ fun HistoryScreen() {
     // Re-read on the same tick the Today tab uses: the tree is the day list and does not move at
     // midnight, but which periods the totals cover and which row wears the band both do.
     val today by rememberCurrentDate()
-    val years = remember(recorded) { buildHistoryTree(recorded) }
+    val byWeek by AppSettings.historyByWeek.collectAsState()
+    val years = remember(recorded, byWeek) { buildHistoryTree(recorded, byWeek) }
     val totals = remember(recorded, today) { historyTotals(recorded, today) }
     val stepLength by AppSettings.stepLengthCm.collectAsState()
 
@@ -88,15 +90,28 @@ fun HistoryScreen() {
     // not the one that was current when the collector started.
     val currentYears by rememberUpdatedState(years)
     val currentToday by rememberUpdatedState(today)
+    val currentByWeek by rememberUpdatedState(byWeek)
 
     fun openToday() {
-        val path = pathToDay(currentToday)
+        val path = pathToDay(currentToday, currentByWeek)
         expanded.addAll(path.dropLast(1).filterNot(expanded::contains))
     }
 
     // Open onto today's branch the first time there is anything to open.
     LaunchedEffect(years.isNotEmpty()) {
         if (years.isNotEmpty() && expanded.isEmpty()) openToday()
+    }
+
+    // Switching between months and weeks starts the tree over on today's branch: the open nodes of
+    // the other layout would only linger unseen, and Back would spend its presses closing them.
+    // The layout last shown is saved with the open nodes, so a rotation is not taken for a switch.
+    var shownByWeek by rememberSaveable { mutableStateOf(byWeek) }
+    LaunchedEffect(byWeek) {
+        if (byWeek != shownByWeek) {
+            shownByWeek = byWeek
+            expanded.clear()
+            openToday()
+        }
     }
 
     // The scroll to today runs beside the collector, never inside it: a finger on the list cancels
@@ -112,7 +127,8 @@ fun HistoryScreen() {
                 HistoryCommands.Command.COLLAPSE_ALL -> expanded.clear()
                 HistoryCommands.Command.OPEN_TODAY -> {
                     openToday()
-                    val index = visibleKeys(currentYears, expanded).indexOf(pathToDay(currentToday).last())
+                    val todayKey = pathToDay(currentToday, currentByWeek).last()
+                    val index = visibleKeys(currentYears, expanded).indexOf(todayKey)
                     if (index >= 0) {
                         scrollJob?.cancel()
                         scrollJob = scrollScope.launch { listState.animateScrollToItem(index + HEADER_ITEMS) }
@@ -168,20 +184,20 @@ fun HistoryScreen() {
             }
 
             if (year.key in expanded) {
-                year.months.forEach { month ->
-                    item(key = month.key) {
+                year.groups.forEach { group ->
+                    item(key = group.key) {
                         TreeRow(
-                            label = formatMonthName(month.month),
-                            steps = month.steps,
+                            label = periodLabel(group.period),
+                            steps = group.steps,
                             stepLengthCm = stepLength,
                             depth = 1,
-                            expanded = month.key in expanded,
-                            onClick = { toggle(month.key) },
+                            expanded = group.key in expanded,
+                            onClick = { toggle(group.key) },
                         )
                     }
 
-                    if (month.key in expanded) {
-                        items(month.days, key = { it.key }) { day ->
+                    if (group.key in expanded) {
+                        items(group.days, key = { it.key }) { day ->
                             DayRow(
                                 day = day,
                                 stepLengthCm = stepLength,
@@ -305,7 +321,14 @@ private fun StepsAndDistance(
     }
 }
 
-/** A year or a month: chevron, name, steps, distance. Kept tight — the tree is a list to scan. */
+/** "Август", or "Нед 35 · 24.08–30.08" — a week's number and the days it covers. */
+@Composable
+private fun periodLabel(period: Period): String = when (period) {
+    is Period.Month -> formatMonthName(period.month)
+    is Period.Week -> stringResource(R.string.history_week) + " " + period.number + " · " + formatWeekSpan(period.start)
+}
+
+/** A year, a month or a week: chevron, name, steps, distance. Kept tight — the tree is a list to scan. */
 @Composable
 private fun TreeRow(
     label: String,

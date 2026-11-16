@@ -3,6 +3,7 @@
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
 ## Unreleased
+- N: A week button beside Today in History opens each year onto its weeks, the current one included, with each week's number, dates and total
 - E: History's Today and Collapse all buttons no longer go dead after a touch interrupts the scroll to today
 - F: The About and update dialogs take the accent picked in Settings instead of a fixed colour
 ## v0.5.85 (2026-11-11)

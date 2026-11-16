@@ -51,6 +51,8 @@
     <string name="cancel">Cancel</string>
     <string name="confirm">Confirm</string>
     <string name="action_today">Today</string>
+    <string name="action_weeks">By week</string>
+    <string name="history_week">Wk</string>
     <string name="action_collapse">Collapse all</string>
     <string name="about_title">About</string>
     <string name="action_ok">OK</string>

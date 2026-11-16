@@ -172,11 +172,11 @@ app/src/main/java/xx/steps/
                            the whole ring is the control
   ui/WeekBars.kt           buildWeekBars(): the seven bars of the calendar week, gaps filled, free
                            of Compose and covered by JVM tests; and the canvas that draws them
-  ui/HistoryScreen.kt      year → month → day tree with period totals
+  ui/HistoryScreen.kt      year → month (or week) → day tree with period totals
   ui/HistoryModel.kt       buildHistoryTree(), historyTotals() and visibleKeys(): the grouping, the
                            calendar-period totals and the rows on show, free of Compose and covered
                            by JVM tests
-  ui/HistoryCommands.kt    the top bar's two History buttons reach the tree through this, since the
+  ui/HistoryCommands.kt    the top bar's Today and Collapse buttons reach the tree through this, since the
                            buttons live in the activity and the expansion state in the screen
   ui/SettingsScreen.kt     goal, step length, background work, theme, accent, language, CSV and ZIP
   ui/DayModel.kt           ChartView, zoomedView() and gridHours(): the stretch of the day on
@@ -262,7 +262,12 @@ reader would only fold the same made-up value twice.
 **History.** An expandable year → month → day tree (a day is a leaf). Expansion state survives
 rotation and Back collapses one level — the mechanics of `history/HistoryScreen.kt:398` in
 BikeTracker (`groupByDate`, `orderedItemKeys`, `expanded`), one level shorter. Year and month rows
-carry the total and the distance it comes to. A totals card sits on
+carry the total and the distance it comes to. A week button beside Today in the top bar, lit while
+on and remembered in the settings, swaps the month level for weeks: year → week → day, each week
+row its number, its first and last date, and its total — the current week included, over the days
+it has so far. Weeks start and are numbered as the locale has it, and are filed under their
+week-based year, so a week across New Year is never cut in two. Switching reopens the tree on
+today. A totals card sits on
 top: week / month / year / all time. Days that met their goal are marked by the color of the
 number — against the goal stored in that day's row. A tap on a day opens its breakdown, and marks
 that day with an outline of the accent until another day is opened; today wears the same band

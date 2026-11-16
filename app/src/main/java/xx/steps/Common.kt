@@ -74,7 +74,13 @@ const val WEEK_DAYS = 7
  * week" means.
  */
 fun startOfWeek(date: LocalDate): LocalDate =
-    date.with(WeekFields.of(Locale.getDefault()).dayOfWeek(), 1)
+    date.with(localeWeek().dayOfWeek(), 1)
+
+/**
+ * The user's locale's week rules: which day starts it, and how weeks are numbered. Week starts and
+ * week numbers both come from here, so the history's weeks begin where the week bars do.
+ */
+fun localeWeek(): WeekFields = WeekFields.of(Locale.getDefault())
 
 /** Time arithmetic, named where a bare 60 would not say which unit is being converted. */
 const val SECONDS_PER_MINUTE = 60
@@ -250,6 +256,12 @@ fun formatDayLabel(date: LocalDate): String =
  * The standalone pattern letter matters for Russian and Ukrainian: "август", not "августа".
  */
 private val MONTH_LABEL: DateTimeFormatter = DateTimeFormatter.ofPattern("LLLL")
+
+/** A week's span in the history tree, e.g. "10.11–16.11": short enough to share a row with its total. */
+private val WEEK_EDGE_LABEL: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM")
+
+fun formatWeekSpan(start: LocalDate): String =
+    start.format(WEEK_EDGE_LABEL) + "–" + start.plusDays(WEEK_DAYS - 1L).format(WEEK_EDGE_LABEL)
 
 fun formatMonthName(month: YearMonth): String =
     month.format(MONTH_LABEL.withLocale(Locale.getDefault()))

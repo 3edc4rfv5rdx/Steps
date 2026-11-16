@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.ViewWeek
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -85,11 +86,14 @@ import xx.steps.ui.TodayScreen
 
 /**
  * One bar across the top of every screen: the current tab's name, plus whatever that tab can do —
- * only History has actions, and they reach it through [HistoryCommands].
+ * only History has actions: the week switch is a setting, the other two reach the tree through
+ * [HistoryCommands].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppTopBar(tab: Tab, demo: Boolean, onDemo: () -> Unit, onAbout: () -> Unit) {
+    val context = LocalContext.current
+    val historyByWeek by AppSettings.historyByWeek.collectAsState()
     TopAppBar(
         title = { Text(stringResource(tab.labelRes)) },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -121,6 +125,15 @@ private fun AppTopBar(tab: Tab, demo: Boolean, onDemo: () -> Unit, onAbout: () -
                 }
             }
             if (tab == Tab.HISTORY) {
+                // Lit while the tree is grouped by week, dimmed while it is by month — the demo
+                // button's convention, so one glyph both switches and says which way it is.
+                IconButton(onClick = { AppSettings.setHistoryByWeek(context, !historyByWeek) }) {
+                    Icon(
+                        imageVector = Icons.Filled.ViewWeek,
+                        contentDescription = stringResource(R.string.action_weeks),
+                        tint = Color.White.copy(alpha = if (historyByWeek) 1f else DIMMED_ACTION_ALPHA),
+                    )
+                }
                 IconButton(onClick = { HistoryCommands.send(HistoryCommands.Command.OPEN_TODAY) }) {
                     Icon(
                         imageVector = Icons.Filled.Today,

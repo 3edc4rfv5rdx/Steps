@@ -51,6 +51,8 @@
     <string name="cancel">Отмена</string>
     <string name="confirm">Подтвердить</string>
     <string name="action_today">Сегодня</string>
+    <string name="action_weeks">По неделям</string>
+    <string name="history_week">Нед</string>
     <string name="action_collapse">Свернуть все</string>
     <string name="about_title">О программе</string>
     <string name="action_ok">OK</string>

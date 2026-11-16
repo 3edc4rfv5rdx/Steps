@@ -3,19 +3,33 @@ package xx.steps
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import xx.steps.data.DaySteps
+import xx.steps.ui.Period
 import xx.steps.ui.buildHistoryTree
 import xx.steps.ui.historyTotals
 import xx.steps.ui.pathToDay
 import java.time.LocalDate
 import java.time.YearMonth
+import java.util.Locale
 
 /** Grouping recorded days into the history tree, and the calendar totals above it. */
 class HistoryModelTest {
 
     /** A Tuesday, so the locale's week start is a day or two back rather than today. */
     private val today = LocalDate.of(2026, 8, 25)
+
+    private val savedLocale = Locale.getDefault()
+
+    // Weeks start and are numbered by the locale; ISO rules (Monday, the week holding the first
+    // Thursday is week 1) are what Russian and Ukrainian use.
+    @Before
+    fun isoWeeks() = Locale.setDefault(Locale.forLanguageTag("ru-RU"))
+
+    @After
+    fun restoreLocale() = Locale.setDefault(savedLocale)
 
     private fun row(date: LocalDate, steps: Int, goal: Int = 8_000) =
         DaySteps(date = date.toIso(), steps = steps, goal = goal)
@@ -50,10 +64,10 @@ class HistoryModelTest {
         )
 
         assertEquals(listOf(2026, 2025), tree.map { it.year })
-        assertEquals(listOf(YearMonth.of(2026, 8), YearMonth.of(2026, 1)), tree[0].months.map { it.month })
+        assertEquals(listOf(Period.Month(YearMonth.of(2026, 8)), Period.Month(YearMonth.of(2026, 1))), tree[0].groups.map { it.period })
         assertEquals(
             listOf(LocalDate.of(2026, 8, 25), LocalDate.of(2026, 8, 24)),
-            tree[0].months[0].days.map { it.date },
+            tree[0].groups[0].days.map { it.date },
         )
     }
 
@@ -67,7 +81,7 @@ class HistoryModelTest {
             ),
         )
 
-        assertEquals(7_000, tree[0].months[0].steps)
+        assertEquals(7_000, tree[0].groups[0].steps)
         assertEquals(12_000, tree[0].steps)
     }
 
@@ -80,7 +94,7 @@ class HistoryModelTest {
             ),
         )
 
-        val days = tree[0].months[0].days
+        val days = tree[0].groups[0].days
         assertFalse(days[0].reached) // 25th: 7 000 against a 12 000 goal
         assertTrue(days[1].reached) // 24th: 7 000 against a 6 000 goal
     }
@@ -130,7 +144,48 @@ class HistoryModelTest {
         val path = pathToDay(today)
 
         assertEquals(tree[0].key, path[0])
-        assertEquals(tree[0].months[0].key, path[1])
-        assertEquals(tree[0].months[0].days[0].key, path[2])
+        assertEquals(tree[0].groups[0].key, path[1])
+        assertEquals(tree[0].groups[0].days[0].key, path[2])
+    }
+
+    @Test
+    fun `by week a year opens onto its weeks with their sums and the current week counts`() {
+        val tree = buildHistoryTree(
+            listOf(
+                row(today, 4_000), // Tue 25 Aug, the current week 35
+                row(LocalDate.of(2026, 8, 24), 3_000), // Mon, same week
+                row(LocalDate.of(2026, 8, 23), 5_000), // Sun, week 34
+            ),
+            byWeek = true,
+        )
+
+        assertEquals(
+            listOf(Period.Week(35, LocalDate.of(2026, 8, 24)), Period.Week(34, LocalDate.of(2026, 8, 17))),
+            tree[0].groups.map { it.period },
+        )
+        assertEquals(listOf(7_000, 5_000), tree[0].groups.map { it.steps })
+        assertEquals(12_000, tree[0].steps)
+    }
+
+    @Test
+    fun `a week across New Year stays whole under its week-based year`() {
+        // Thu 1 Jan 2026 makes 29 Dec 2025 to 4 Jan 2026 week 1 of 2026.
+        val tree = buildHistoryTree(
+            listOf(row(LocalDate.of(2025, 12, 30), 1_000), row(LocalDate.of(2026, 1, 2), 2_000)),
+            byWeek = true,
+        )
+
+        assertEquals(listOf(2026), tree.map { it.year })
+        assertEquals(listOf(Period.Week(1, LocalDate.of(2025, 12, 29))), tree[0].groups.map { it.period })
+        assertEquals(3_000, tree[0].groups[0].steps)
+    }
+
+    @Test
+    fun `the path to a day by week matches the keys the tree builds`() {
+        val tree = buildHistoryTree(listOf(row(today, 1_000)), byWeek = true)
+        val path = pathToDay(today, byWeek = true)
+
+        assertEquals(listOf("y2026", "y2026-w35", "y2026-w35-m8-d25"), path)
+        assertEquals(listOf(tree[0].key, tree[0].groups[0].key, tree[0].groups[0].days[0].key), path)
     }
 }
